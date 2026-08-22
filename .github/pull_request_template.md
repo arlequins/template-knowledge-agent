@@ -1,6 +1,6 @@
 ## Summary
 
-- 
+- TODO
 
 ## Verification
 
@@ -14,4 +14,3 @@
 
 - [ ] No deployment impact.
 - [ ] AWS changes require a protected environment diff and reviewed-commit deployment.
-

@@ -25,4 +25,3 @@ body:
       description: Include relevant versions, provider, and deployment profile.
     validations:
       required: true
-

@@ -52,4 +52,3 @@ request publishes the tag, changelog, and GitHub release.
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Direct
 changes to `main` are not part of the normal workflow.
-

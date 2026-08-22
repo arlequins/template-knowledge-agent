@@ -40,4 +40,3 @@
 - Begin with project detection and symbol/route/data-model extraction; avoid a
   universal parser framework until the T3 contract has proved stable.
 - Candidates are Java/Spring, Ruby/Rails, and C#/ASP.NET.
-

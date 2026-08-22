@@ -45,4 +45,3 @@ docs: explain the live data tool boundary
 Release Please derives SemVer changes from commits merged to `main`. Do not edit
 `version.txt`, `.release-please-manifest.json`, or generated changelog entries by
 hand outside a release bootstrap or recovery.
-

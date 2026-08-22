@@ -182,4 +182,3 @@ provider usage, and cost are replayable. A daily batch job:
 
 User reactions are signals, not facts. Real-time fine-tuning is outside the
 initial scope.
-
