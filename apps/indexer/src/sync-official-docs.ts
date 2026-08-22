@@ -24,15 +24,76 @@ type OfficialSource = {
   versionPolicy: "latest" | "latest-major";
 };
 
+/**
+ * Network destinations are code-owned constants. The JSON catalog remains a
+ * public, reviewable description, but file contents can never introduce a new
+ * outbound request target at runtime.
+ */
+function approvedPagesFor(id: string): readonly string[] | undefined {
+  switch (id) {
+    case "react":
+      return [
+        "https://react.dev/learn",
+        "https://react.dev/reference/react",
+        "https://react.dev/versions",
+      ];
+    case "nextjs":
+      return [
+        "https://nextjs.org/docs/app",
+        "https://nextjs.org/docs/app/getting-started/project-structure",
+        "https://nextjs.org/docs/app/building-your-application/data-fetching",
+      ];
+    case "trpc":
+      return [
+        "https://trpc.io/docs",
+        "https://trpc.io/docs/server/procedures",
+        "https://trpc.io/docs/client/tanstack-react-query/setup",
+      ];
+    case "drizzle":
+      return [
+        "https://orm.drizzle.team/docs/get-started",
+        "https://orm.drizzle.team/docs/select",
+        "https://orm.drizzle.team/docs/migrations",
+      ];
+    case "zod":
+      return ["https://zod.dev/", "https://zod.dev/api"];
+    case "fumadocs":
+      return [
+        "https://www.fumadocs.dev/docs",
+        "https://www.fumadocs.dev/docs/mdx",
+        "https://www.fumadocs.dev/docs/headless/search",
+      ];
+    case "sst":
+      return ["https://sst.dev/docs/", "https://sst.dev/docs/component/aws/"];
+    case "turborepo":
+      return [
+        "https://turborepo.com/docs",
+        "https://turborepo.com/docs/crafting-your-repository/structuring-a-repository",
+      ];
+    case "pnpm":
+      return ["https://pnpm.io/workspaces", "https://pnpm.io/catalogs"];
+    case "hono":
+      return ["https://hono.dev/docs/", "https://hono.dev/docs/guides/rpc"];
+    default:
+      return undefined;
+  }
+}
+
 function isOfficialSource(value: unknown): value is OfficialSource {
   if (!value || typeof value !== "object") return false;
   const row = value as Record<string, unknown>;
+  const approvedPages =
+    typeof row.id === "string" ? approvedPagesFor(row.id) : undefined;
   return (
+    approvedPages !== undefined &&
     typeof row.allowedHost === "string" &&
+    new URL(approvedPages[0] ?? "https://invalid.example").hostname ===
+      row.allowedHost &&
     typeof row.id === "string" &&
     typeof row.package === "string" &&
     Array.isArray(row.pages) &&
-    row.pages.every((page) => typeof page === "string") &&
+    row.pages.length === approvedPages.length &&
+    row.pages.every((page, index) => page === approvedPages[index]) &&
     typeof row.title === "string" &&
     (row.versionPolicy === "latest" || row.versionPolicy === "latest-major")
   );
@@ -48,7 +109,14 @@ async function loadSources() {
   };
   if (!Array.isArray(parsed.sources) || !parsed.sources.every(isOfficialSource))
     throw new Error("Official knowledge source configuration is invalid");
-  return parsed.sources;
+  return parsed.sources.map((source) => ({
+    allowedHost: source.allowedHost,
+    id: source.id,
+    package: source.package,
+    pages: [...(approvedPagesFor(source.id) ?? [])],
+    title: source.title,
+    versionPolicy: source.versionPolicy,
+  }));
 }
 
 async function ownerId(workspaceId: string) {

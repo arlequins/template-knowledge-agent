@@ -22,7 +22,7 @@ export function officialHtmlToMarkdown(html: string) {
   const main = /<main\b[^>]*>([\s\S]*?)<\/main>/i.exec(html)?.[1] ?? html;
   return decodeEntities(
     main
-      .replace(/<(script|style|svg|nav|footer)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
+      .replace(/<(script|style|svg|nav|footer)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, " ")
       .replace(/<h1\b[^>]*>/gi, "\n# ")
       .replace(/<h2\b[^>]*>/gi, "\n## ")
       .replace(/<h3\b[^>]*>/gi, "\n### ")

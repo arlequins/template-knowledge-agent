@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { constants } from "node:fs";
+import { open, readdir } from "node:fs/promises";
 import { extname, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { createOpenAIEmbeddingProvider } from "@arlequins/agent-openai";
@@ -104,9 +105,20 @@ async function indexFile(input: {
   userId: string;
   workspaceId: string;
 }) {
-  const info = await stat(input.absolute);
-  if (info.size > MAX_FILE_BYTES) return "skipped" as const;
-  const content = await readFile(input.absolute, "utf8");
+  const handle = await open(
+    input.absolute,
+    constants.O_RDONLY | constants.O_NOFOLLOW,
+  );
+  let content: string;
+  let sizeBytes = 0;
+  try {
+    const info = await handle.stat();
+    if (!info.isFile() || info.size > MAX_FILE_BYTES) return "skipped" as const;
+    sizeBytes = info.size;
+    content = await handle.readFile({ encoding: "utf8" });
+  } finally {
+    await handle.close();
+  }
   if (content.includes("\0") || !content.trim()) return "skipped" as const;
   const path = relative(input.root, input.absolute).split(sep).join("/");
   const contentHash = createHash("sha256")
@@ -159,7 +171,7 @@ async function indexFile(input: {
           ? "text/markdown"
           : "text/plain",
         filename: path,
-        sizeBytes: info.size,
+        sizeBytes,
         sourceUri: `local-repository://${contentHash}/${path}`,
         status: "completed",
         uploadedByUserId: input.userId,
