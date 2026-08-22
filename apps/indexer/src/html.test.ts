@@ -7,6 +7,6 @@ describe("officialHtmlToMarkdown", () => {
       officialHtmlToMarkdown(
         "<nav>menu</nav ><main><h1>React &amp; UI</h1><p>Components</p><script>bad()</script ></main>",
       ),
-    ).toBe("# React & UI\nComponents");
+    ).toBe("# React & UI\n\nComponents");
   });
 });

@@ -17,6 +17,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
+  "dependencies": {
+    "parse5": "catalog:"
+  },
   "devDependencies": {
     "@arlequins/tsconfig": "workspace:*",
     "@types/node": "catalog:",

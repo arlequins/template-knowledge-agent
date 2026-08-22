@@ -1,14 +1,23 @@
+import { parse } from "parse5";
 import type { DocumentExtractionPort } from "./ports";
 
 const MAX_EXTRACTED_CHARACTERS = 1_000_000;
+const EXCLUDED_HTML_ELEMENTS = new Set(["script", "style"]);
+
+type HtmlNode = {
+  childNodes?: HtmlNode[];
+  nodeName: string;
+  value?: string;
+};
+
+function htmlNodeText(node: HtmlNode): string {
+  if (EXCLUDED_HTML_ELEMENTS.has(node.nodeName.toLowerCase())) return "";
+  if (node.nodeName === "#text") return node.value ?? "";
+  return (node.childNodes ?? []).map(htmlNodeText).join(" ");
+}
 
 function htmlToText(value: string) {
-  return value
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
+  return htmlNodeText(parse(value) as unknown as HtmlNode)
     .replace(/\s+/g, " ")
     .trim();
 }
