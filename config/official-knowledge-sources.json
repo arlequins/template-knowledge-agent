@@ -1,0 +1,108 @@
+{
+  "$schema": "../schemas/official-knowledge-sources.schema.json",
+  "sources": [
+    {
+      "id": "react",
+      "title": "React",
+      "package": "react",
+      "allowedHost": "react.dev",
+      "versionPolicy": "latest-major",
+      "pages": [
+        "https://react.dev/learn",
+        "https://react.dev/reference/react",
+        "https://react.dev/versions"
+      ]
+    },
+    {
+      "id": "nextjs",
+      "title": "Next.js",
+      "package": "next",
+      "allowedHost": "nextjs.org",
+      "versionPolicy": "latest-major",
+      "pages": [
+        "https://nextjs.org/docs/app",
+        "https://nextjs.org/docs/app/getting-started/project-structure",
+        "https://nextjs.org/docs/app/building-your-application/data-fetching"
+      ]
+    },
+    {
+      "id": "trpc",
+      "title": "tRPC",
+      "package": "@trpc/server",
+      "allowedHost": "trpc.io",
+      "versionPolicy": "latest-major",
+      "pages": [
+        "https://trpc.io/docs",
+        "https://trpc.io/docs/server/procedures",
+        "https://trpc.io/docs/client/tanstack-react-query/setup"
+      ]
+    },
+    {
+      "id": "drizzle",
+      "title": "Drizzle ORM",
+      "package": "drizzle-orm",
+      "allowedHost": "orm.drizzle.team",
+      "versionPolicy": "latest",
+      "pages": [
+        "https://orm.drizzle.team/docs/get-started",
+        "https://orm.drizzle.team/docs/select",
+        "https://orm.drizzle.team/docs/migrations"
+      ]
+    },
+    {
+      "id": "zod",
+      "title": "Zod",
+      "package": "zod",
+      "allowedHost": "zod.dev",
+      "versionPolicy": "latest-major",
+      "pages": ["https://zod.dev/", "https://zod.dev/api"]
+    },
+    {
+      "id": "fumadocs",
+      "title": "Fumadocs",
+      "package": "fumadocs-core",
+      "allowedHost": "www.fumadocs.dev",
+      "versionPolicy": "latest",
+      "pages": [
+        "https://www.fumadocs.dev/docs",
+        "https://www.fumadocs.dev/docs/mdx",
+        "https://www.fumadocs.dev/docs/headless/search"
+      ]
+    },
+    {
+      "id": "sst",
+      "title": "SST",
+      "package": "sst",
+      "allowedHost": "sst.dev",
+      "versionPolicy": "latest-major",
+      "pages": ["https://sst.dev/docs/", "https://sst.dev/docs/component/aws/"]
+    },
+    {
+      "id": "turborepo",
+      "title": "Turborepo",
+      "package": "turbo",
+      "allowedHost": "turborepo.com",
+      "versionPolicy": "latest-major",
+      "pages": [
+        "https://turborepo.com/docs",
+        "https://turborepo.com/docs/crafting-your-repository/structuring-a-repository"
+      ]
+    },
+    {
+      "id": "pnpm",
+      "title": "pnpm",
+      "package": "pnpm",
+      "allowedHost": "pnpm.io",
+      "versionPolicy": "latest-major",
+      "pages": ["https://pnpm.io/workspaces", "https://pnpm.io/catalogs"]
+    },
+    {
+      "id": "hono",
+      "title": "Hono",
+      "package": "hono",
+      "allowedHost": "hono.dev",
+      "versionPolicy": "latest",
+      "pages": ["https://hono.dev/docs/", "https://hono.dev/docs/guides/rpc"]
+    }
+  ]
+}

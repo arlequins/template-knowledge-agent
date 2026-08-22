@@ -3,3 +3,6 @@ contact_links:
   - name: Security vulnerability
     url: https://github.com/arlequins/template-knowledge-agent/security/advisories/new
     about: Report security issues privately.
+  - name: Ideas and questions
+    url: https://github.com/arlequins/template-knowledge-agent/discussions
+    about: Discuss usage, design proposals, and feature requests.

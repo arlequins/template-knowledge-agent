@@ -1,0 +1,29 @@
+{
+  "name": "@arlequins/knowledge-indexer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "bootstrap": "tsx src/bootstrap.ts",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "biome format .",
+    "index": "tsx src/index.ts",
+    "sync-official": "tsx src/sync-official-docs.ts",
+    "lint": "biome lint .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@arlequins/agent-openai": "workspace:*",
+    "@arlequins/db-backbone": "workspace:*",
+    "@arlequins/env": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@arlequins/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

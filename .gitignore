@@ -1,10 +1,55 @@
-.DS_Store
+# Private local knowledge, source snapshots, exports, and evaluations
+.local/
+private/
+corpus.local/
+*.local.json
+*.local.jsonl
+
+# Dependencies and package managers
+node_modules/
+.pnpm-store/
+.pnp
+.pnp.js
+
+# Environment and credentials
 .env
 .env.*
 !.env.example
-.sst/
-.turbo/
+!.env.localhost.example
+*.pem
+
+# Builds and tools
 .next/
-coverage/
+out/
+next-env.d.ts
+.sst/
+.open-next/
+.nitro/
+.output/
+.turbo/
+.cache/
+.tanstack/
 dist/
-node_modules/
+build/
+storybook-static/
+.vercel/
+
+# Tests and local data
+coverage/
+playwright-report/
+test-results/
+backups/
+
+# Editors and operating systems
+.DS_Store
+.expo/
+expo-env.d.ts
+apps/expo/.gitignore
+apps/expo/ios/
+apps/expo/android/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

@@ -1,54 +1,109 @@
 # template-knowledge-agent
 
-An AWS-first template for evidence-grounded chat over Fumadocs documentation,
-T3 monorepos, and approved live application data.
+An AWS-ready, provider-neutral template for evidence-grounded chat over
+Fumadocs documentation, T3 monorepos, approved live application data, and
+eventually legacy codebases.
 
-The project will expose three delivery surfaces backed by one conversation and
-knowledge core:
+The same conversation and knowledge core serves three delivery surfaces:
 
-- a small Google-authenticated chat application with conversation history;
-- an embeddable chat widget for approved websites; and
-- a remote MCP server for other applications and AI clients.
+- a Google-authenticated chat application with conversation history;
+- an origin-allowlisted embedded chat widget; and
+- an OAuth-protected remote MCP server.
+
+The first runnable profile is intentionally local: PostgreSQL stores
+conversations and indexed knowledge, while OpenAI provides chat completions and
+embeddings. Real documents, source snapshots, database exports, evaluation
+questions, and API keys belong in ignored local paths and are never part of the
+public template.
 
 ## Design priorities
 
-- Start with TypeScript and T3 monorepos; add legacy-language analyzers through
-  stable plugin contracts after the primary path is reliable.
-- Keep model providers replaceable through clean architecture adapters. Amazon
-  Bedrock is the intended production default, with Anthropic and Gemini
-  adapters available by policy.
-- Keep answers grounded in repository snapshots, source locations, and live
-  tool results.
-- Use Aurora PostgreSQL, PostgreSQL full-text search, and optional S3 Vectors;
-  do not require OpenSearch.
+- Start with TypeScript, T3, and Fumadocs; add Java, Ruby, and C# through stable
+  analyzer plugin contracts after the primary path is reliable.
+- Keep model providers replaceable through clean-architecture adapters. OpenAI
+  is the first hosted adapter; Amazon Bedrock is the intended AWS production
+  adapter, with Anthropic and Gemini available by policy.
+- Ground answers in repository locations, source excerpts, and live tool
+  results. If the available evidence is insufficient, say so.
+- Use PostgreSQL full-text and vector retrieval; OpenSearch is not required.
 - Read changing business data through allowlisted, read-only tRPC tools rather
   than generated SQL or page scraping.
-- Improve retrieval and answer quality through replayable daily evaluations,
-  not real-time fine-tuning.
+- Improve quality through replayable daily evaluations, not real-time
+  fine-tuning.
 
-## Current status
+## Stack
 
-The repository is in architecture and governance bootstrap. Implementation will
-begin with a T3/Fumadocs vertical slice before additional language analyzers are
-added.
+| Area | Technology |
+| --- | --- |
+| Workspace | pnpm catalogs, Turborepo, TypeScript, Biome |
+| Web | Next.js App Router, React, Tailwind CSS |
+| API | Hono and tRPC, local Node.js server, optional AWS Lambda |
+| Local persistence | PostgreSQL with Drizzle migrations |
+| Model boundary | Provider-neutral agent core with OpenAI, Bedrock, and Ollama adapters |
+| Authentication | Local OIDC mock; Google-compatible OIDC configuration |
+| Testing | Vitest, PostgreSQL integration tests, Playwright, accessibility checks |
 
-See [the architecture](docs/architecture.md) and [the roadmap](docs/roadmap.md).
+## Local pilot
+
+Requirements are Node.js and pnpm versions matching `package.json`, Docker, and
+an OpenAI API key. Start from the checked-in examples; do not commit the local
+environment file.
+
+```bash
+pnpm install
+pnpm agent:setup
+# Add OPENAI_API_KEY to .env.localhost
+pnpm db:start
+pnpm db:setup
+pnpm knowledge:bootstrap
+pnpm knowledge:index -- --source /absolute/path/to/your/repository --workspace-id <uuid-from-ui>
+pnpm knowledge:sync-official -- --workspace-id <uuid-from-ui>
+pnpm dev:local
+```
+
+Open `http://localhost:3000`. The local identity provider accepts any non-empty
+username and password. The API is available at `http://localhost:5000`, with
+liveness at `/health/live`, readiness at `/health/ready`, and tRPC at
+`/api/trpc`.
+
+The public example corpus lives under `examples/knowledge`. Private material is
+loaded from ignored `.local/` paths or an explicitly supplied absolute source
+path. The indexer reads files; it does not run repository lifecycle scripts.
+The official documentation catalog in `config/official-knowledge-sources.json`
+contains only public canonical URLs and host allowlists; downloaded text and
+embeddings stay in the local database.
+
+## Useful commands
+
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev:local` | Start the local database, identity provider, API, and web app. |
+| `pnpm agent:setup` | Create `.env.localhost` without overwriting existing values. |
+| `pnpm knowledge:index` | Index an approved document or source tree. |
+| `pnpm knowledge:bootstrap` | Create the repeatable local test workspace. |
+| `pnpm knowledge:sync-official` | Index allowlisted official stack documentation. |
+| `pnpm check` | Run Biome formatting and lint checks. |
+| `pnpm typecheck` | Typecheck every workspace. |
+| `pnpm test` | Run unit and contract tests. |
+| `pnpm test:integration` | Test PostgreSQL-backed repositories. |
+| `pnpm test:e2e` | Run the browser flow. |
+
+## Architecture and operations
+
+Start with [the product architecture](docs/architecture.md), [the delivery
+roadmap](docs/roadmap.md), and [the documentation index](docs/README.md).
+Deployment-specific controls are documented in
+[deployment security](docs/deployment-security.md). AWS deployments use GitHub
+Actions with OIDC; no long-lived AWS credential belongs in this repository.
 
 ## Releases
 
 Releases follow [Semantic Versioning](https://semver.org/) and are automated by
-Release Please from Conventional Commits:
-
-- `fix:` creates a patch release;
-- `feat:` creates a minor release;
-- `feat!:` or a `BREAKING CHANGE:` footer creates a major release; and
-- `docs:`, `test:`, `refactor:`, and `chore:` do not independently request a
-  version bump.
-
-Release Please maintains a release pull request. Merging that reviewed pull
+Release Please from Conventional Commits. Merging the reviewed release pull
 request publishes the tag, changelog, and GitHub release.
 
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Direct
-changes to `main` are not part of the normal workflow.
+changes to `main` are not part of the normal workflow. The project is available
+under the [MIT License](LICENSE), with upstream attribution in [NOTICE](NOTICE).
