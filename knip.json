@@ -9,7 +9,13 @@
     "binaries",
     "unresolved"
   ],
-  "ignoreBinaries": ["create-migration", "with-env"],
+  "ignoreBinaries": [
+    "bootstrap",
+    "create-migration",
+    "index",
+    "sync-official",
+    "with-env"
+  ],
   "ignoreDependencies": ["k6"],
   "workspaces": {
     ".": {
@@ -28,7 +34,8 @@
       ]
     },
     "packages/db-backbone": {
-      "entry": ["scripts/**/*.ts"]
+      "drizzle": false,
+      "entry": ["drizzle.config.ts", "scripts/**/*.ts"]
     },
     "packages/ui": {
       "entry": ["postcss.config.js", "src/**/*.stories.tsx"]

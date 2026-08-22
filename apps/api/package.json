@@ -25,7 +25,6 @@
     "@arlequins/trpc": "workspace:*",
     "@arlequins/validators": "workspace:*",
     "@aws-sdk/client-eventbridge": "catalog:",
-    "@aws-sdk/client-s3": "catalog:",
     "@aws-sdk/client-scheduler": "catalog:",
     "@aws-sdk/client-sqs": "catalog:",
     "@hono/zod-openapi": "catalog:",

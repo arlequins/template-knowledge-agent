@@ -247,9 +247,6 @@ importers:
       '@aws-sdk/client-eventbridge':
         specifier: 'catalog:'
         version: 3.1095.0
-      '@aws-sdk/client-s3':
-        specifier: 'catalog:'
-        version: 3.1095.0
       '@aws-sdk/client-scheduler':
         specifier: 'catalog:'
         version: 3.1095.0
