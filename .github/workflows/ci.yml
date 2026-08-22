@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-policy:
+    name: Repository policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whitespace errors
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -n "$BASE_SHA" ]; then
+            git diff --check "$BASE_SHA"...HEAD
+          else
+            git show --check --pretty=short HEAD
+          fi
+
+      - name: Validate repository policy files
+        run: |
+          test -f README.md
+          test -f SECURITY.md
+          test -f CONTRIBUTING.md
+          test -f version.txt
+          test -f release-please-config.json
+          test -f .release-please-manifest.json
+          jq empty release-please-config.json
+          jq empty .release-please-manifest.json
+          grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' version.txt
+

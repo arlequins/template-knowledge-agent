@@ -1,0 +1,28 @@
+name: Bug report
+description: Report reproducible incorrect behavior.
+title: "fix: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide a minimal reproduction without secrets or private data.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include relevant versions, provider, and deployment profile.
+    validations:
+      required: true
+
