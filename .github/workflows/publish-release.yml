@@ -3,9 +3,13 @@ name: Publish tagged release
 on:
   push:
     tags: ["v*"]
+  workflow_run:
+    workflows: [Release]
+    branches: [main]
+    types: [completed]
 
 concurrency:
-  group: publish-release-${{ github.ref_name }}
+  group: publish-release-${{ github.event.workflow_run.head_sha || github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -13,6 +17,9 @@ permissions:
 
 jobs:
   verify-and-publish:
+    if: >-
+      github.event_name == 'push' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -20,21 +27,55 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: ./tooling/github/setup
-      - name: Copy environment template
-        run: cp .env.example .env
-      - name: Verify semantic version tag
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+      - name: Find release tag for this commit
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
         shell: bash
         run: |
-          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            tag="$REF_NAME"
+          else
+            tag="v$(node -p "require('./package.json').version")"
+          fi
+
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git fetch --tags --force origin
+
+          if ! git rev-parse --verify "refs/tags/$tag^{commit}" >/dev/null 2>&1; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No release tag $tag exists for this run."
+            exit 0
+          fi
+
+          tag_sha="$(git rev-list -n 1 "$tag")"
+          head_sha="$(git rev-parse HEAD)"
+          if [[ "$tag_sha" != "$head_sha" ]]; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Tag $tag points at $tag_sha, not $head_sha; nothing to verify."
+            exit 0
+          fi
+
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - uses: ./tooling/github/setup
+        if: steps.release.outputs.exists == 'true'
+      - name: Copy environment template
+        if: steps.release.outputs.exists == 'true'
+        run: cp .env.example .env
       - name: Verify release candidate
+        if: steps.release.outputs.exists == 'true'
         run: pnpm check && pnpm typecheck && pnpm test && pnpm build && pnpm test:sst
       - name: Create GitHub Release when needed
+        if: steps.release.outputs.exists == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "GitHub Release already exists for $GITHUB_REF_NAME"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "GitHub Release already exists for $RELEASE_TAG"
           else
-            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+            gh release create "$RELEASE_TAG" --verify-tag --generate-notes
           fi
