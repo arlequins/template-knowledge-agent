@@ -113,5 +113,9 @@ request closes.
 5. Run the production deployment procedure when that release is approved for
    the target environment.
 
+Keep this as one gated pipeline: `release.yml` owns Release Please and
+`publish-release.yml` owns tagged-source verification. A direct `main` push
+workflow for Release Please duplicates ownership and must not be enabled.
+
 Release creation and production deployment remain separate audit events. This
 keeps publishing the template from implicitly changing cloud infrastructure.

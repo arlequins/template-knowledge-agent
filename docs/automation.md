@@ -26,6 +26,10 @@ The workflow uses its short-lived `GITHUB_TOKEN` by default, so no release
 secret is required. Grant GitHub Actions permission to create and approve pull
 requests in the repository settings. The workflow itself grants only the
 contents, issues, and pull-request permissions needed by Release Please.
+`.github/workflows/release.yml` is the single Release Please owner and runs
+only after `CI` succeeds on `main`. Do not add a second push-triggered Release
+Please workflow; competing runs can create duplicate release branches or race
+before the validated commit is known to be healthy.
 
 Organizations that already manage a release automation app may optionally
 store its installation token or a fine-grained token as
