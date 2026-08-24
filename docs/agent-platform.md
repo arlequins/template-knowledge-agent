@@ -6,7 +6,9 @@ and approved live business capabilities.
 
 ## Runtime boundary
 
-`@arlequins/agent-core` owns a provider-neutral loop:
+`@arlequins/agent-core` owns the provider-neutral retrieval/model boundary. The
+following is the target composed loop; live execution is an explicit derived
+application integration, not an automatic baseline behavior:
 
 ```text
 question
@@ -50,6 +52,11 @@ and the UI stores the exact citations with the assistant message.
 Static documents are not evidence for current business state. If the question
 requires current records and an approved live tool is unavailable, the runtime
 must say so rather than infer from code or old documentation.
+
+The template supplies a tested read-only registry and fake-data adapter, but it
+does not expose them to the model by default. See the
+[read-only live capability example](live-capability-example.md) for the exact
+implemented boundary and the remaining derived-repository work.
 
 ## Improvement loop
 

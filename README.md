@@ -74,6 +74,12 @@ The official documentation catalog in `config/official-knowledge-sources.json`
 contains only public canonical URLs and host allowlists; downloaded text and
 embeddings stay in the local database.
 
+Before using private material, create a separate repository with
+`pnpm template:create`; the complete flow is in
+[Create a derived repository](docs/create-derived-repository.md). The synthetic
+T3/Fumadocs acceptance corpus under `examples/pilot` can be checked with
+`pnpm pilot:verify`.
+
 ## Useful commands
 
 | Command | Purpose |
@@ -83,6 +89,8 @@ embeddings stay in the local database.
 | `pnpm knowledge:index` | Index an approved document or source tree. |
 | `pnpm knowledge:bootstrap` | Create the repeatable local test workspace. |
 | `pnpm knowledge:sync-official` | Index allowlisted official stack documentation. |
+| `pnpm template:create` | Copy tracked public files into and initialize a separate repository. |
+| `pnpm pilot:verify` | Verify the synthetic T3/Fumadocs, live-data, and refusal cases. |
 | `pnpm check` | Run Biome formatting and lint checks. |
 | `pnpm typecheck` | Typecheck every workspace. |
 | `pnpm test` | Run unit and contract tests. |
@@ -99,7 +107,8 @@ Actions with OIDC; no long-lived AWS credential belongs in this repository.
 The [reviewed learning contract](docs/reviewed-learning.md) explains how a
 derived app can safely add scheduled LoRA, while the
 [model playbook](docs/model-playbook.md) covers provider, EC2, and Bedrock
-choices.
+choices. The [EC2 budget guide](docs/ec2-model-budget.md) gives a Tokyo-region
+price snapshot and sub-USD-100 options with RDS excluded.
 
 ## Releases
 

@@ -10,6 +10,17 @@ when adding another runtime-loaded module.
 
 ## Project Initialization
 
+Create a separate product checkout without mutating the template:
+
+```bash
+pnpm template:create -- --target ../my-agent --name my-agent --scope @example --display-name "My Agent" --domain agent.example.com --preset full
+```
+
+The target must be outside the template checkout and empty. See
+[Create a derived repository](create-derived-repository.md) for qualification
+and publication boundaries. Use `template:init` directly only when you
+intentionally want to initialize the current checkout.
+
 `pnpm template:init` separates machine-facing identity from user-facing
 branding:
 
@@ -53,6 +64,8 @@ the generated dependency direction should remain intact.
 - `pnpm check:changed` runs lint, typecheck, and test only for workspaces changed since `origin/develop`. Pass `-- --base <ref>` or set `CHANGE_BASE` to override it.
 - `pnpm example:remove` removes the public example post CRUD surface and preserves its source in `.template/example-crud`.
 - `pnpm example:regenerate` restores that preserved CRUD surface.
+- `pnpm pilot:verify` checks the public T3/Fumadocs evidence, official-source,
+  live-capability, and refusal fixtures.
 
 Commit `.template/example-crud` together with an intentional example removal if later regeneration must remain available to other contributors.
 

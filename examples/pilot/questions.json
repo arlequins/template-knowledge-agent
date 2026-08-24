@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "repository-purpose",
+      "kind": "retrieval",
+      "question": "What is the purpose of this repository?",
+      "retrievalTerms": [
+        "Fleet Desk Pilot",
+        "evidence-grounded",
+        "Fumadocs",
+        "T3"
+      ],
+      "expectedFiles": ["README.md"],
+      "requiredTerms": ["evidence-grounded", "Fumadocs", "T3-style"]
+    },
+    {
+      "id": "project-hook-rule",
+      "kind": "retrieval",
+      "question": "Where may this project call React Hooks?",
+      "retrievalTerms": ["Hook", "top level", "React function"],
+      "expectedFiles": ["docs/hooks.mdx"],
+      "requiredTerms": ["top level", "React function component", "custom Hook"]
+    },
+    {
+      "id": "notice-capability-contract",
+      "kind": "retrieval",
+      "question": "Which capability reads recent notices and what is its row limit?",
+      "retrievalTerms": ["notices.listRecent", "maximumRows", "20"],
+      "expectedFiles": ["packages/api/src/router/notices.ts"],
+      "requiredTerms": ["notices.listRecent", "maximumRows", "20"]
+    },
+    {
+      "id": "sold-vehicle-range",
+      "kind": "retrieval",
+      "question": "Are sold vehicle date boundaries inclusive or exclusive?",
+      "retrievalTerms": ["soldFrom", "soldTo", "inclusive", "exclusive"],
+      "expectedFiles": ["packages/api/src/router/vehicles.ts"],
+      "requiredTerms": [
+        "soldFrom is inclusive",
+        "soldTo is exclusive",
+        "31 days"
+      ]
+    },
+    {
+      "id": "vehicle-schema",
+      "kind": "retrieval",
+      "question": "Which fields scope and timestamp a sold vehicle?",
+      "retrievalTerms": ["VehicleRow", "tenantId", "soldAt"],
+      "expectedFiles": ["packages/db/src/schema/vehicle.ts"],
+      "requiredTerms": ["tenantId", "soldAt"]
+    },
+    {
+      "id": "notice-page-callsite",
+      "kind": "retrieval",
+      "question": "Which page calls the recent notice procedure?",
+      "retrievalTerms": ["NoticesPage", "useQuery", "notices.listRecent"],
+      "expectedFiles": ["apps/web/src/app/notices/page.tsx"],
+      "requiredTerms": ["NoticesPage", "useQuery", "notices.listRecent"]
+    },
+    {
+      "id": "official-react",
+      "kind": "official",
+      "question": "What are the current canonical React Hook rules?",
+      "sourceId": "react"
+    },
+    {
+      "id": "official-drizzle",
+      "kind": "official",
+      "question": "How does the installed Drizzle major version perform selects?",
+      "sourceId": "drizzle"
+    },
+    {
+      "id": "live-recent-notices",
+      "kind": "live",
+      "question": "Show new notices from the last seven days.",
+      "capability": "notices.listRecent"
+    },
+    {
+      "id": "live-sold-vehicles",
+      "kind": "live",
+      "question": "Show vehicles sold during the last seven days.",
+      "capability": "vehicles.listSold"
+    },
+    {
+      "id": "refuse-invented-schedule",
+      "kind": "refusal",
+      "question": "At exactly what time does this repository fine-tune every day?",
+      "expectedBehavior": "State that no active schedule is proven by the fixture.",
+      "forbiddenClaims": ["03:00", "04:00", "LaunchAgent"]
+    },
+    {
+      "id": "refuse-static-current-data",
+      "kind": "refusal",
+      "question": "What is the newest notice right now, without calling a live capability?",
+      "expectedBehavior": "State that static documents cannot prove current records.",
+      "forbiddenClaims": ["Visible notice", "Other tenant notice"]
+    }
+  ]
+}

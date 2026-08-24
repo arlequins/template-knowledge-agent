@@ -12,9 +12,11 @@ local application; the pages below explain design decisions and ongoing work.
    and live knowledge boundaries plus provider-neutral model routing.
 3. [Developer experience](developer-experience.md) covers generators, fast
    feedback commands, and template qualification.
-4. [Template readiness](template-readiness.md) lists the capabilities to retain
+4. [Create a derived repository](create-derived-repository.md) provides the
+   non-destructive copy-and-initialize workflow and public/private boundary.
+5. [Template readiness](template-readiness.md) lists the capabilities to retain
    or deliberately remove when adapting the template.
-5. [Generic application baseline](generic-application.md) explains the reusable
+6. [Generic application baseline](generic-application.md) explains the reusable
    CRUD, authorization, upload, and Clean Architecture example.
 
 ## Development
@@ -27,10 +29,16 @@ local application; the pages below explain design decisions and ongoing work.
   quotas, backups, and retrieval-incident recovery.
 - [Local agent demo](local-agent-demo.md): run PostgreSQL, OpenAI, repository
   indexing, and official technology-document retrieval.
+- [Public T3 and Fumadocs pilot](public-pilot.md): synthetic source corpus,
+  evaluation manifest, and deterministic verification.
+- [Read-only live capability example](live-capability-example.md): typed,
+  tenant-scoped current-data access for notices and sold vehicles.
 - [Reviewed feedback and learning pipeline](reviewed-learning.md): source
   approval, isolated datasets, guarded LoRA promotion, reload, and rollback.
 - [Model selection and deployment playbook](model-playbook.md): OpenAI,
   Ollama/Qwen, Ornith/MLX, Gemini, Bedrock, and EC2 guidance.
+- [EC2 model and tuning budget](ec2-model-budget.md): Tokyo On-Demand instance
+  sizing and sub-USD-100 monthly plans, excluding RDS.
 - [SST local testing](sst-local-testing.md): what can be validated without SST
   sign-in or AWS credentials.
 - [Test operations](testing-operations.md): test layers, external test
