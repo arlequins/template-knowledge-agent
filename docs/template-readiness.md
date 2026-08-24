@@ -16,6 +16,8 @@ its related code, tests, environment variables, and documentation.
 
 ## Template Composition
 
+- [x] Non-destructive `template:create` flow that copies Git-tracked public
+  files into an empty sibling directory before initialization.
 - [x] Repository initialization for package scope, machine name, display name,
   metadata, and example domains.
 - [x] Full and minimal presets with selectable auth, batch, SST, and example UI
@@ -75,6 +77,10 @@ its related code, tests, environment variables, and documentation.
   disjoint datasets, held-out promotion gates, reload, and rollback contracts.
 - [x] Private questions, source excerpts, credentials, adapters, and evaluation
   reports are excluded from the public-template contract.
+- [x] Synthetic T3/Fumadocs pilot covers repository, official-document,
+  live-data, and evidence-refusal cases.
+- [x] Read-only live capability registry validates inputs, scopes actors,
+  bounds rows, emits citations, and records result-free audit metadata.
 - [ ] A generated repository that enables weight training must add its own
   tested exporter, trainer, output guard, scheduler, promotion, and rollback
   implementation before advertising tuning commands.
@@ -90,7 +96,8 @@ automation and `--strict` when warnings must fail qualification.
 
 Before publishing a repository created from this template:
 
-1. Run `pnpm template:init` with the target scope, name, display name, and domain.
+1. Run `pnpm template:create` with a separate target, scope, name, display name,
+   and domain.
 2. Choose a preset and prune modules that the application will not use.
 3. Replace local and example identity, domain, seed, and IAM values.
 4. Configure protected environments, branch rules, and cloud roles.

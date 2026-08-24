@@ -91,6 +91,10 @@ baseline; it is not a managed way to fine-tune arbitrary Ornith MLX weights.
 
 ## EC2 local engine versus Bedrock
 
+For a current Tokyo price snapshot and two plans below USD 100 per month, see
+[EC2 model and tuning budget](ec2-model-budget.md). RDS is excluded from that
+calculation.
+
 AWS G6 uses NVIDIA L4 GPUs with 24 GB per full GPU and targets inference. G5
 uses NVIDIA A10G GPUs with 24 GB and also targets moderately complex
 single-node training. Useful starting points for a 9B-class 4-bit model are:

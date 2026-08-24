@@ -14,6 +14,10 @@
     "./agent-completion": {
       "types": "./dist/application/agent-completion.d.ts",
       "default": "./src/application/agent-completion.ts"
+    },
+    "./example-live-capabilities": {
+      "types": "./dist/adaptors/example-live-capabilities.d.ts",
+      "default": "./src/adaptors/example-live-capabilities.ts"
     }
   },
   "license": "MIT",

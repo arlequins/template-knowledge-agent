@@ -156,6 +156,11 @@ procedure schema, applies a hard row limit, calls the reviewed tRPC client, and
 returns a structured result. The model formats that result but cannot expand
 the query or authorization scope.
 
+The registry and synthetic adapter for these two names are executable and
+covered by contract tests. Model tool selection and the real Aurora/tRPC query
+composition remain derived-application work; see the
+[read-only live capability example](live-capability-example.md).
+
 ## Model adapters and routing
 
 The domain depends on a model-provider port, not a provider SDK. The baseline
@@ -196,7 +201,8 @@ and rollback boundary in
 [Reviewed feedback and learning pipeline](reviewed-learning.md). For roughly
 100 intermittent users, Bedrock on-demand is the initial production
 recommendation; EC2 self-hosting is a separately qualified NVIDIA runtime. See
-the [model playbook](model-playbook.md).
+the [model playbook](model-playbook.md) and the
+[sub-USD-100 EC2 budget](ec2-model-budget.md).
 
 ## Clean architecture and dependency direction
 

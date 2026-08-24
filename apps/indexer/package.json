@@ -8,6 +8,7 @@
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "format": "biome format .",
     "index": "tsx src/index.ts",
+    "pilot:verify": "tsx src/verify-pilot.ts",
     "sync-official": "tsx src/sync-official-docs.ts",
     "lint": "biome lint .",
     "test": "vitest run",

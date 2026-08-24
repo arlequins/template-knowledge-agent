@@ -1,0 +1,13 @@
+---
+title: React hook rules
+---
+
+# Hook rules used by Fleet Desk
+
+Call Hooks only at the top level of a React function component or a custom
+Hook. Do not call a Hook inside a loop, condition, nested function, or event
+handler. Project code uses TanStack Query hooks only after the authenticated
+workspace has been selected.
+
+This project note explains local usage. General React behavior should still be
+supported by the canonical React documentation indexed as an official source.
