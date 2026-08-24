@@ -50,3 +50,12 @@ default and does not publish a package to npm.
 Release PRs follow the same review and branch-protection requirements as other
 changes. Do not manually edit the generated version or changelog unless the
 release PR is being corrected deliberately.
+
+## Learning automation is separate
+
+Release Please never consumes feedback, private evidence, evaluation rows, or
+model adapters. A derived repository's scheduled learning job has its own
+source-approval, held-out evaluation, promotion, reload, and rollback gates.
+Training success does not create a software release, and a software release
+does not prove a trained adapter is active. See
+[Reviewed feedback and learning pipeline](reviewed-learning.md).

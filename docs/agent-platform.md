@@ -59,12 +59,22 @@ record the expected evidence chunks, and scheduled evaluations compare citation
 recall, answer quality, latency, and cost before a prompt or routing change is
 promoted. The initial profile does not perform real-time fine-tuning.
 
+The template defines a separate optional reviewed-learning contract for derived
+applications. It requires active source evidence, distinct and disjoint data,
+held-out quality gates, atomic promotion, explicit serving reload, and rollback.
+The baseline does not claim those commands exist until a generated repository
+adds and tests the implementation. See
+[Reviewed feedback and learning pipeline](reviewed-learning.md).
+
 ## Provider policy
 
 The local OpenAI adapter uses the Responses API with provider-side response
 storage disabled. Application history remains in PostgreSQL. Production model
 selection is an adapter and policy decision: Bedrock, OpenAI, Anthropic, Gemini,
 and Ollama do not leak into the agent domain.
+
+Use [Model selection and deployment playbook](model-playbook.md) for exact model
+notes and the Bedrock-versus-EC2 decision.
 
 AWS deployment is optional and runs through protected GitHub Actions with OIDC.
 Long-lived AWS credentials are not a supported repository configuration.

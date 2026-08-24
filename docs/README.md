@@ -27,6 +27,10 @@ local application; the pages below explain design decisions and ongoing work.
   quotas, backups, and retrieval-incident recovery.
 - [Local agent demo](local-agent-demo.md): run PostgreSQL, OpenAI, repository
   indexing, and official technology-document retrieval.
+- [Reviewed feedback and learning pipeline](reviewed-learning.md): source
+  approval, isolated datasets, guarded LoRA promotion, reload, and rollback.
+- [Model selection and deployment playbook](model-playbook.md): OpenAI,
+  Ollama/Qwen, Ornith/MLX, Gemini, Bedrock, and EC2 guidance.
 - [SST local testing](sst-local-testing.md): what can be validated without SST
   sign-in or AWS credentials.
 - [Test operations](testing-operations.md): test layers, external test

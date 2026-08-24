@@ -38,6 +38,9 @@ This page is a durable context note for AI agents working in this repository.
 - `packages/types`: shared type definitions.
 - `packages/ui`: shared React UI.
 - `packages/auth`: OIDC discovery and JWT access-token validation for API sessions.
+- `packages/agent-core`: provider-neutral conversation, evidence, and streaming ports.
+- `packages/agent-openai`, `packages/agent-ollama`, and
+  `packages/agent-bedrock`: implemented model-provider adapters.
 - `tooling/*`: shared repository tooling packages.
 
 ## Command Memory
@@ -85,6 +88,11 @@ This page is a durable context note for AI agents working in this repository.
 - Browser authentication uses Authorization Code + PKCE; APIs validate JWT access tokens against OIDC discovery and JWKS metadata.
 - `@arlequins/oidc-mock` is development-only and must not be deployed as a production identity provider.
 - E2E tests own an isolated PostgreSQL container and must clean it up after the run.
+- Feedback is not training truth. A derived LoRA extension requires source
+  approval, disjoint held-out data, guarded promotion, explicit reload, and
+  rollback as documented in `docs/reviewed-learning.md`.
+- Model and capacity choices belong in `docs/model-playbook.md`; do not imply
+  Apple MLX artifacts run unchanged on EC2 NVIDIA hosts.
 
 ## Review Memory
 

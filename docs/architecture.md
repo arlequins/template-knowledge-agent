@@ -158,11 +158,11 @@ the query or authorization scope.
 
 ## Model adapters and routing
 
-The domain depends on `ChatModelPort`, not a provider SDK. Planned adapters are:
-
-- Amazon Bedrock Converse for production;
-- Anthropic Messages for initial development or approved fallback; and
-- Gemini for centrally funded or user-provided API credentials.
+The domain depends on a model-provider port, not a provider SDK. The baseline
+implements OpenAI Responses, Ollama chat/embeddings, and Amazon Bedrock
+Converse. Gemini personal credentials and Apple-Silicon MLX/Ornith are derived
+extension patterns that require their own packages, tests, and environment
+contracts.
 
 Routing profiles select fast, balanced, or deep models based on the question,
 retrieval confidence, conflicting evidence, previous failed answers, workspace
@@ -189,6 +189,15 @@ provider usage, and cost are replayable. A daily batch job:
 
 User reactions are signals, not facts. Real-time fine-tuning is outside the
 initial scope.
+
+An optional scheduled weight-training extension must preserve the source
+approval, isolated dataset, held-out gate, atomic promotion, serving reload,
+and rollback boundary in
+[Reviewed feedback and learning pipeline](reviewed-learning.md). For roughly
+100 intermittent users, Bedrock on-demand is the initial production
+recommendation; EC2 self-hosting is a separately qualified NVIDIA runtime. See
+the [model playbook](model-playbook.md).
+
 ## Clean architecture and dependency direction
 
 This template keeps policy independent from delivery frameworks and providers.

@@ -36,6 +36,12 @@
 
 - Daily replay, verified gold cases, provider routing, cost budgets, repetition
   checks, and guarded configuration promotion.
+- Optional reviewed LoRA extension with source approval, disjoint
+  train/validation/test data, held-out gates, explicit model reload, and
+  rollback.
+- Bedrock-on-demand as the initial intermittent AWS traffic profile; qualify
+  EC2/SageMaker open-model serving only after exact-model or utilization needs
+  are measured.
 - Incremental indexing and operational limits for larger monorepos.
 
 ## Phase 5: legacy analyzers

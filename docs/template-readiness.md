@@ -67,6 +67,20 @@ its related code, tests, environment variables, and documentation.
 - [x] Optional OpenTelemetry export, component testing, Storybook, and an
   S3-backed application cache are available as reusable building blocks.
 
+## Evidence and Learning Safety
+
+- [x] Feedback is scoped to an authenticated user and workspace and remains a
+  signal until source review.
+- [x] The template documents active-evidence approval, duplicate rejection,
+  disjoint datasets, held-out promotion gates, reload, and rollback contracts.
+- [x] Private questions, source excerpts, credentials, adapters, and evaluation
+  reports are excluded from the public-template contract.
+- [ ] A generated repository that enables weight training must add its own
+  tested exporter, trainer, output guard, scheduler, promotion, and rollback
+  implementation before advertising tuning commands.
+- [ ] A production profile must add an owner-only investigation review API/UI;
+  direct operator database approval is not the target interface.
+
 ## Adaptation Review
 
 Run `pnpm template:doctor` after initialization and whenever local setup changes.

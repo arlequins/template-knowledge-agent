@@ -9,6 +9,15 @@ pnpm agent:readiness --api-url https://api.example.com
 The check validates process liveness and S3-backed readiness. Do not use liveness
 alone to declare the service healthy.
 
+For a local run, check both liveness and readiness. A web page returning 200 is
+not sufficient when the API process is absent:
+
+```bash
+curl http://localhost:5000/health/live
+curl http://localhost:5000/health/ready
+pnpm agent:readiness --api-url http://localhost:5000
+```
+
 ## Alert policy
 
 | Signal | Warning | Urgent action |
@@ -18,6 +27,7 @@ alone to declare the service healthy.
 | Evaluation or indexing | Any failed run | Repeated failures; pause activation and inspect audit events |
 | Workspace usage | 80% of product quota | 100%; reject new writes with a clear product error |
 | Release checksum | Any mismatch | Stop release activation and restore a known-good head |
+| Model candidate | Any held-out failure or repetition | Do not promote; retain the known-good provider/model |
 
 ## Recovery
 
@@ -30,3 +40,6 @@ alone to declare the service healthy.
 Do not overwrite a live state object without an ETag precondition. S3 Versioning
 inside one bucket is not an independent backup; add a separate backup bucket or
 cross-region replication only when recovery objectives justify the cost.
+
+Derived weight-training profiles also need model-process reload and rollback
+checks from [Reviewed feedback and learning pipeline](reviewed-learning.md).

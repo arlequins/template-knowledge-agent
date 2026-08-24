@@ -42,3 +42,14 @@ is configured.
 Run `pnpm agent:readiness --api-url http://localhost:5000` for a final health
 check. `pnpm db:stop` stops the local database while preserving its Docker
 volume.
+
+`pnpm dev:next` is a web-only convenience command and does not prove that the
+API is listening on port 5000. If the browser remains at login/session loading,
+check `http://localhost:5000/health/ready` and use `pnpm dev:local` for the
+complete stack.
+
+The baseline uses hosted OpenAI. A derived repository may choose Ollama or add
+the reviewed MLX/Ornith extension, but it must keep Mac-specific training
+separate from an EC2 NVIDIA runtime. See the
+[reviewed learning contract](reviewed-learning.md) and
+[model playbook](model-playbook.md).

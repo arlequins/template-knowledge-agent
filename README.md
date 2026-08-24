@@ -28,8 +28,9 @@ public template.
 - Use PostgreSQL full-text and vector retrieval; OpenSearch is not required.
 - Read changing business data through allowlisted, read-only tRPC tools rather
   than generated SQL or page scraping.
-- Improve quality through replayable daily evaluations, not real-time
-  fine-tuning.
+- Improve quality through replayable daily evaluations. Optional weight
+  training requires source-reviewed examples, disjoint held-out data, guarded
+  promotion, explicit reload, and rollback; it is never real-time.
 
 ## Stack
 
@@ -95,6 +96,10 @@ roadmap](docs/roadmap.md), and [the documentation index](docs/README.md).
 Deployment-specific controls are documented in
 [deployment security](docs/deployment-security.md). AWS deployments use GitHub
 Actions with OIDC; no long-lived AWS credential belongs in this repository.
+The [reviewed learning contract](docs/reviewed-learning.md) explains how a
+derived app can safely add scheduled LoRA, while the
+[model playbook](docs/model-playbook.md) covers provider, EC2, and Bedrock
+choices.
 
 ## Releases
 
