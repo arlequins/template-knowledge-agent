@@ -9,6 +9,7 @@
     "binaries",
     "unresolved"
   ],
+  "ignore": ["examples/pilot/repository/**"],
   "ignoreBinaries": [
     "bootstrap",
     "create-migration",
