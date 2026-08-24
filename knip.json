@@ -1,0 +1,50 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "include": [
+    "files",
+    "dependencies",
+    "devDependencies",
+    "optionalPeerDependencies",
+    "unlisted",
+    "binaries",
+    "unresolved"
+  ],
+  "ignoreBinaries": [
+    "bootstrap",
+    "create-migration",
+    "index",
+    "sync-official",
+    "with-env"
+  ],
+  "ignoreDependencies": ["k6"],
+  "workspaces": {
+    ".": {
+      "entry": [
+        "scripts/**/*.mjs",
+        "tests/load/**/*.js",
+        "turbo/generators/config.ts"
+      ]
+    },
+    "apps/batch": {
+      "entry": [
+        "config/**/*.ts",
+        "lib/functions/**/*.ts",
+        "scripts/**/*.ts",
+        "shared/entry.ts"
+      ]
+    },
+    "packages/db-backbone": {
+      "drizzle": false,
+      "entry": ["drizzle.config.ts", "scripts/**/*.ts"]
+    },
+    "packages/ui": {
+      "entry": ["postcss.config.js", "src/**/*.stories.tsx"]
+    },
+    "tooling/sst-bootstrap": {
+      "entry": ["scripts/**/*.mjs"]
+    },
+    "tooling/tailwind": {
+      "ignoreDependencies": ["@tailwindcss/postcss", "postcss", "tailwindcss"]
+    }
+  }
+}

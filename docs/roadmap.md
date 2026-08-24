@@ -12,8 +12,12 @@
 - Google-authenticated standalone chat and conversation history.
 - Fumadocs and TypeScript/T3 ingestion with commit, file, symbol, and line
   provenance.
-- Retrieval through PostgreSQL full-text search and optional S3 Vectors.
-- Bedrock/Anthropic model adapters and grounded streaming answers.
+- Allowlisted synchronization of official React, Next.js, tRPC, Drizzle, Zod,
+  Fumadocs, SST, Turborepo, pnpm, and Hono documentation.
+- Retrieval through PostgreSQL keyword and embedding search, with optional S3
+  Vectors for the AWS profile.
+- OpenAI local-pilot and Bedrock production adapters with grounded streaming
+  answers.
 
 ## Phase 2: embedded chat and MCP
 
@@ -32,6 +36,12 @@
 
 - Daily replay, verified gold cases, provider routing, cost budgets, repetition
   checks, and guarded configuration promotion.
+- Optional reviewed LoRA extension with source approval, disjoint
+  train/validation/test data, held-out gates, explicit model reload, and
+  rollback.
+- Bedrock-on-demand as the initial intermittent AWS traffic profile; qualify
+  EC2/SageMaker open-model serving only after exact-model or utilization needs
+  are measured.
 - Incremental indexing and operational limits for larger monorepos.
 
 ## Phase 5: legacy analyzers
