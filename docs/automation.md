@@ -31,6 +31,14 @@ only after `CI` succeeds on `main`. Do not add a second push-triggered Release
 Please workflow; competing runs can create duplicate release branches or race
 before the validated commit is known to be healthy.
 
+`.github/workflows/publish-release.yml` verifies the exact source behind every
+version tag. It listens both for explicit tag pushes and for successful
+completion of `Release`. The latter is required because GitHub intentionally
+does not start a second workflow from tags created with the default
+`GITHUB_TOKEN`. On a `Release` completion, the publisher verifies only when the
+version in `package.json` has a matching tag that points at the completed
+commit; ordinary non-release runs exit without publishing.
+
 Organizations that already manage a release automation app may optionally
 store its installation token or a fine-grained token as
 `RELEASE_PLEASE_TOKEN`. When present, that token takes precedence over

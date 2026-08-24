@@ -14,7 +14,7 @@ release automation. Security policy and AWS trust configuration remain in
 | `Preview deployment` | same-repository pull requests | Deploy or remove isolated `pr-NUMBER` API and web stages |
 | `Production deployment` | manual | Deploy one application through the protected `production` environment |
 | `Release` | successful `CI` on `main`, manual | Maintain the Release Please PR and create version tags |
-| `Publish tagged release` | `vX.Y.Z` tag push | Re-verify the tagged source and create the GitHub Release |
+| `Publish tagged release` | `vX.Y.Z` tag push, successful `Release` completion | Re-verify the exact tagged source and create the GitHub Release when needed |
 | `AWS sandbox smoke` | manual, weekly | Exercise Function URL and API Gateway sandbox endpoints |
 | `Quickstart deployment qualification` | manual | Rename, validate, deploy, and remove a fresh full template |
 | `Baseline load test` | manual | Run the k6 baseline against an approved HTTPS target |
@@ -108,14 +108,18 @@ request closes.
 1. Merge Conventional Commits to `main` after CI and Security pass.
 2. Release Please updates the release PR, changelog, and version manifest.
 3. Review and merge the release PR through the same protected path.
-4. Release Please pushes `vX.Y.Z`; `Publish tagged release` re-verifies that
-   exact source and creates the GitHub Release automatically.
+4. Release Please pushes `vX.Y.Z`; `Publish tagged release` observes the
+   completed `Release`, confirms that the tag points at the same commit,
+   re-verifies that exact source, and creates the GitHub Release when needed.
 5. Run the production deployment procedure when that release is approved for
    the target environment.
 
 Keep this as one gated pipeline: `release.yml` owns Release Please and
 `publish-release.yml` owns tagged-source verification. A direct `main` push
 workflow for Release Please duplicates ownership and must not be enabled.
+The publisher also retains a tag-push trigger for tags created manually or by
+an external release token. Its `workflow_run` trigger covers tags created with
+the default `GITHUB_TOKEN`, whose pushes do not start another workflow.
 
 Release creation and production deployment remain separate audit events. This
 keeps publishing the template from implicitly changing cloud infrastructure.
