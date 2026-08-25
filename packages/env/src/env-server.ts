@@ -136,6 +136,12 @@ export const serverEnv = createEnv({
     BEDROCK_MODEL_ID: z.string().min(1).optional(),
     /** Exact model or inference-profile ARN granted to the Lambda runtime. */
     BEDROCK_MODEL_ARN: z.string().startsWith("arn:aws:bedrock:").optional(),
+    /** Optional Bedrock Guardrail ARN. Configure together with its numeric version. */
+    BEDROCK_GUARDRAIL_ARN: z.string().startsWith("arn:aws:bedrock:").optional(),
+    BEDROCK_GUARDRAIL_VERSION: z
+      .string()
+      .regex(/^(?:DRAFT|[1-9][0-9]{0,7})$/)
+      .optional(),
     /** Local pilot credential for the OpenAI API. Never expose it to the browser. */
     OPENAI_API_KEY: z.string().min(1).optional(),
     OPENAI_BASE_URL: z.url().optional(),
@@ -207,6 +213,8 @@ export const serverEnv = createEnv({
     S3_AGENT_FORCE_PATH_STYLE: process.env.S3_AGENT_FORCE_PATH_STYLE,
     BEDROCK_MODEL_ID: process.env.BEDROCK_MODEL_ID,
     BEDROCK_MODEL_ARN: process.env.BEDROCK_MODEL_ARN,
+    BEDROCK_GUARDRAIL_ARN: process.env.BEDROCK_GUARDRAIL_ARN,
+    BEDROCK_GUARDRAIL_VERSION: process.env.BEDROCK_GUARDRAIL_VERSION,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
     OPENAI_MODEL: process.env.OPENAI_MODEL,

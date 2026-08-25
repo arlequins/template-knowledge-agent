@@ -1,4 +1,7 @@
-import type { BedrockConversePort } from "@arlequins/agent-bedrock";
+import type {
+  BedrockConversePort,
+  BedrockGuardrailConfig,
+} from "@arlequins/agent-bedrock";
 import {
   BedrockRuntimeClient,
   ConverseStreamCommand,
@@ -9,7 +12,7 @@ export function createAwsBedrockConversePort(
   client = new BedrockRuntimeClient({}),
 ): BedrockConversePort {
   return {
-    async *stream({ messages, modelId }) {
+    async *stream({ guardrail, messages, modelId }) {
       const system = messages
         .filter((message) => message.role === "system")
         .map((message) => ({ text: message.content }));
@@ -21,6 +24,14 @@ export function createAwsBedrockConversePort(
         }));
       const response = await client.send(
         new ConverseStreamCommand({
+          ...(guardrail
+            ? {
+                guardrailConfig: {
+                  guardrailIdentifier: guardrail.identifier,
+                  guardrailVersion: guardrail.version,
+                },
+              }
+            : {}),
           inferenceConfig: { maxTokens: 2_048, temperature: 0.2 },
           messages: providerMessages,
           modelId,
@@ -35,3 +46,5 @@ export function createAwsBedrockConversePort(
     },
   };
 }
+
+export type { BedrockGuardrailConfig };

@@ -29,4 +29,28 @@ describe("AWS Bedrock Converse adapter", () => {
       system: [{ text: "지침" }],
     });
   });
+
+  it("attaches a configured guardrail without enabling raw trace output", async () => {
+    const send = vi.fn(async (_command: unknown) => ({
+      stream: (async function* () {
+        yield { contentBlockDelta: { delta: { text: "masked" } } };
+      })(),
+    }));
+    const port = createAwsBedrockConversePort({ send } as never);
+
+    for await (const _text of port.stream({
+      guardrail: { identifier: "guardrail-1", version: "2" },
+      messages: [{ content: "질문", role: "user" }],
+      modelId: "model-1",
+    })) {
+      // Drain the stream.
+    }
+
+    const command = send.mock.calls[0]?.[0] as ConverseStreamCommand;
+    expect(command.input.guardrailConfig).toEqual({
+      guardrailIdentifier: "guardrail-1",
+      guardrailVersion: "2",
+    });
+    expect(command.input.guardrailConfig).not.toHaveProperty("trace");
+  });
 });

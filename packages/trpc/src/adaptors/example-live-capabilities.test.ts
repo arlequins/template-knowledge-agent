@@ -4,7 +4,12 @@ import { createExampleVehicleOperationsCatalog } from "./example-live-capabiliti
 
 const clock = () => new Date("2026-08-25T00:00:00.000Z");
 const baseActor = {
-  permissions: ["notices:read", "vehicles:read", "vehicle:vehicle-visible"],
+  permissions: [
+    "customers:read:masked",
+    "notices:read",
+    "vehicles:read",
+    "vehicle:vehicle-visible",
+  ],
   tenantId: "tenant-a",
   userId: "user-1",
   workspaceId: "workspace-1",
@@ -16,6 +21,24 @@ function catalog(audit = vi.fn()) {
     value: createExampleVehicleOperationsCatalog({
       audit,
       clock,
+      customers: [
+        {
+          email: "private@example.com",
+          id: "customer-visible",
+          internalNote: "Never expose this account note",
+          name: "Private Person",
+          phone: "+81-90-1234-5678",
+          tenantId: "tenant-a",
+        },
+        {
+          email: "other@example.com",
+          id: "customer-other-tenant",
+          internalNote: "Other tenant note",
+          name: "Other Tenant Person",
+          phone: "+81-90-9999-9999",
+          tenantId: "tenant-b",
+        },
+      ],
       notices: [
         {
           id: "notice-visible",
@@ -115,5 +138,39 @@ describe("example vehicle operations capabilities", () => {
         input: { publishedSince: "2026-08-24T00:00:00.000Z" },
       }),
     ).rejects.toThrow("notices:read");
+  });
+
+  it("masks personal contact fields and marks the result ephemeral", async () => {
+    const { audit, value } = catalog();
+    const result = await value.execute({
+      actor: baseActor,
+      capability: "customers.lookupMaskedContact",
+      input: { customerId: "customer-visible" },
+    });
+
+    expect(result).toMatchObject({
+      classification: "personal",
+      persistence: "ephemeral",
+      rows: [
+        {
+          email: "{EMAIL}",
+          id: "{CUSTOMER_ID}",
+          name: "{NAME}",
+          phone: "{PHONE}",
+        },
+      ],
+    });
+    const serialized = JSON.stringify({ audit: audit.mock.calls, result });
+    expect(serialized).not.toContain("private@example.com");
+    expect(serialized).not.toContain("Private Person");
+    expect(serialized).not.toContain("Never expose");
+
+    await expect(
+      value.execute({
+        actor: baseActor,
+        capability: "customers.lookupMaskedContact",
+        input: { customerId: "customer-other-tenant" },
+      }),
+    ).resolves.toMatchObject({ rows: [] });
   });
 });

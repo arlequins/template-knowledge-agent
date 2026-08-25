@@ -27,7 +27,10 @@ pnpm --filter @arlequins/api sst:deploy
 `apps/api/sst.config.ts` creates a private, versioned, SSE-S3 encrypted bucket,
 blocks public access, denies insecure transport and unconditional writes, and
 grants the Lambda only scoped list/read/write actions. Bedrock stream permission
-is added only when `BEDROCK_MODEL_ARN` is set.
+is added only when `BEDROCK_MODEL_ARN` is set. A separately scoped
+`bedrock:ApplyGuardrail` permission is added only when
+`BEDROCK_GUARDRAIL_ARN` is configured; the matching
+`BEDROCK_GUARDRAIL_VERSION` is required by the application at runtime.
 
 Set `API_DEPLOYMENT_PRESET=function-url` for the minimum-cost default, or
 `api-gateway` when managed throttling is required. Optional custom-domain and

@@ -23,6 +23,9 @@ Start with the trust-policy template in [`docs/iam/github-oidc-trust-policy.json
 The agent runtime must use a separate role from CI. Its narrow starting policy is
 [`docs/iam/agent-runtime-policy.json`](./iam/agent-runtime-policy.json); scope
 it to a single model, document prefix, and S3 Vectors index before deployment.
+If live capabilities may encounter personal data, complete the
+[privacy and sensitive-data boundary](privacy-sensitive-data.md), including
+the invocation-logging decision, exact field policies, and retention controls.
 
 ## Environments and Branch Protection
 

@@ -113,4 +113,10 @@ export const LambdaEnvironment = {
   ...(serverEnv.BEDROCK_MODEL_ARN
     ? { BEDROCK_MODEL_ARN: serverEnv.BEDROCK_MODEL_ARN }
     : {}),
+  ...(serverEnv.BEDROCK_GUARDRAIL_ARN
+    ? { BEDROCK_GUARDRAIL_ARN: serverEnv.BEDROCK_GUARDRAIL_ARN }
+    : {}),
+  ...(serverEnv.BEDROCK_GUARDRAIL_VERSION
+    ? { BEDROCK_GUARDRAIL_VERSION: serverEnv.BEDROCK_GUARDRAIL_VERSION }
+    : {}),
 };

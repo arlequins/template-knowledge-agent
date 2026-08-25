@@ -6,21 +6,25 @@ local application; the pages below explain design decisions and ongoing work.
 
 ## Start Here
 
-1. **[EC2 model and tuning budget](ec2-model-budget.md)**
+1. **[Privacy and sensitive-data boundary](privacy-sensitive-data.md)**
+   ([한국어](privacy-sensitive-data.ko.md) ·
+   [日本語](privacy-sensitive-data.ja.md)) defines what may reach the model,
+   conversation history, audit events, feedback, evaluation, and tuning data.
+2. **[EC2 model and tuning budget](ec2-model-budget.md)**
    ([한국어](ec2-model-budget.ko.md) · [日本語](ec2-model-budget.ja.md)) compares
    the initial 100-user chat target, Tokyo instance sizes, sub-USD-100 plans,
    and what different fine-tuning windows can and cannot change.
-2. [Application architecture](architecture.md) explains workspace boundaries
+3. [Application architecture](architecture.md) explains workspace boundaries
    and the browser-to-storage request flow.
-3. [Knowledge agent platform](agent-platform.md) explains project, official,
+4. [Knowledge agent platform](agent-platform.md) explains project, official,
    and live knowledge boundaries plus provider-neutral model routing.
-4. [Developer experience](developer-experience.md) covers generators, fast
+5. [Developer experience](developer-experience.md) covers generators, fast
    feedback commands, and template qualification.
-5. [Create a derived repository](create-derived-repository.md) provides the
+6. [Create a derived repository](create-derived-repository.md) provides the
    non-destructive copy-and-initialize workflow and public/private boundary.
-6. [Template readiness](template-readiness.md) lists the capabilities to retain
+7. [Template readiness](template-readiness.md) lists the capabilities to retain
    or deliberately remove when adapting the template.
-7. [Generic application baseline](generic-application.md) explains the reusable
+8. [Generic application baseline](generic-application.md) explains the reusable
    CRUD, authorization, upload, and Clean Architecture example.
 
 ## Development

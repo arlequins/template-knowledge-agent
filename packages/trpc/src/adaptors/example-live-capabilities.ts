@@ -19,6 +19,15 @@ export type ExampleSoldVehicle = {
   tenantId: string;
 };
 
+export type ExampleCustomerContact = {
+  email: string;
+  id: string;
+  internalNote: string;
+  name: string;
+  phone: string;
+  tenantId: string;
+};
+
 const recentNoticeInput = z.object({
   limit: z.number().int().min(1).max(20).default(20),
   publishedSince: z.iso.datetime({ offset: true }),
@@ -40,6 +49,10 @@ const soldVehicleInput = z
     "sold vehicle queries are limited to 31 days",
   );
 
+const maskedCustomerInput = z.object({
+  customerId: z.string().min(1).max(128),
+});
+
 function requirePermission(permissions: readonly string[], permission: string) {
   if (!permissions.includes(permission))
     throw new Error(`Missing live capability permission: ${permission}`);
@@ -52,6 +65,7 @@ function requirePermission(permissions: readonly string[], permission: string) {
 export function createExampleVehicleOperationsCatalog(input: {
   audit?: (event: LiveCapabilityAuditEvent) => Promise<void> | void;
   clock?: () => Date;
+  customers?: readonly ExampleCustomerContact[];
   notices: readonly ExampleNotice[];
   vehicles: readonly ExampleSoldVehicle[];
 }) {
@@ -76,6 +90,16 @@ export function createExampleVehicleOperationsCatalog(input: {
         },
         maxRows: 20,
         name: "notices.listRecent",
+        outputPolicy: {
+          auditInput: "include",
+          classification: "internal",
+          fields: {
+            id: { exposure: "allow" },
+            publishedAt: { exposure: "allow" },
+            title: { exposure: "allow" },
+          },
+          persistence: "conversation",
+        },
         parse: (raw) => recentNoticeInput.parse(raw),
         summarizeInput: ({ limit, publishedSince }) => ({
           limit,
@@ -105,12 +129,59 @@ export function createExampleVehicleOperationsCatalog(input: {
         },
         maxRows: 100,
         name: "vehicles.listSold",
+        outputPolicy: {
+          auditInput: "include",
+          classification: "internal",
+          fields: {
+            id: { exposure: "allow" },
+            model: { exposure: "allow" },
+            soldAt: { exposure: "allow" },
+          },
+          persistence: "conversation",
+        },
         parse: (raw) => soldVehicleInput.parse(raw),
         summarizeInput: ({ limit, soldFrom, soldTo }) => ({
           limit,
           soldFrom,
           soldTo,
         }),
+      }),
+      defineLiveCapability<z.infer<typeof maskedCustomerInput>>({
+        description:
+          "Confirm an authorized customer contact while masking personal values",
+        execute: async ({ actor, input: query }) => {
+          requirePermission(actor.permissions, "customers:read:masked");
+          return (input.customers ?? [])
+            .filter(
+              (customer) =>
+                customer.tenantId === actor.tenantId &&
+                customer.id === query.customerId,
+            )
+            .slice(0, 1)
+            .map(({ email, id, internalNote, name, phone }) => ({
+              email,
+              id,
+              internalNote,
+              name,
+              phone,
+            }));
+        },
+        maxRows: 1,
+        name: "customers.lookupMaskedContact",
+        outputPolicy: {
+          auditInput: "omit",
+          classification: "personal",
+          fields: {
+            email: { exposure: "mask", replacement: "{EMAIL}" },
+            id: { exposure: "mask", replacement: "{CUSTOMER_ID}" },
+            internalNote: { exposure: "omit" },
+            name: { exposure: "mask", replacement: "{NAME}" },
+            phone: { exposure: "mask", replacement: "{PHONE}" },
+          },
+          persistence: "ephemeral",
+        },
+        parse: (raw) => maskedCustomerInput.parse(raw),
+        summarizeInput: () => ({ lookupByCustomerId: true }),
       }),
     ],
     { audit: input.audit, clock: input.clock },

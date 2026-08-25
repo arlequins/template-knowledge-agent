@@ -162,6 +162,14 @@ export default $config({
               },
             ]
           : []),
+        ...(serverEnv.BEDROCK_GUARDRAIL_ARN
+          ? [
+              {
+                actions: ["bedrock:ApplyGuardrail"],
+                resources: [serverEnv.BEDROCK_GUARDRAIL_ARN],
+              },
+            ]
+          : []),
       ],
     };
     const alarmActions = serverEnv.ALERT_TOPIC_ARN
