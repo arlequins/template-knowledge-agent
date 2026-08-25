@@ -6,17 +6,21 @@ local application; the pages below explain design decisions and ongoing work.
 
 ## Start Here
 
-1. [Application architecture](architecture.md) explains workspace boundaries
+1. **[EC2 model and tuning budget](ec2-model-budget.md)**
+   ([한국어](ec2-model-budget.ko.md) · [日本語](ec2-model-budget.ja.md)) compares
+   the initial 100-user chat target, Tokyo instance sizes, sub-USD-100 plans,
+   and what different fine-tuning windows can and cannot change.
+2. [Application architecture](architecture.md) explains workspace boundaries
    and the browser-to-storage request flow.
-2. [Knowledge agent platform](agent-platform.md) explains project, official,
+3. [Knowledge agent platform](agent-platform.md) explains project, official,
    and live knowledge boundaries plus provider-neutral model routing.
-3. [Developer experience](developer-experience.md) covers generators, fast
+4. [Developer experience](developer-experience.md) covers generators, fast
    feedback commands, and template qualification.
-4. [Create a derived repository](create-derived-repository.md) provides the
+5. [Create a derived repository](create-derived-repository.md) provides the
    non-destructive copy-and-initialize workflow and public/private boundary.
-5. [Template readiness](template-readiness.md) lists the capabilities to retain
+6. [Template readiness](template-readiness.md) lists the capabilities to retain
    or deliberately remove when adapting the template.
-6. [Generic application baseline](generic-application.md) explains the reusable
+7. [Generic application baseline](generic-application.md) explains the reusable
    CRUD, authorization, upload, and Clean Architecture example.
 
 ## Development
@@ -37,8 +41,6 @@ local application; the pages below explain design decisions and ongoing work.
   approval, isolated datasets, guarded LoRA promotion, reload, and rollback.
 - [Model selection and deployment playbook](model-playbook.md): OpenAI,
   Ollama/Qwen, Ornith/MLX, Gemini, Bedrock, and EC2 guidance.
-- [EC2 model and tuning budget](ec2-model-budget.md): Tokyo On-Demand instance
-  sizing and sub-USD-100 monthly plans, excluding RDS.
 - [SST local testing](sst-local-testing.md): what can be validated without SST
   sign-in or AWS credentials.
 - [Test operations](testing-operations.md): test layers, external test

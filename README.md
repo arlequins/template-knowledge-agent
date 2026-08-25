@@ -99,16 +99,20 @@ T3/Fumadocs acceptance corpus under `examples/pilot` can be checked with
 
 ## Architecture and operations
 
-Start with [the product architecture](docs/architecture.md), [the delivery
-roadmap](docs/roadmap.md), and [the documentation index](docs/README.md).
+Start with the **[EC2 model and tuning budget](docs/ec2-model-budget.md)**
+([한국어](docs/ec2-model-budget.ko.md) ·
+[日本語](docs/ec2-model-budget.ja.md)), [the product
+architecture](docs/architecture.md), [the delivery roadmap](docs/roadmap.md),
+and [the documentation index](docs/README.md).
 Deployment-specific controls are documented in
 [deployment security](docs/deployment-security.md). AWS deployments use GitHub
 Actions with OIDC; no long-lived AWS credential belongs in this repository.
 The [reviewed learning contract](docs/reviewed-learning.md) explains how a
 derived app can safely add scheduled LoRA, while the
 [model playbook](docs/model-playbook.md) covers provider, EC2, and Bedrock
-choices. The [EC2 budget guide](docs/ec2-model-budget.md) gives a Tokyo-region
-price snapshot and sub-USD-100 options with RDS excluded.
+choices. The EC2 guide gives a Tokyo-region price snapshot, sub-USD-100 options
+with RDS excluded, an initial light-use conversational target, and the quality
+and safety implications of different tuning windows.
 
 ## Releases
 
