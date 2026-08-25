@@ -3,12 +3,18 @@ export { evaluateRetrievalCase } from "./evaluation";
 export type {
   LiveCapabilityActor,
   LiveCapabilityAuditEvent,
+  LiveCapabilityDataClassification,
   LiveCapabilityDefinition,
+  LiveCapabilityFieldPolicy,
+  LiveCapabilityOutputPolicy,
+  LiveCapabilityPersistence,
   LiveCapabilityRegistry,
   LiveCapabilityResult,
   LiveCapabilityRow,
+  LiveCapabilityScalar,
 } from "./live-capability";
 export {
+  assertLiveCapabilityResultPersistable,
   createLiveCapabilityRegistry,
   defineLiveCapability,
 } from "./live-capability";

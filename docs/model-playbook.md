@@ -89,6 +89,12 @@ Bedrock model customization supports only the listed model families and
 regions. Switching to a supported custom model requires a new evaluation
 baseline; it is not a managed way to fine-tune arbitrary Ornith MLX weights.
 
+Configure both `BEDROCK_GUARDRAIL_ARN` and `BEDROCK_GUARDRAIL_VERSION` to attach
+a versioned Guardrail to every Converse request. Guardrails are defense in
+depth, not authorization or deterministic field filtering. Follow the
+[privacy and sensitive-data boundary](privacy-sensitive-data.md) before any
+personal-data workload.
+
 ## EC2 local engine versus Bedrock
 
 For a current Tokyo price snapshot and two plans below USD 100 per month, see

@@ -1,4 +1,7 @@
-import { createBedrockModelProvider } from "@arlequins/agent-bedrock";
+import {
+  createBedrockGuardrailConfig,
+  createBedrockModelProvider,
+} from "@arlequins/agent-bedrock";
 import { createTextDocumentExtraction } from "@arlequins/agent-core";
 import {
   createOllamaEmbeddingProvider,
@@ -49,15 +52,25 @@ function modelProviders() {
       modelId: serverEnv.OPENAI_MODEL ?? "gpt-5.6-luna",
     };
   }
-  if (serverEnv.BEDROCK_MODEL_ID)
+  if (serverEnv.BEDROCK_MODEL_ID) {
+    const guardrail = createBedrockGuardrailConfig({
+      ...(serverEnv.BEDROCK_GUARDRAIL_ARN
+        ? { identifier: serverEnv.BEDROCK_GUARDRAIL_ARN }
+        : {}),
+      ...(serverEnv.BEDROCK_GUARDRAIL_VERSION
+        ? { version: serverEnv.BEDROCK_GUARDRAIL_VERSION }
+        : {}),
+    });
     return {
       embedding: undefined,
       model: createBedrockModelProvider({
         client: createAwsBedrockConversePort(),
+        ...(guardrail ? { guardrail } : {}),
         modelId: serverEnv.BEDROCK_MODEL_ID,
       }),
       modelId: serverEnv.BEDROCK_MODEL_ID,
     };
+  }
   if (serverEnv.OLLAMA_BASE_URL)
     return {
       embedding: createOllamaEmbeddingProvider({

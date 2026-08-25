@@ -80,7 +80,13 @@ its related code, tests, environment variables, and documentation.
 - [x] Synthetic T3/Fumadocs pilot covers repository, official-document,
   live-data, and evidence-refusal cases.
 - [x] Read-only live capability registry validates inputs, scopes actors,
-  bounds rows, emits citations, and records result-free audit metadata.
+  bounds rows, enforces allow/mask/omit field policies, marks personal results
+  ephemeral, emits citations, and records result-free audit metadata.
+- [x] Optional Bedrock Guardrail configuration is version-paired and scoped to
+  an exact guardrail ARN in the example runtime policy.
+- [ ] A production profile that needs exact personal values must provide a
+  separately authorized non-model structured UI, retention/deletion controls,
+  access review, and privacy-owner acceptance before enabling the data source.
 - [ ] A generated repository that enables weight training must add its own
   tested exporter, trainer, output guard, scheduler, promotion, and rollback
   implementation before advertising tuning commands.

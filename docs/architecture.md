@@ -52,9 +52,10 @@ If an appropriate read-only procedure does not exist, the application adds one
 through its normal review and deployment process. Direct model access to the
 production Aurora schema is not a fallback.
 
-Every result records the tool name, normalized arguments, observation time,
-authorization scope, row limit, and safe result identifiers. These records act
-as live-data citations alongside repository citations.
+Every result records only policy-permitted metadata such as the tool name,
+observation time, authorization scope, row limit, and row count. Personal
+arguments and result values are omitted. These records act as live-data
+citations alongside repository citations.
 
 ## T3-first analyzer
 
@@ -156,10 +157,17 @@ procedure schema, applies a hard row limit, calls the reviewed tRPC client, and
 returns a structured result. The model formats that result but cannot expand
 the query or authorization scope.
 
-The registry and synthetic adapter for these two names are executable and
+The registry and synthetic adapter for these examples are executable and
 covered by contract tests. Model tool selection and the real Aurora/tRPC query
 composition remain derived-application work; see the
 [read-only live capability example](live-capability-example.md).
+
+Every registered capability also declares a data classification, explicit
+allow/mask/omit rules for every returned field, an audit-input rule, and a
+conversation-or-ephemeral persistence rule. Schema drift fails closed. Exact
+personal values must use a separate authorized structured UI outside the model
+and conversation history; see the
+[privacy and sensitive-data boundary](privacy-sensitive-data.md).
 
 ## Model adapters and routing
 

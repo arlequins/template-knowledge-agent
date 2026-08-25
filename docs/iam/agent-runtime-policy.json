@@ -11,6 +11,12 @@
       "Resource": "arn:aws:bedrock:${AWS_REGION}::foundation-model/${BEDROCK_MODEL_ID}"
     },
     {
+      "Sid": "ApplyOnlyApprovedBedrockGuardrail",
+      "Effect": "Allow",
+      "Action": ["bedrock:ApplyGuardrail"],
+      "Resource": "${BEDROCK_GUARDRAIL_ARN}"
+    },
+    {
       "Sid": "ReadOnlyApprovedKnowledgePrefix",
       "Effect": "Allow",
       "Action": ["s3:GetObject"],

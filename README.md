@@ -99,7 +99,10 @@ T3/Fumadocs acceptance corpus under `examples/pilot` can be checked with
 
 ## Architecture and operations
 
-Start with the **[EC2 model and tuning budget](docs/ec2-model-budget.md)**
+Start with the **[privacy and sensitive-data boundary](docs/privacy-sensitive-data.md)**
+([한국어](docs/privacy-sensitive-data.ko.md) ·
+[日本語](docs/privacy-sensitive-data.ja.md)), the
+**[EC2 model and tuning budget](docs/ec2-model-budget.md)**
 ([한국어](docs/ec2-model-budget.ko.md) ·
 [日本語](docs/ec2-model-budget.ja.md)), [the product
 architecture](docs/architecture.md), [the delivery roadmap](docs/roadmap.md),
