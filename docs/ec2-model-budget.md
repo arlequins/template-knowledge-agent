@@ -1,5 +1,8 @@
 # EC2 model and tuning budget under USD 100
 
+Languages: **English** | [한국어](ec2-model-budget.ko.md) |
+[日本語](ec2-model-budget.ja.md)
+
 This estimate answers a narrow planning question: what can run in AWS for less
 than USD 100 per month when the application database already exists? It is a
 price snapshot, not a quote.
@@ -36,6 +39,51 @@ AWS documents that G6 uses an NVIDIA L4 with 24 GB per full GPU. That memory is
 a plausible starting point for a carefully bounded 9B QLoRA experiment, but it
 does not guarantee a given context length, batch size, optimizer, or serving
 concurrency. See the [G6 specifications](https://aws.amazon.com/ec2/instance-types/g6/).
+
+## Initial launch target: useful general conversation
+
+The first release should already feel like a usable conversational agent; it
+should not wait for project-specific fine-tuning. Use **Bedrock On-Demand** as
+the default always-available inference path and evaluate Amazon Nova 2 Lite as
+the first low-cost general-chat candidate. Keep the provider adapter boundary
+so a derived repository can replace it with another Bedrock, Claude, Gemini,
+OpenAI, or local model after the same replay suite passes. Bedrock On-Demand
+scales without reserved capacity and charges for processed tokens; quotas still
+vary by model and region. See the
+[Nova On-Demand guidance](https://docs.aws.amazon.com/nova/latest/nova2-userguide/on-demand-inference.html)
+and [Nova 2 Lite model card](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.html).
+
+Use this as an initial planning profile, not a capacity guarantee:
+
+- 100 registered users, 20–30 daily active users, and up to five simultaneous
+  conversations under ordinary light use;
+- a short burst queue for traffic above the concurrency target, with a clear
+  busy/retry message instead of silent failure;
+- streaming text responses, multi-turn history, Markdown rendering, answer
+  copy, regeneration, and cancellation;
+- English, Japanese, and Korean acceptance conversations, with per-language
+  quality measured rather than assumed;
+- bounded history and retrieved context so one long conversation cannot consume
+  the entire latency and token budget; and
+- per-user and per-workspace rate limits plus daily token and cost alarms.
+
+Route requests by evidence need:
+
+1. general conversation goes directly to the selected foundation model with a
+   concise behavior and safety prompt;
+2. repository, Fumadocs, React, Drizzle, or other approved technical questions
+   add retrieved source chunks and citations;
+3. current notices, sales, and business records invoke allowlisted read-only
+   live capabilities; and
+4. unsupported or unauthorized questions receive an explicit limitation, not
+   an invented answer.
+
+Before launch, replay at least a multi-turn general-chat set, the public pilot
+corpus, refusal cases, and a five-concurrent-user load test. Measure time to
+first token, complete-response latency, token use, error rate, repeated
+sentences, unsupported claims, and citation correctness. Fine-tuning begins
+only after this baseline works and reviewed failures show a repeated behavior
+problem that retrieval, prompting, or routing cannot fix.
 
 ## Plan A: always-on small CPU model plus intermittent tuning
 
@@ -88,6 +136,66 @@ checkpointing, and resumable checkpoints. Stop the instance after each job.
 Spot can extend the GPU hours, but its price and capacity are not a budget
 guarantee. Persist checkpoints and handle the
 [two-minute interruption notice](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html).
+
+## What changes with fine-tuning time
+
+Training time is a capacity budget, not a quality score. More GPU time can
+process more approved examples, evaluate more candidates, or use a longer
+sequence length. Repeating the same small dataset for more epochs can instead
+increase memorization, repetition, unsupported claims, and regression. It
+cannot add current facts that are absent from the evidence; current notices,
+sales, and repository changes should come from RAG or read-only live tools.
+
+| GPU time for one candidate cycle | What it can reasonably change | What it proves |
+| --- | --- | --- |
+| Up to 30 minutes | Verify the CUDA stack, dataset format, token placement, checkpointing, and one end-to-end smoke case | Only that the pipeline runs; never enough for promotion |
+| 30 minutes–2 hours | Train one small LoRA/QLoRA candidate on a compact reviewed dataset and run a short held-out replay | A pilot signal, not broad behavior improvement |
+| 2–8 hours | Use more approved examples or sequence budget, compare a few learning-rate/rank choices, and run stronger citation, repetition, language, and refusal checks | A credible candidate only if a disjoint test set and application replay pass |
+| 8–24 hours | Run multiple seeds or candidates, broader regression suites, and latency/cost measurements | Greater comparison confidence, not guaranteed answer quality |
+| More than 24 hours | Explore a larger dataset or model, wider hyperparameter search, or repeated robustness tests | Often diminishing returns; investigate retrieval, data quality, or model fit before buying more compute |
+
+The elapsed window also contains export, model loading, evaluation, report
+generation, and checkpoint upload. Do not treat all scheduled instance time as
+optimizer time. Record at least dataset version, base model, adapter settings,
+GPU type, training steps, tokens processed, validation loss, held-out results,
+wall-clock time, and peak memory so two runs can be compared.
+
+### Monthly effect of the schedule
+
+The monthly GPU compute portion is approximately:
+
+```text
+monthly GPU cost = hourly price × hours per run × runs per month
+```
+
+At this Tokyo price snapshot:
+
+| Schedule example | Monthly GPU hours | Compute cost | Practical use |
+| --- | ---: | ---: | --- |
+| Four 2-hour `g4dn.xlarge` cycles per month | 8 | $5.68 | Pipeline and small-model pilot checks |
+| Daily 1-hour `g4dn.xlarge` cycle | 30 | $21.30 | The tuning allowance used in Plan A |
+| Four 4-hour `g6.xlarge` cycles per month | 16 | $18.68 | 9B candidate training plus guarded evaluation |
+| Daily 2.5-hour `g6.xlarge` window | 75 | $87.54 | The full scheduled GPU window in Plan B; EBS leaves the total at $95.22 |
+
+These rows are ceilings, not recommended minimums. Start a tuning run only
+when enough new, source-approved examples exist. Otherwise use the scheduled
+window for retrieval evaluation or skip it entirely. A daily evaluation can
+still run without producing a new adapter; promotion should be less frequent
+than evaluation and occur only when the candidate clearly beats the deployed
+version without safety, latency, or cost regression.
+
+### Controls that must not change with the time budget
+
+- Keep train, validation, and test sets disjoint, including semantic
+  paraphrases.
+- Never select hyperparameters against the test set.
+- Stop early when validation quality degrades or repetition rises.
+- Compare against the current base model and deployed adapter, not only the
+  previous training step.
+- Reload the serving process and replay complete RAG answers before declaring
+  a promoted adapter active.
+- Preserve a versioned rollback target and reject a run even after expensive
+  training when its gates fail.
 
 ## Recommended service shape
 
