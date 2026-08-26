@@ -43,3 +43,9 @@ cross-region replication only when recovery objectives justify the cost.
 
 Derived weight-training profiles also need model-process reload and rollback
 checks from [Reviewed feedback and learning pipeline](reviewed-learning.md).
+
+Pipeline failures use the injectable `PipelineFailureNotifier` described in the
+[MCP server contract](mcp-server.md). Keep the default structured warning in
+development; configure SNS, Slack, PagerDuty, or an internal sink only in a
+protected deployment. Alerts are recursively redacted before leaving the
+process, and notifier errors should remain retryable.

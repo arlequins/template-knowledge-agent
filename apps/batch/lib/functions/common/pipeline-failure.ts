@@ -23,8 +23,8 @@ function requireBatchId(event: PipelineFailureHandlerEvent): string {
   return id;
 }
 
-export const handler: Handler<PipelineFailureHandlerEvent> = (event) => {
-  notifyPipelineFailureAlert({
+export const handler: Handler<PipelineFailureHandlerEvent> = async (event) => {
+  await notifyPipelineFailureAlert({
     batchId: requireBatchId(event),
     errorEvent: event.stepFunctionsInput ?? event,
   });

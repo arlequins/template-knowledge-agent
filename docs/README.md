@@ -45,6 +45,9 @@ local application; the pages below explain design decisions and ongoing work.
   evaluation manifest, and deterministic verification.
 - [Read-only live capability example](live-capability-example.md): typed,
   tenant-scoped current-data access for notices and sold vehicles.
+- [Remote MCP server contract](mcp-server.md) · [한국어](mcp-server.ko.md) ·
+  [日本語](mcp-server.ja.md): guarded JSON-RPC transport, per-tool
+  authorization, and redacted failure notifications.
 - [Reviewed feedback and learning pipeline](reviewed-learning.md): source
   approval, isolated datasets, guarded LoRA promotion, reload, and rollback.
 - [Owner review workbench and daily promotion](review-workbench.md) ·
