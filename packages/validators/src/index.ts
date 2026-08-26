@@ -68,6 +68,34 @@ export const submitFeedbackInputSchema = workspaceScopeInputSchema.extend({
   kind: z.enum(["helpful", "incorrect", "missing", "needs-investigation"]),
   comment: z.string().trim().max(10_000).optional(),
 });
+export const investigationScopeInputSchema = workspaceScopeInputSchema.extend({
+  investigationId: z.uuid(),
+});
+export const listInvestigationsInputSchema = workspaceScopeInputSchema.extend({
+  status: z.enum(["queued", "in-progress", "approved", "rejected"]).optional(),
+});
+export const reviewInvestigationInputSchema =
+  investigationScopeInputSchema.extend({
+    findings: z
+      .object({
+        evidenceIds: z
+          .array(z.string().trim().min(1).max(160))
+          .max(24)
+          .default([]),
+        correctedAnswer: z.string().trim().max(20_000).optional(),
+        requiredTerms: z
+          .array(z.string().trim().min(1).max(240))
+          .max(24)
+          .default([]),
+        forbiddenClaims: z
+          .array(z.string().trim().min(1).max(240))
+          .max(24)
+          .default([]),
+      })
+      .optional(),
+    resolution: z.string().trim().max(20_000).optional(),
+    status: z.enum(["approved", "rejected"]),
+  });
 export const completeAgentInputSchema = workspaceScopeInputSchema.extend({
   conversationId: z.uuid(),
   question: z.string().trim().min(1).max(100_000),

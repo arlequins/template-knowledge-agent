@@ -168,6 +168,52 @@ describe("S3 agent platform repository", () => {
     ).rejects.toThrow("Message was not found");
   });
 
+  it("allows only the owner to review an investigation and keeps a correction", async () => {
+    const { actor, repository } = await fixture();
+    const conversation = await repository.createConversation(actor);
+    const message = await repository.addMessage(actor, {
+      content: "반복된 답변",
+      conversationId: conversation.id,
+      role: "assistant",
+    });
+    const feedback = await repository.submitFeedback(actor, {
+      kind: "needs-investigation",
+      messageId: message.id,
+    });
+    const investigationId = feedback.investigation?.id;
+    if (!investigationId) throw new Error("Investigation was not created");
+    await repository.addWorkspaceMember(actor, "user-2", "member");
+    await expect(
+      repository.listInvestigations({
+        userId: "user-2",
+        workspaceId: actor.workspaceId,
+      }),
+    ).rejects.toThrow("owner");
+    expect(await repository.listInvestigations(actor)).toMatchObject([
+      { id: investigationId, messageContent: "반복된 답변", status: "queued" },
+    ]);
+    await repository.reviewInvestigation(actor, {
+      findings: {
+        correctedAnswer: "근거를 확인한 답변입니다.",
+        evidenceIds: ["chunk-1"],
+        forbiddenClaims: ["추론을 표시"],
+        requiredTerms: ["근거"],
+      },
+      investigationId,
+      resolution: "원문 근거를 확인하고 반복 표현을 제거함",
+      status: "approved",
+    });
+    expect(await repository.listInvestigations(actor)).toEqual([]);
+    expect(
+      await repository.listInvestigations(actor, "approved"),
+    ).toMatchObject([
+      {
+        findings: { correctedAnswer: "근거를 확인한 답변입니다." },
+        status: "approved",
+      },
+    ]);
+  });
+
   it("purges only expired live memories", async () => {
     const { actor, repository, store } = await fixture();
     const expired = await repository.createMemory(actor, {

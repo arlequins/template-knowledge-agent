@@ -99,9 +99,13 @@ type Feedback = {
   workspaceId: string;
 };
 type Investigation = {
+  completedAt?: string;
   createdAt: string;
   feedbackId: string;
+  findings?: Record<string, unknown>;
   id: string;
+  resolution?: string;
+  startedAt?: string;
   status: string;
 };
 type EvaluationCase = {
@@ -1039,6 +1043,89 @@ export function createS3AgentPlatformRepository(
               startedAt: null,
             }
           : undefined,
+      };
+    },
+    async listInvestigations(
+      actor: WorkspaceActor,
+      status: "queued" | "in-progress" | "approved" | "rejected" = "queued",
+    ) {
+      await assertOwner(actor);
+      const [investigations, feedback, messages] = await Promise.all([
+        values<Investigation>(
+          store,
+          collectionPrefix(actor.workspaceId, "investigations"),
+        ),
+        values<Feedback>(
+          store,
+          collectionPrefix(actor.workspaceId, "feedback"),
+        ),
+        values<Message>(store, collectionPrefix(actor.workspaceId, "messages")),
+      ]);
+      const feedbackById = new Map(feedback.map((item) => [item.id, item]));
+      const messageById = new Map(messages.map((item) => [item.id, item]));
+      return investigations
+        .filter((item) => item.status === status)
+        .map((item) => {
+          const itemFeedback = feedbackById.get(item.feedbackId);
+          const message = itemFeedback
+            ? messageById.get(itemFeedback.messageId)
+            : undefined;
+          return {
+            completedAt: date(item.completedAt) ?? null,
+            createdAt: new Date(item.createdAt),
+            feedbackComment: itemFeedback?.comment ?? null,
+            feedbackId: item.feedbackId,
+            feedbackKind: itemFeedback?.kind ?? "needs-investigation",
+            findings: item.findings ?? null,
+            id: item.id,
+            messageContent: message?.content ?? "",
+            messageId: itemFeedback?.messageId ?? "",
+            resolution: item.resolution ?? null,
+            startedAt: date(item.startedAt) ?? null,
+            status: item.status,
+          };
+        })
+        .sort(
+          (left, right) => right.createdAt.getTime() - left.createdAt.getTime(),
+        )
+        .slice(0, 100);
+    },
+    async reviewInvestigation(
+      actor: WorkspaceActor,
+      input: {
+        findings?: Record<string, unknown>;
+        investigationId: string;
+        resolution?: string;
+        status: "approved" | "rejected";
+      },
+    ) {
+      await assertOwner(actor);
+      const investigation = await required<Investigation>(
+        store,
+        stateKey(actor.workspaceId, "investigations", input.investigationId),
+        "Investigation was not found in this workspace",
+      );
+      const reviewedAt = timestamp();
+      const updated = await mutate<Investigation>(
+        store,
+        stateKey(actor.workspaceId, "investigations", input.investigationId),
+        (current) => ({
+          ...current,
+          completedAt: reviewedAt,
+          ...(input.findings ? { findings: input.findings } : {}),
+          ...(input.resolution ? { resolution: input.resolution } : {}),
+          startedAt: current.startedAt ?? reviewedAt,
+          status: input.status,
+        }),
+      );
+      await appendEvent(actor, `investigation.${input.status}`, updated.id, {
+        feedbackId: investigation.value.feedbackId,
+      });
+      return {
+        ...updated,
+        completedAt: new Date(updated.completedAt ?? reviewedAt),
+        createdAt: new Date(updated.createdAt),
+        startedAt: new Date(updated.startedAt ?? reviewedAt),
       };
     },
     async listAuditLog(actor: WorkspaceActor) {

@@ -153,6 +153,8 @@ export const serverEnv = createEnv({
     OLLAMA_MODEL: z.string().min(1).optional(),
     /** Pulled local embedding model used by document retrieval. */
     OLLAMA_EMBEDDING_MODEL: z.string().min(1).optional(),
+    /** Optional path to an atomically promoted, reviewed behavior-pack manifest. */
+    AGENT_BEHAVIOR_PACK_PATH: z.string().min(1).optional(),
   },
   runtimeEnv: {
     SST_STAGE: process.env.SST_STAGE,
@@ -222,6 +224,7 @@ export const serverEnv = createEnv({
     OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL,
     OLLAMA_MODEL: process.env.OLLAMA_MODEL,
     OLLAMA_EMBEDDING_MODEL: process.env.OLLAMA_EMBEDDING_MODEL,
+    AGENT_BEHAVIOR_PACK_PATH: process.env.AGENT_BEHAVIOR_PACK_PATH,
   },
   emptyStringAsUndefined: true,
   skipValidation: skipEnvValidation,

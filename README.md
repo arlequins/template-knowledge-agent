@@ -93,6 +93,7 @@ T3/Fumadocs acceptance corpus under `examples/pilot` can be checked with
 | `pnpm pilot:verify` | Verify the synthetic T3/Fumadocs, live-data, and refusal cases. |
 | `pnpm tuning:patterns:verify` | Verify the public reviewed document-QA behavior pack and held-out isolation. |
 | `pnpm tuning:patterns:generate` | Generate private structured candidates with Luna under `.local/`. |
+| `pnpm tuning:patterns:daily` | Validate and atomically promote the reviewed behavior pack under `.local/`. |
 | `pnpm check` | Run Biome formatting and lint checks. |
 | `pnpm typecheck` | Typecheck every workspace. |
 | `pnpm test` | Run unit and contract tests. |
@@ -118,6 +119,8 @@ derived app can safely add scheduled LoRA, while the
 choices. The EC2 guide gives a Tokyo-region price snapshot, sub-USD-100 options
 with RDS excluded, an initial light-use conversational target, and the quality
 and safety implications of different tuning windows.
+Owner-only feedback investigations and their promotion gates are described in
+[the review workbench guide](docs/review-workbench.md).
 The [Luna-assisted tuning kit](docs/tuning-kit.md)
 ([한국어](docs/tuning-kit.ko.md) · [日本語](docs/tuning-kit.ja.md)) adds reviewed
 synthetic behavior patterns that work immediately as few-shot guidance and can

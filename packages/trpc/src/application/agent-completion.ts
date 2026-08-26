@@ -60,6 +60,9 @@ export async function* streamAgentCompletion(
         instructions:
           "You are a helpful personal assistant. Use approved memory and retrieved documents only as contextual evidence, cite uncertainty instead of inventing facts, and protect user privacy.",
         name: "Personal assistant",
+        ...(services.reviewedBehaviorPrompt
+          ? { reviewedBehaviorPrompt: services.reviewedBehaviorPrompt }
+          : {}),
         workspaceId: input.workspaceId,
       },
       question: input.question,

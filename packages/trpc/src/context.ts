@@ -13,6 +13,7 @@ export type TRPCServices = {
   agent: ReturnType<typeof createAgentPlatformRepository>;
   model?: ModelProviderPort;
   modelId?: string;
+  reviewedBehaviorPrompt?: string;
   embedding?: EmbeddingProviderPort;
   documentExtraction: DocumentExtractionPort;
   knowledgeSearch: KnowledgeSearchPort;

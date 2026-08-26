@@ -72,6 +72,10 @@ export function AgentChat() {
   const [documentFilename, setDocumentFilename] = useState("notes.txt");
   const [memoryContent, setMemoryContent] = useState("");
   const [memberUserId, setMemberUserId] = useState("");
+  const [investigationResolution, setInvestigationResolution] = useState("");
+  const [investigationAnswer, setInvestigationAnswer] = useState("");
+  const [selectedInvestigationId, setSelectedInvestigationId] =
+    useState<string>();
   const [question, setQuestion] = useState("");
   const [streamedText, setStreamedText] = useState("");
   const [streamError, setStreamError] = useState<string>();
@@ -112,6 +116,13 @@ export function AgentChat() {
     "owner";
   const auditLog = useQuery({
     ...trpc.agent.auditLog.queryOptions({ workspaceId: workspaceId ?? "" }),
+    enabled: Boolean(workspaceId && isOwner),
+  });
+  const investigations = useQuery({
+    ...trpc.agent.investigations.queryOptions({
+      workspaceId: workspaceId ?? "",
+      status: "queued",
+    }),
     enabled: Boolean(workspaceId && isOwner),
   });
 
@@ -220,6 +231,26 @@ export function AgentChat() {
   );
   const submitFeedback = useMutation(
     trpc.agent.submitFeedback.mutationOptions(),
+  );
+  const reviewInvestigation = useMutation(
+    trpc.agent.reviewInvestigation.mutationOptions({
+      onSuccess: async () => {
+        setInvestigationAnswer("");
+        setInvestigationResolution("");
+        setSelectedInvestigationId(undefined);
+        await queryClient.invalidateQueries({
+          queryKey: trpc.agent.investigations.queryKey({
+            workspaceId: workspaceId ?? "",
+            status: "queued",
+          }),
+        });
+        await queryClient.invalidateQueries({
+          queryKey: trpc.agent.auditLog.queryKey({
+            workspaceId: workspaceId ?? "",
+          }),
+        });
+      },
+    }),
   );
   function submitWorkspace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -562,6 +593,123 @@ export function AgentChat() {
               ))}
             </ul>
           ) : null}
+          {isOwner && (
+            <div className="mt-4 border-t pt-4">
+              <p className="text-sm font-medium">조사 요청 검토</p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                소유자만 원문 답변을 확인하고 승인된 수정 내용을 다음 일일
+                평가에 반영할 수 있습니다.
+              </p>
+              {investigations.data?.length ? (
+                <ul className="mt-3 space-y-3">
+                  {investigations.data.map((item) => {
+                    const selected = selectedInvestigationId === item.id;
+                    return (
+                      <li
+                        className="rounded-md border p-3 text-xs"
+                        key={item.id}
+                      >
+                        <p className="font-medium">{item.messageContent}</p>
+                        {item.feedbackComment && (
+                          <p className="text-muted-foreground mt-1">
+                            피드백: {item.feedbackComment}
+                          </p>
+                        )}
+                        <button
+                          className="mt-2 text-muted-foreground hover:underline"
+                          onClick={() => {
+                            setSelectedInvestigationId(
+                              selected ? undefined : item.id,
+                            );
+                            setInvestigationAnswer(
+                              typeof item.findings === "object" &&
+                                item.findings &&
+                                "correctedAnswer" in item.findings &&
+                                typeof item.findings.correctedAnswer ===
+                                  "string"
+                                ? item.findings.correctedAnswer
+                                : "",
+                            );
+                          }}
+                          type="button"
+                        >
+                          {selected ? "검토 닫기" : "검토 열기"}
+                        </button>
+                        {selected && (
+                          <div className="mt-2 space-y-2">
+                            <Textarea
+                              aria-label="수정 답변"
+                              onChange={(event) =>
+                                setInvestigationAnswer(event.target.value)
+                              }
+                              placeholder="근거를 확인한 뒤 사용할 수정 답변(선택)"
+                              value={investigationAnswer}
+                            />
+                            <Input
+                              aria-label="검토 메모"
+                              onChange={(event) =>
+                                setInvestigationResolution(event.target.value)
+                              }
+                              placeholder="검토 메모(선택)"
+                              value={investigationResolution}
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                disabled={reviewInvestigation.isPending}
+                                onClick={() =>
+                                  workspaceId &&
+                                  reviewInvestigation.mutate({
+                                    findings: {
+                                      correctedAnswer:
+                                        investigationAnswer.trim() || undefined,
+                                      evidenceIds: [],
+                                      forbiddenClaims: [],
+                                      requiredTerms: [],
+                                    },
+                                    investigationId: item.id,
+                                    resolution:
+                                      investigationResolution.trim() ||
+                                      undefined,
+                                    status: "approved",
+                                    workspaceId,
+                                  })
+                                }
+                                size="sm"
+                              >
+                                승인
+                              </Button>
+                              <Button
+                                disabled={reviewInvestigation.isPending}
+                                onClick={() =>
+                                  workspaceId &&
+                                  reviewInvestigation.mutate({
+                                    investigationId: item.id,
+                                    resolution:
+                                      investigationResolution.trim() ||
+                                      undefined,
+                                    status: "rejected",
+                                    workspaceId,
+                                  })
+                                }
+                                size="sm"
+                                variant="outline"
+                              >
+                                보류/거절
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="text-muted-foreground mt-2 text-xs">
+                  대기 중인 조사 요청이 없습니다.
+                </p>
+              )}
+            </div>
+          )}
         </details>
       </aside>
       <div className="flex min-h-[34rem] flex-col rounded-xl border">

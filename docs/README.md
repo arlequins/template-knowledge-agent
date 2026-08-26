@@ -47,6 +47,9 @@ local application; the pages below explain design decisions and ongoing work.
   tenant-scoped current-data access for notices and sold vehicles.
 - [Reviewed feedback and learning pipeline](reviewed-learning.md): source
   approval, isolated datasets, guarded LoRA promotion, reload, and rollback.
+- [Owner review workbench and daily promotion](review-workbench.md) ·
+  [한국어](review-workbench.ko.md) · [日本語](review-workbench.ja.md): owner-only
+  investigation review and the local daily behavior-pack gate.
 - [Model selection and deployment playbook](model-playbook.md): OpenAI,
   Ollama/Qwen, Ornith/MLX, Gemini, Bedrock, and EC2 guidance.
 - [SST local testing](sst-local-testing.md): what can be validated without SST

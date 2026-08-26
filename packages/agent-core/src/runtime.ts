@@ -7,6 +7,27 @@ import type { AgentInput, AgentRun, ModelMessage } from "./types";
 
 const MAX_CONTEXT_ITEMS = 6;
 
+function normalizeSentence(value: string) {
+  return value.replace(/\s+/gu, " ").trim().toLocaleLowerCase("en-US");
+}
+
+/** Returns the start of the second sentence when a model begins looping. */
+function repeatedSentenceCut(value: string) {
+  const sentences = [...value.matchAll(/[^.!?。！？]{20,}[.!?。！？]/gu)].map(
+    (match) => ({
+      end: (match.index ?? 0) + match[0].length,
+      start: match.index ?? 0,
+      value: normalizeSentence(match[0]),
+    }),
+  );
+  const seen = new Set<string>();
+  for (const sentence of sentences) {
+    if (seen.has(sentence.value)) return sentence.start;
+    seen.add(sentence.value);
+  }
+  return undefined;
+}
+
 function contextMessage(
   input: AgentInput,
   memories: string[],
@@ -68,7 +89,19 @@ export function createAgentRuntime(dependencies: {
         { role: "user", content: input.question },
       ];
 
+      let emitted = "";
       for await (const text of dependencies.model.streamText({ messages })) {
+        const candidate = emitted + text;
+        const cut = repeatedSentenceCut(candidate);
+        if (cut !== undefined) {
+          if (cut > emitted.length)
+            yield {
+              text: candidate.slice(emitted.length, cut),
+              type: "text-delta",
+            };
+          break;
+        }
+        emitted = candidate;
         yield { type: "text-delta", text };
       }
 
