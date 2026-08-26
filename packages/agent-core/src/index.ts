@@ -1,3 +1,12 @@
+export type {
+  AnalyzerFacts,
+  AnalyzerKnowledgeEdge,
+  AnalyzerKnowledgeUnit,
+  AnalyzerPlan,
+  AnalyzerPlugin,
+  AnalyzerSnapshot,
+} from "./analyzer";
+export { createAnalyzerRegistry } from "./analyzer";
 export { createTextDocumentExtraction } from "./document-extraction";
 export { evaluateRetrievalCase } from "./evaluation";
 export type {
