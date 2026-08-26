@@ -18,6 +18,33 @@ The database and S3 repository adapters implement the same contract. Every
 mutation checks workspace ownership and writes an immutable audit event. Do not
 put source content, secrets, or personal data in audit metadata.
 
+## Export approved investigations
+
+An approved investigation is not training data until the owner supplies a
+corrected answer and at least one document-chunk ID from the same workspace.
+The exporter reads only `approved` investigations, re-derives the original
+question from the conversation, joins authorized document chunks, rejects
+missing or duplicate evidence, and writes a reviewed batch under `.local/`:
+
+```bash
+AGENT_WORKSPACE_ID=<workspace-uuid> \
+AGENT_OWNER_USER_ID=<owner-user-uuid> \
+pnpm tuning:patterns:export-approved
+```
+
+The command reports `added` and `skipped` records. It never mutates the public
+example pack. Feed the derived pack into the normal promotion gate:
+
+```bash
+pnpm tuning:patterns:daily -- \
+  --input .local/tuning/reviewed-with-feedback.json
+```
+
+Use the chunk UUID shown by the document/chunk APIs in the owner review form;
+an empty evidence list is intentionally skipped. This keeps private source
+content in the local database while only reviewed, citation-backed behavior
+enters the daily pack.
+
 ## Daily loop
 
 Run this after the owner has reviewed new items:

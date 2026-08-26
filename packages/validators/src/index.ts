@@ -91,6 +91,19 @@ export const reviewInvestigationInputSchema =
           .array(z.string().trim().min(1).max(240))
           .max(24)
           .default([]),
+        language: z.enum(["en", "ja", "ko"]).optional(),
+        patternKind: z
+          .enum([
+            "grounded-answer",
+            "insufficient-evidence",
+            "conflicting-evidence",
+            "citation-required",
+            "static-vs-live",
+            "code-navigation",
+            "clarification",
+            "prompt-injection-resistance",
+          ])
+          .optional(),
       })
       .optional(),
     resolution: z.string().trim().max(20_000).optional(),

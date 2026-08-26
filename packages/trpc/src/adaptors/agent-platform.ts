@@ -375,6 +375,25 @@ export function createAgentPlatformRepository(database: Database) {
         )
         .orderBy(DocumentChunk.ordinal);
     },
+    async listKnowledgeChunks(workspaceId: string) {
+      return database
+        .select({
+          content: DocumentChunk.content,
+          documentId: Document.id,
+          id: DocumentChunk.id,
+          label: Document.filename,
+          locator: DocumentChunk.locator,
+        })
+        .from(DocumentChunk)
+        .innerJoin(Document, eq(DocumentChunk.documentId, Document.id))
+        .where(
+          and(
+            eq(Document.workspaceId, workspaceId),
+            isNull(Document.deletedAt),
+          ),
+        )
+        .orderBy(Document.filename, DocumentChunk.ordinal);
+    },
     async setChunkEmbeddings(
       actor: WorkspaceActor,
       input: Array<{ embedding: number[]; id: string }>,
@@ -664,7 +683,9 @@ export function createAgentPlatformRepository(database: Database) {
           findings: Investigation.findings,
           id: Investigation.id,
           messageContent: Message.content,
+          messageCreatedAt: Message.createdAt,
           messageId: Message.id,
+          conversationId: Conversation.id,
           resolution: Investigation.resolution,
           startedAt: Investigation.startedAt,
           status: Investigation.status,
@@ -681,7 +702,26 @@ export function createAgentPlatformRepository(database: Database) {
         )
         .orderBy(desc(Investigation.createdAt))
         .limit(100);
-      return rows;
+      return Promise.all(
+        rows.map(async (row) => {
+          const [question] = await database
+            .select({ content: Message.content })
+            .from(Message)
+            .where(
+              and(
+                eq(Message.conversationId, row.conversationId),
+                eq(Message.role, "user"),
+                lt(Message.createdAt, row.messageCreatedAt),
+              ),
+            )
+            .orderBy(desc(Message.createdAt))
+            .limit(1);
+          return {
+            ...row,
+            question: question?.content ?? "",
+          };
+        }),
+      );
     },
     async reviewInvestigation(
       actor: WorkspaceActor,
@@ -710,11 +750,16 @@ export function createAgentPlatformRepository(database: Database) {
       if (!investigation)
         throw new Error("Investigation was not found in this workspace");
       const now = new Date();
+      const findings = {
+        ...(input.findings ?? {}),
+        reviewedAt: now.toISOString(),
+        reviewedBy: actor.userId,
+      };
       const [updated] = await database
         .update(Investigation)
         .set({
           completedAt: now,
-          ...(input.findings ? { findings: input.findings } : {}),
+          findings,
           ...(input.resolution ? { resolution: input.resolution } : {}),
           startedAt: now,
           status: input.status,

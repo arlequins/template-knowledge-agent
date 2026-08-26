@@ -1070,6 +1070,18 @@ export function createS3AgentPlatformRepository(
           const message = itemFeedback
             ? messageById.get(itemFeedback.messageId)
             : undefined;
+          const question = message
+            ? messages
+                .filter(
+                  (candidate) =>
+                    candidate.conversationId === message.conversationId &&
+                    candidate.role === "user" &&
+                    candidate.createdAt < message.createdAt,
+                )
+                .sort((left, right) =>
+                  right.createdAt.localeCompare(left.createdAt),
+                )[0]
+            : undefined;
           return {
             completedAt: date(item.completedAt) ?? null,
             createdAt: new Date(item.createdAt),
@@ -1080,6 +1092,7 @@ export function createS3AgentPlatformRepository(
             id: item.id,
             messageContent: message?.content ?? "",
             messageId: itemFeedback?.messageId ?? "",
+            question: question?.content ?? "",
             resolution: item.resolution ?? null,
             startedAt: date(item.startedAt) ?? null,
             status: item.status,
@@ -1112,7 +1125,17 @@ export function createS3AgentPlatformRepository(
         (current) => ({
           ...current,
           completedAt: reviewedAt,
-          ...(input.findings ? { findings: input.findings } : {}),
+          ...(input.findings
+            ? {
+                findings: {
+                  ...input.findings,
+                  reviewedAt,
+                  reviewedBy: actor.userId,
+                },
+              }
+            : {
+                findings: { reviewedAt, reviewedBy: actor.userId },
+              }),
           ...(input.resolution ? { resolution: input.resolution } : {}),
           startedAt: current.startedAt ?? reviewedAt,
           status: input.status,

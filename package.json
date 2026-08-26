@@ -41,6 +41,7 @@
     "tuning:patterns:generate": "pnpm exec dotenv -e .env.localhost -- pnpm -C apps/indexer tuning:patterns:generate",
     "tuning:patterns:verify": "pnpm -C apps/indexer tuning:patterns:verify",
     "tuning:patterns:daily": "pnpm -C apps/indexer tuning:patterns:daily",
+    "tuning:patterns:export-approved": "pnpm exec dotenv -e .env.localhost -- pnpm -C apps/indexer tuning:patterns:export-approved",
     "dev:next": "turbo watch dev -F @arlequins/web...",
     "dev:sst": "turbo run sst:dev --continue -F @arlequins/web -F @arlequins/api -F @arlequins/batch",
     "batch:run": "pnpm -C apps/batch with-env pnpm dlx tsx scripts/dev.ts",
