@@ -92,6 +92,8 @@ its related code, tests, environment variables, and documentation.
   ephemeral, emits citations, and records result-free audit metadata.
 - [x] Optional Bedrock Guardrail configuration is version-paired and scoped to
   an exact guardrail ARN in the example runtime policy.
+- [x] Optional runtime model selection is injected through a provider-neutral
+  `ModelSelectionPort`; single-model installations keep the safe fallback.
 - [ ] A production profile that needs exact personal values must provide a
   separately authorized non-model structured UI, retention/deletion controls,
   access review, and privacy-owner acceptance before enabling the data source.
