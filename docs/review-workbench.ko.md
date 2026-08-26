@@ -15,6 +15,32 @@
 워크스페이스 소유권을 다시 확인하고 변경 불가 감사 이벤트를 기록합니다.
 감사 메타데이터에는 원문, 비밀값, 개인정보를 넣지 마세요.
 
+## 승인 조사 결과 내보내기
+
+승인된 조사는 소유자가 수정 답변과 같은 워크스페이스의 문서 청크 ID를
+하나 이상 입력하기 전에는 학습 데이터가 되지 않습니다. 내보내기 도구는
+`approved` 항목만 읽고 대화에서 원 질문을 다시 찾은 뒤 권한이 있는 청크와
+조인합니다. 근거가 없거나 중복된 항목은 건너뛰며 결과는 `.local/` 아래에
+새 리뷰 팩으로 원자적으로 기록합니다.
+
+```bash
+AGENT_WORKSPACE_ID=<workspace-uuid> \
+AGENT_OWNER_USER_ID=<owner-user-uuid> \
+pnpm tuning:patterns:export-approved
+```
+
+출력의 `added`/`skipped` 수로 반영 결과를 확인하세요. 공개 예제 팩은
+변경하지 않습니다. 생성된 팩을 기존 승격 게이트에 전달합니다.
+
+```bash
+pnpm tuning:patterns:daily -- \
+  --input .local/tuning/reviewed-with-feedback.json
+```
+
+검토 화면의 근거 청크 ID에는 문서/청크 API가 반환한 UUID를 입력합니다.
+근거 목록이 비어 있으면 의도적으로 제외되어 비공개 원문이 일일 팩에
+그대로 유입되지 않습니다.
+
 ## 일일 루프
 
 검토가 끝난 뒤 다음 명령을 실행합니다.

@@ -74,6 +74,10 @@ export function AgentChat() {
   const [memberUserId, setMemberUserId] = useState("");
   const [investigationResolution, setInvestigationResolution] = useState("");
   const [investigationAnswer, setInvestigationAnswer] = useState("");
+  const [investigationEvidenceIds, setInvestigationEvidenceIds] = useState("");
+  const [investigationLanguage, setInvestigationLanguage] = useState<
+    "en" | "ja" | "ko"
+  >("ko");
   const [selectedInvestigationId, setSelectedInvestigationId] =
     useState<string>();
   const [question, setQuestion] = useState("");
@@ -237,6 +241,8 @@ export function AgentChat() {
       onSuccess: async () => {
         setInvestigationAnswer("");
         setInvestigationResolution("");
+        setInvestigationEvidenceIds("");
+        setInvestigationLanguage("ko");
         setSelectedInvestigationId(undefined);
         await queryClient.invalidateQueries({
           queryKey: trpc.agent.investigations.queryKey({
@@ -630,6 +636,24 @@ export function AgentChat() {
                                 ? item.findings.correctedAnswer
                                 : "",
                             );
+                            setInvestigationEvidenceIds(
+                              typeof item.findings === "object" &&
+                                item.findings &&
+                                "evidenceIds" in item.findings &&
+                                Array.isArray(item.findings.evidenceIds)
+                                ? item.findings.evidenceIds.join(", ")
+                                : "",
+                            );
+                            setInvestigationLanguage(
+                              typeof item.findings === "object" &&
+                                item.findings &&
+                                "language" in item.findings &&
+                                (item.findings.language === "en" ||
+                                  item.findings.language === "ja" ||
+                                  item.findings.language === "ko")
+                                ? item.findings.language
+                                : "ko",
+                            );
                           }}
                           type="button"
                         >
@@ -645,6 +669,28 @@ export function AgentChat() {
                               placeholder="근거를 확인한 뒤 사용할 수정 답변(선택)"
                               value={investigationAnswer}
                             />
+                            <Input
+                              aria-label="근거 청크 ID"
+                              onChange={(event) =>
+                                setInvestigationEvidenceIds(event.target.value)
+                              }
+                              placeholder="근거 청크 ID (쉼표로 구분, 필수)"
+                              value={investigationEvidenceIds}
+                            />
+                            <select
+                              aria-label="답변 언어"
+                              className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+                              onChange={(event) =>
+                                setInvestigationLanguage(
+                                  event.target.value as "en" | "ja" | "ko",
+                                )
+                              }
+                              value={investigationLanguage}
+                            >
+                              <option value="ko">한국어</option>
+                              <option value="en">English</option>
+                              <option value="ja">日本語</option>
+                            </select>
                             <Input
                               aria-label="검토 메모"
                               onChange={(event) =>
@@ -662,8 +708,12 @@ export function AgentChat() {
                                     findings: {
                                       correctedAnswer:
                                         investigationAnswer.trim() || undefined,
-                                      evidenceIds: [],
+                                      evidenceIds: investigationEvidenceIds
+                                        .split(",")
+                                        .map((id) => id.trim())
+                                        .filter(Boolean),
                                       forbiddenClaims: [],
+                                      language: investigationLanguage,
                                       requiredTerms: [],
                                     },
                                     investigationId: item.id,

@@ -12,6 +12,7 @@
     "tuning:patterns:generate": "tsx src/generate-tuning-patterns.ts",
     "tuning:patterns:verify": "tsx src/verify-tuning-patterns.ts",
     "tuning:patterns:daily": "tsx src/evaluate-tuning-patterns.ts",
+    "tuning:patterns:export-approved": "tsx src/export-approved-investigations.ts",
     "sync-official": "tsx src/sync-official-docs.ts",
     "lint": "biome lint .",
     "test": "vitest run",
