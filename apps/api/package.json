@@ -18,6 +18,7 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
+    "@arlequins/agent-core": "workspace:*",
     "@arlequins/db-backbone": "workspace:*",
     "@arlequins/env": "workspace:*",
     "@arlequins/logger": "workspace:*",

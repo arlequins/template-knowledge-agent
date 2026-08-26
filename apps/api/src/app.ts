@@ -1,3 +1,4 @@
+import type { McpRequest, McpServer } from "@arlequins/agent-core";
 import { sql } from "@arlequins/db-backbone";
 import { db } from "@arlequins/db-backbone/client";
 import { clientEnv, serverEnv } from "@arlequins/env";
@@ -38,6 +39,8 @@ export type CreateApiAppOptions = {
   bodyLimitBytes?: number;
   rateLimit?: { requests: number; windowMs: number };
   rateLimiter?: false | RateLimitPort;
+  /** Optional MCP implementation; omitted means the endpoint is disabled. */
+  mcpServer?: McpServer;
 };
 
 let coldStart = true;
@@ -171,7 +174,12 @@ export function createApiApp(options: CreateApiAppOptions = {}) {
     }),
   );
 
-  const trpcPaths = [TRPC_HTTP_PATH, `${TRPC_HTTP_PATH}/*`, "/agent/stream"];
+  const trpcPaths = [
+    TRPC_HTTP_PATH,
+    `${TRPC_HTTP_PATH}/*`,
+    "/agent/stream",
+    "/mcp",
+  ];
   for (const path of trpcPaths) {
     app.use(
       path,
@@ -226,6 +234,51 @@ export function createApiApp(options: CreateApiAppOptions = {}) {
   registerOpenApiRoutes(app, {
     externalReadinessChecks: externalChecks,
     readinessCheck,
+  });
+
+  app.post("/mcp", async (context) => {
+    if (!options.mcpServer)
+      return context.json(
+        { error: "MCP Not Configured", requestId: context.get("requestId") },
+        404,
+      );
+    const trpcContext = await createTRPCContext({
+      headers: context.req.raw.headers,
+      logger: context.get("logger"),
+      telemetry,
+    });
+    if (!trpcContext.session?.user) {
+      context.header("WWW-Authenticate", "Bearer");
+      return context.json(
+        { error: "Unauthorized", requestId: context.get("requestId") },
+        401,
+      );
+    }
+    let request: McpRequest;
+    try {
+      const value = await context.req.json();
+      if (
+        !value ||
+        typeof value !== "object" ||
+        Array.isArray(value) ||
+        (value as Record<string, unknown>).jsonrpc !== "2.0" ||
+        typeof (value as Record<string, unknown>).method !== "string"
+      )
+        throw new Error("Invalid MCP request");
+      request = value as McpRequest;
+    } catch {
+      return context.json(
+        { error: "Invalid MCP Request", requestId: context.get("requestId") },
+        400,
+      );
+    }
+    const response = await options.mcpServer.handle(request, {
+      headers: context.req.raw.headers,
+      roles: trpcContext.session.user.roles,
+      subject: trpcContext.session.user.id,
+    });
+    if (!response) return new Response(null, { status: 202 });
+    return context.json(response);
   });
 
   app.post("/agent/stream", async (context) => {

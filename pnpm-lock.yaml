@@ -229,6 +229,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@arlequins/agent-core':
+        specifier: workspace:*
+        version: link:../../packages/agent-core
       '@arlequins/db-backbone':
         specifier: workspace:*
         version: link:../../packages/db-backbone
