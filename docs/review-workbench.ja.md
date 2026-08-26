@@ -37,6 +37,18 @@ pnpm tuning:patterns:daily -- \
   --input .local/tuning/reviewed-with-feedback.json
 ```
 
+スケジュール実行では、2つの処理を順番に行い DB 接続も閉じる統合コマンド
+を利用できます。
+
+```bash
+AGENT_WORKSPACE_ID=<workspace-uuid> \
+AGENT_OWNER_USER_ID=<owner-user-uuid> \
+pnpm tuning:patterns:daily:with-feedback
+```
+
+成功したマニフェストを実行中の API が使うには、別途明示的な reload/deploy
+が必要です。
+
 レビュー画面にはドキュメント/チャンク API が返す UUID を入力します。
 根拠が空の項目は意図的に除外され、非公開本文がそのまま日次パックへ
 流入することを防ぎます。

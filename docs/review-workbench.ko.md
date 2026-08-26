@@ -37,6 +37,18 @@ pnpm tuning:patterns:daily -- \
   --input .local/tuning/reviewed-with-feedback.json
 ```
 
+스케줄 작업에서는 두 단계를 순서대로 실행하고 DB 연결도 닫는 통합 명령을
+사용할 수 있습니다.
+
+```bash
+AGENT_WORKSPACE_ID=<workspace-uuid> \
+AGENT_OWNER_USER_ID=<owner-user-uuid> \
+pnpm tuning:patterns:daily:with-feedback
+```
+
+성공한 최종 매니페스트를 실행 중인 API가 사용하려면 별도의 명시적
+reload/deploy가 필요합니다.
+
 검토 화면의 근거 청크 ID에는 문서/청크 API가 반환한 UUID를 입력합니다.
 근거 목록이 비어 있으면 의도적으로 제외되어 비공개 원문이 일일 팩에
 그대로 유입되지 않습니다.
