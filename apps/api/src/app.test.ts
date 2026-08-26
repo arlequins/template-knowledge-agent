@@ -1,3 +1,4 @@
+import { createMcpServer } from "@arlequins/agent-core";
 import type { LogRecord } from "@arlequins/logger";
 import { createLogger } from "@arlequins/logger";
 import { describe, expect, it } from "vitest";
@@ -76,6 +77,36 @@ describe("API app", () => {
 
     expect(response.status).toBe(404);
     await expect(response.text()).resolves.toContain("No procedure found");
+  });
+
+  it("keeps MCP disabled unless a server is explicitly injected", async () => {
+    const response = await app.request("/mcp", {
+      body: JSON.stringify({ id: 1, jsonrpc: "2.0", method: "initialize" }),
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+    });
+
+    expect(response.status).toBe(404);
+  });
+
+  it("requires bearer authentication before invoking an injected MCP server", async () => {
+    const mcpApp = createApiApp({
+      corsOrigins: ["http://localhost:3000"],
+      logger: createLogger({ service: "api", sink: () => {} }),
+      mcpServer: createMcpServer({
+        name: "test",
+        tools: [],
+        version: "1.0.0",
+      }),
+    });
+    const response = await mcpApp.request("/mcp", {
+      body: JSON.stringify({ id: 1, jsonrpc: "2.0", method: "initialize" }),
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe("Bearer");
   });
 
   it("hosts an executable OpenAPI document", async () => {

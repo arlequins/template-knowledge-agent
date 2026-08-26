@@ -27,6 +27,14 @@ export {
   createLiveCapabilityRegistry,
   defineLiveCapability,
 } from "./live-capability";
+export {
+  createMcpServer,
+  type McpRequest,
+  type McpRequestContext,
+  type McpResponse,
+  type McpServer,
+  type McpToolDefinition,
+} from "./mcp";
 export type {
   ModelRegistryEntry,
   ModelRouteDecision,
