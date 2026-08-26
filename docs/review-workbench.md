@@ -46,8 +46,17 @@ in order and closes the database pool when finished:
 ```bash
 AGENT_WORKSPACE_ID=<workspace-uuid> \
 AGENT_OWNER_USER_ID=<owner-user-uuid> \
-pnpm tuning:patterns:daily:with-feedback
+pnpm tuning:patterns:daily:with-feedback -- \
+  --provider ollama \
+  --model qwen2.5:3b \
+  --runtime ollama \
+  --quantization q4_K_M
 ```
+
+The model flags are optional, but when supplied they record the exact provider,
+model ID, runtime, and quantization in the active manifest. This makes daily
+quality results reproducible and keeps a Bedrock, hosted, or local candidate
+from being confused with another model that happens to have the same nickname.
 
 Only the final manifest is consumed by the running API; a derived deployment
 must explicitly reload or deploy it after this command succeeds.
@@ -70,7 +79,8 @@ sensitive-looking values, semantic-group split isolation, all eight behavior
 kinds, all three supported languages, and non-empty validation/test holdouts.
 Only a passing reviewed pack is written atomically to
 `.local/tuning/active-behavior-pack.json`. The manifest contains a source hash,
-version, metrics, training-row count, and a train-only behavior prompt.
+version, metrics, training-row count, a train-only behavior prompt, and (when
+provided) exact model runtime metadata.
 
 This is scheduled evaluation and behavior-pack promotion, not online learning.
 Loading a promoted prompt or adapter into a running server remains an explicit

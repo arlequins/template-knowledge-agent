@@ -2,7 +2,10 @@ import { dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { closeDatabasePool } from "@arlequins/db-backbone/client";
-import { evaluateAndPromoteTuningPatterns } from "./evaluate-tuning-patterns";
+import {
+  evaluateAndPromoteTuningPatterns,
+  type ModelRuntimeMetadata,
+} from "./evaluate-tuning-patterns";
 import { exportApprovedInvestigations } from "./export-approved-investigations";
 
 const REPOSITORY_ROOT = resolve(
@@ -30,6 +33,7 @@ function localPath(value: string) {
 /** Export approved DB findings, then run the existing promotion gates atomically. */
 export async function runDailyTuningLoop(options: {
   basePackPath: string;
+  model?: ModelRuntimeMetadata;
   ownerUserId: string;
   outputManifestPath: string;
   reviewedPackPath: string;
@@ -43,6 +47,7 @@ export async function runDailyTuningLoop(options: {
   });
   const promoted = await evaluateAndPromoteTuningPatterns({
     inputPath: options.reviewedPackPath,
+    model: options.model,
     outputPath: options.outputManifestPath,
   });
   return { exported, promoted };
@@ -56,6 +61,25 @@ if (
   const ownerUserId = process.env.AGENT_OWNER_USER_ID?.trim();
   if (!workspaceId || !ownerUserId)
     throw new Error("AGENT_WORKSPACE_ID and AGENT_OWNER_USER_ID are required");
+  const provider = argument("--provider");
+  const model = argument("--model");
+  const runtime = argument("--runtime");
+  const quantization = argument("--quantization");
+  const modelMetadata =
+    provider || model || runtime || quantization
+      ? provider && model && runtime
+        ? {
+            model,
+            provider,
+            ...(quantization ? { quantization } : {}),
+            runtime,
+          }
+        : (() => {
+            throw new Error(
+              "--provider, --model, and --runtime are required together",
+            );
+          })()
+      : undefined;
   const basePackPath = resolve(
     REPOSITORY_ROOT,
     argument("--input") ?? "examples/tuning/reviewed-patterns.json",
@@ -72,6 +96,7 @@ if (
       JSON.stringify(
         await runDailyTuningLoop({
           basePackPath,
+          model: modelMetadata,
           ownerUserId,
           outputManifestPath,
           reviewedPackPath,

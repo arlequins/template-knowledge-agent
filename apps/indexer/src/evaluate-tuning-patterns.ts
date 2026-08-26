@@ -15,6 +15,14 @@ const REPOSITORY_ROOT = resolve(
   "../../..",
 );
 
+/** Exact runtime identity is part of a reproducible promotion record. */
+export type ModelRuntimeMetadata = {
+  model: string;
+  provider: string;
+  quantization?: string;
+  runtime: string;
+};
+
 function argument(name: string) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : undefined;
@@ -29,6 +37,7 @@ function localPath(value: string) {
 
 export async function evaluateAndPromoteTuningPatterns(options: {
   inputPath: string;
+  model?: ModelRuntimeMetadata;
   outputPath: string;
 }) {
   const raw = await readFile(options.inputPath, "utf8");
@@ -43,6 +52,7 @@ export async function evaluateAndPromoteTuningPatterns(options: {
   const manifest = {
     behaviorPrompt: compileReviewedBehaviorPrompt(batch, { maxExamples: 12 }),
     generatedAt,
+    ...(options.model ? { model: options.model } : {}),
     metrics: evaluation.metrics,
     schemaVersion: 1 as const,
     sourceSha256,
@@ -77,9 +87,32 @@ if (
   const outputPath = localPath(
     argument("--output") ?? ".local/tuning/active-behavior-pack.json",
   );
+  const provider = argument("--provider");
+  const model = argument("--model");
+  const runtime = argument("--runtime");
+  const quantization = argument("--quantization");
+  const modelMetadata =
+    provider || model || runtime || quantization
+      ? provider && model && runtime
+        ? {
+            model,
+            provider,
+            ...(quantization ? { quantization } : {}),
+            runtime,
+          }
+        : (() => {
+            throw new Error(
+              "--provider, --model, and --runtime are required together",
+            );
+          })()
+      : undefined;
   console.log(
     JSON.stringify(
-      await evaluateAndPromoteTuningPatterns({ inputPath, outputPath }),
+      await evaluateAndPromoteTuningPatterns({
+        inputPath,
+        model: modelMetadata,
+        outputPath,
+      }),
       undefined,
       2,
     ),
