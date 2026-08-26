@@ -12,6 +12,14 @@ Coding terms route to a coding-capable candidate, conflicting evidence routes to
 `deep`, and an explicit budget filters by estimated input/output cost. The
 selection result includes a reason so it can be replayed and audited.
 
+## Connect the selected runtime
+
+The completion use case accepts an optional `ModelSelectionPort`. Its `select`
+method returns the concrete `ModelProviderPort`, model ID, route profile, and
+reason. Wire the registry to provider adapters in the composition root; do not
+make the chat use case import an SDK. If no selector is supplied, the configured
+single provider remains active.
+
 ## Replay a model
 
 Save provider output as an ignored JSON file matching `PilotAnswer`:
