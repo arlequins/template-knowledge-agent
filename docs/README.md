@@ -14,17 +14,21 @@ local application; the pages below explain design decisions and ongoing work.
    ([한국어](ec2-model-budget.ko.md) · [日本語](ec2-model-budget.ja.md)) compares
    the initial 100-user chat target, Tokyo instance sizes, sub-USD-100 plans,
    and what different fine-tuning windows can and cannot change.
-3. [Application architecture](architecture.md) explains workspace boundaries
+3. **[Luna-assisted document-QA tuning kit](tuning-kit.md)**
+   ([한국어](tuning-kit.ko.md) · [日本語](tuning-kit.ja.md)) provides safe
+   synthetic patterns, immediate reviewed few-shot behavior, and local-student
+   training exports.
+4. [Application architecture](architecture.md) explains workspace boundaries
    and the browser-to-storage request flow.
-4. [Knowledge agent platform](agent-platform.md) explains project, official,
+5. [Knowledge agent platform](agent-platform.md) explains project, official,
    and live knowledge boundaries plus provider-neutral model routing.
-5. [Developer experience](developer-experience.md) covers generators, fast
+6. [Developer experience](developer-experience.md) covers generators, fast
    feedback commands, and template qualification.
-6. [Create a derived repository](create-derived-repository.md) provides the
+7. [Create a derived repository](create-derived-repository.md) provides the
    non-destructive copy-and-initialize workflow and public/private boundary.
-7. [Template readiness](template-readiness.md) lists the capabilities to retain
+8. [Template readiness](template-readiness.md) lists the capabilities to retain
    or deliberately remove when adapting the template.
-8. [Generic application baseline](generic-application.md) explains the reusable
+9. [Generic application baseline](generic-application.md) explains the reusable
    CRUD, authorization, upload, and Clean Architecture example.
 
 ## Development

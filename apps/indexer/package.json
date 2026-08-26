@@ -9,6 +9,8 @@
     "format": "biome format .",
     "index": "tsx src/index.ts",
     "pilot:verify": "tsx src/verify-pilot.ts",
+    "tuning:patterns:generate": "tsx src/generate-tuning-patterns.ts",
+    "tuning:patterns:verify": "tsx src/verify-tuning-patterns.ts",
     "sync-official": "tsx src/sync-official-docs.ts",
     "lint": "biome lint .",
     "test": "vitest run",
@@ -18,6 +20,7 @@
     "@arlequins/agent-openai": "workspace:*",
     "@arlequins/db-backbone": "workspace:*",
     "@arlequins/env": "workspace:*",
+    "@arlequins/tuning-kit": "workspace:*",
     "drizzle-orm": "catalog:",
     "parse5": "catalog:"
   },

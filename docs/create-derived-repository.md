@@ -29,6 +29,7 @@ pnpm install
 pnpm agent:setup
 pnpm template:doctor
 pnpm pilot:verify
+pnpm tuning:patterns:verify
 pnpm check:fix
 pnpm check
 pnpm typecheck
@@ -48,6 +49,8 @@ Keep these in the public derived repository:
 - provider and repository interfaces;
 - fake-data live capability adapters and contract tests;
 - synthetic Fumadocs/T3 fixtures and evaluation cases;
+- synthetic tuning seeds, reviewed public behavior patterns, and private-data
+  quality gates;
 - schemas, migrations, operational documentation, and redacted examples; and
 - quality gates that contain no private questions or source excerpts.
 
@@ -63,3 +66,8 @@ Load these only from ignored local paths or protected infrastructure:
 The synthetic pilot in [`examples/pilot`](../examples/pilot) is the replacement
 guide: preserve its shapes and tests while replacing its data adapters and
 questions with private equivalents outside Git.
+
+The same rule applies to [`examples/tuning`](../examples/tuning): keep its
+public schemas and synthetic examples, but write Luna-generated candidates to
+`.local/tuning/`. Never commit a derived product's source excerpts, user
+questions, reviewer identities, evaluation reports, or student-model exports.

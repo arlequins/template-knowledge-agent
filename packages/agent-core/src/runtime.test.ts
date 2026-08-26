@@ -36,6 +36,7 @@ describe("createAgentRuntime", () => {
           expect(input.messages[0]?.content).toContain("concise answers");
           expect(input.messages[0]?.content).toContain("refund period");
           expect(input.messages[0]?.content).toContain("[source: Policy]");
+          expect(input.messages[0]?.content).toContain("reviewed example");
           yield "Fourteen days.";
         },
       },
@@ -48,6 +49,7 @@ describe("createAgentRuntime", () => {
         id: "assistant",
         instructions: "Be helpful.",
         name: "Assistant",
+        reviewedBehaviorPrompt: "Follow this reviewed example.",
         workspaceId: "workspace-1",
       },
       question: "What is the refund period?",

@@ -2,8 +2,10 @@
 
 This document defines the reusable learning contract for repositories generated
 from this template. The baseline template stores feedback and supports
-evaluation cases; it does **not** ship a real-time trainer or silently convert
-reactions into model weights.
+evaluation cases. It also ships a provider-neutral
+[document-QA tuning kit](tuning-kit.md) for reviewed synthetic patterns,
+few-shot behavior packs, and training JSONL export. It does **not** ship a
+real-time trainer or silently convert reactions into model weights.
 
 A derived knowledge-agent has validated an optional Apple-Silicon MLX/LoRA
 extension. The reference results below record what worked, what failed, and
@@ -147,6 +149,12 @@ that another Mac will use the same memory.
 
 ## Reference implementation boundary
 
+The baseline now implements evidence-bound pattern schemas, Luna-assisted
+candidate generation, duplicate/citation/repetition/privacy gates,
+semantic-group split checks, held-out prompt exclusion, and reviewed training
+export. Generated rows remain candidates and are written under `.local/`; this
+does not replace owner approval or student-model qualification.
+
 An MLX extension for a generated repository should add, test, and document:
 
 - an isolated Python/MLX-LM environment;
@@ -162,7 +170,8 @@ An MLX extension for a generated repository should add, test, and document:
 
 Do not advertise commands such as `agent:tune:daily` in a generated repository
 until the corresponding implementation and tests are present. The template's
-current baseline remains provider-neutral evaluation and RAG.
+current baseline remains reviewed patterns, provider-neutral evaluation, and
+RAG—not automatic weight training.
 
 ## AWS adaptation
 

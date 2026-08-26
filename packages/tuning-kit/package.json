@@ -1,5 +1,5 @@
 {
-  "name": "@arlequins/agent-openai",
+  "name": "@arlequins/tuning-kit",
   "private": true,
   "type": "module",
   "exports": {
@@ -15,10 +15,6 @@
     "lint": "biome lint .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
-  },
-  "dependencies": {
-    "@arlequins/agent-core": "workspace:*",
-    "@arlequins/tuning-kit": "workspace:*"
   },
   "devDependencies": {
     "@arlequins/tsconfig": "workspace:*",
