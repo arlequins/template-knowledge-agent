@@ -4,6 +4,7 @@ import type {
   KnowledgeSearchPort,
   MemorySearchPort,
   ModelProviderPort,
+  ModelSelectionPort,
 } from "@arlequins/agent-core";
 import type { AuthSession, TRPCAuth } from "@arlequins/auth";
 import type { Logger, Telemetry } from "@arlequins/logger";
@@ -13,6 +14,7 @@ export type TRPCServices = {
   agent: ReturnType<typeof createAgentPlatformRepository>;
   model?: ModelProviderPort;
   modelId?: string;
+  modelSelector?: ModelSelectionPort;
   reviewedBehaviorPrompt?: string;
   embedding?: EmbeddingProviderPort;
   documentExtraction: DocumentExtractionPort;
