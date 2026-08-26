@@ -35,6 +35,7 @@ export type {
   ModelProviderPort,
   VectorIndexPort,
 } from "./ports";
+export { redactSensitiveRecord, redactSensitiveText } from "./privacy";
 export { createAgentRuntime } from "./runtime";
 export type {
   AgentEvent,
