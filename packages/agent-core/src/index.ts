@@ -1,3 +1,12 @@
+export type {
+  AnalyzerFacts,
+  AnalyzerKnowledgeEdge,
+  AnalyzerKnowledgeUnit,
+  AnalyzerPlan,
+  AnalyzerPlugin,
+  AnalyzerSnapshot,
+} from "./analyzer";
+export { createAnalyzerRegistry } from "./analyzer";
 export { createTextDocumentExtraction } from "./document-extraction";
 export { evaluateRetrievalCase } from "./evaluation";
 export type {
@@ -36,6 +45,8 @@ export type {
   VectorIndexPort,
 } from "./ports";
 export { redactSensitiveRecord, redactSensitiveText } from "./privacy";
+export type { RetentionPolicy } from "./retention";
+export { isExpired, validateRetentionPolicy } from "./retention";
 export { createAgentRuntime } from "./runtime";
 export type {
   AgentEvent,
