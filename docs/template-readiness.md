@@ -94,6 +94,10 @@ its related code, tests, environment variables, and documentation.
   an exact guardrail ARN in the example runtime policy.
 - [x] Optional runtime model selection is injected through a provider-neutral
   `ModelSelectionPort`; single-model installations keep the safe fallback.
+- [x] Guarded JSON-RPC MCP contract with opt-in HTTP mounting, bearer-session
+  enforcement, per-tool authorization, and generic error responses.
+- [x] Provider-neutral pipeline failure notifier with recursive credential and
+  personal-data redaction before logs or external alert adapters.
 - [ ] A production profile that needs exact personal values must provide a
   separately authorized non-model structured UI, retention/deletion controls,
   access review, and privacy-owner acceptance before enabling the data source.
