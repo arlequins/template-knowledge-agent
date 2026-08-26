@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.1](https://github.com/arlequins/template-knowledge-agent/compare/v1.8.0...v1.8.1) (2026-08-26)
+
+
+### Documentation
+
+* record MCP and alerting readiness ([c152913](https://github.com/arlequins/template-knowledge-agent/commit/c1529135e91680fee14e6ad3e5a7df143573da5b))
+
 ## [1.8.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.7.0...v1.8.0) (2026-08-26)
 
 
