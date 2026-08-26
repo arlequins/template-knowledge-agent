@@ -38,6 +38,7 @@
     "knowledge:index": "pnpm exec dotenv -e .env.localhost -- pnpm -C apps/indexer index",
     "knowledge:sync-official": "pnpm exec dotenv -e .env.localhost -- pnpm -C apps/indexer sync-official",
     "pilot:verify": "pnpm -C apps/indexer pilot:verify",
+    "pilot:evaluate": "pnpm -C apps/indexer pilot:evaluate",
     "tuning:patterns:generate": "pnpm exec dotenv -e .env.localhost -- pnpm -C apps/indexer tuning:patterns:generate",
     "tuning:patterns:verify": "pnpm -C apps/indexer tuning:patterns:verify",
     "tuning:patterns:daily": "pnpm -C apps/indexer tuning:patterns:daily",

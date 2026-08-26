@@ -50,6 +50,9 @@ local application; the pages below explain design decisions and ongoing work.
 - [Owner review workbench and daily promotion](review-workbench.md) ·
   [한국어](review-workbench.ko.md) · [日本語](review-workbench.ja.md): owner-only
   investigation review and the local daily behavior-pack gate.
+- [Model registry and replay evaluation](model-evaluation.md) ·
+  [한국어](model-evaluation.ko.md) · [日本語](model-evaluation.ja.md): deterministic
+  routing and Golden Evaluation replay.
 - [Model selection and deployment playbook](model-playbook.md): OpenAI,
   Ollama/Qwen, Ornith/MLX, Gemini, Bedrock, and EC2 guidance.
 - [SST local testing](sst-local-testing.md): what can be validated without SST

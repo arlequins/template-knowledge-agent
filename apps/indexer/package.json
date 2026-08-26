@@ -14,6 +14,7 @@
     "tuning:patterns:daily": "tsx src/evaluate-tuning-patterns.ts",
     "tuning:patterns:export-approved": "tsx src/export-approved-investigations.ts",
     "tuning:patterns:daily:with-feedback": "tsx src/run-daily-tuning-loop.ts",
+    "pilot:evaluate": "tsx src/evaluate-pilot-answers.ts",
     "sync-official": "tsx src/sync-official-docs.ts",
     "lint": "biome lint .",
     "test": "vitest run",
