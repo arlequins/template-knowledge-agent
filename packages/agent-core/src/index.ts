@@ -19,6 +19,13 @@ export {
   defineLiveCapability,
 } from "./live-capability";
 export type {
+  ModelRegistryEntry,
+  ModelRouteDecision,
+  ModelRouteInput,
+  ModelRouteProfile,
+} from "./model-routing";
+export { createModelRouter } from "./model-routing";
+export type {
   AgentWorkflowPort,
   DocumentExtractionPort,
   DocumentSourcePort,
