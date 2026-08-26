@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.6.0...v1.7.0) (2026-08-26)
+
+
+### Features
+
+* add analyzer and retention foundations ([#32](https://github.com/arlequins/template-knowledge-agent/issues/32)) ([0b1e411](https://github.com/arlequins/template-knowledge-agent/commit/0b1e411211ed9bf6ce2b2e0ec7cd48aad2b2f8a4))
+* add deterministic model routing and pilot evaluation ([#28](https://github.com/arlequins/template-knowledge-agent/issues/28)) ([2440923](https://github.com/arlequins/template-knowledge-agent/commit/244092385042d4d187b9c63359e66bcefcaa5bda))
+* add reusable privacy redaction helpers ([#29](https://github.com/arlequins/template-knowledge-agent/issues/29)) ([33335d7](https://github.com/arlequins/template-knowledge-agent/commit/33335d7a5b64735b0361cf9844066c9d6e0bef26))
+* connect runtime model selection port ([#33](https://github.com/arlequins/template-knowledge-agent/issues/33)) ([9256ee6](https://github.com/arlequins/template-knowledge-agent/commit/9256ee6f00ddb60a911595fa42f57ffe251729ec))
+
+
+### Documentation
+
+* document runtime model selection ([#34](https://github.com/arlequins/template-knowledge-agent/issues/34)) ([39dac53](https://github.com/arlequins/template-knowledge-agent/commit/39dac53c34400653cfcb6622ce94759a61661eeb))
+
 ## [1.6.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.5.0...v1.6.0) (2026-08-26)
 
 
