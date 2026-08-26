@@ -43,8 +43,16 @@ pnpm tuning:patterns:daily -- \
 ```bash
 AGENT_WORKSPACE_ID=<workspace-uuid> \
 AGENT_OWNER_USER_ID=<owner-user-uuid> \
-pnpm tuning:patterns:daily:with-feedback
+pnpm tuning:patterns:daily:with-feedback -- \
+  --provider ollama \
+  --model qwen2.5:3b \
+  --runtime ollama \
+  --quantization q4_K_M
 ```
+
+모델 인자는 선택 사항이지만 지정하면 활성 매니페스트에 정확한 제공자,
+모델 ID, 런타임, 양자화가 기록됩니다. 따라서 별칭이 같은 Bedrock·호스팅·
+로컬 모델을 혼동하지 않고 일일 평가를 재현할 수 있습니다.
 
 성공한 최종 매니페스트를 실행 중인 API가 사용하려면 별도의 명시적
 reload/deploy가 필요합니다.
@@ -64,4 +72,5 @@ pnpm tuning:patterns:daily
 인용·중복·반복 문장·민감정보 패턴·의미 그룹 분리, 8개 행동 유형, 3개
 언어, 검증/테스트 홀드아웃을 검사합니다. 통과한 리뷰 팩만 원자적으로
 `.local/tuning/active-behavior-pack.json`에 기록됩니다. 실패하면 기존 활성
-팩은 보존됩니다.
+팩은 보존됩니다. 매니페스트에는 소스 해시·버전·메트릭·학습 행 수·학습 전용
+행동 프롬프트와 (지정한 경우) 정확한 모델 런타임 정보가 포함됩니다.

@@ -43,8 +43,16 @@ pnpm tuning:patterns:daily -- \
 ```bash
 AGENT_WORKSPACE_ID=<workspace-uuid> \
 AGENT_OWNER_USER_ID=<owner-user-uuid> \
-pnpm tuning:patterns:daily:with-feedback
+pnpm tuning:patterns:daily:with-feedback -- \
+  --provider ollama \
+  --model qwen2.5:3b \
+  --runtime ollama \
+  --quantization q4_K_M
 ```
+
+モデル引数は任意ですが、指定すると提供元、モデル ID、ランタイム、量子化が
+アクティブマニフェストに記録されます。これにより、同じ別名を持つ
+Bedrock・ホステッド・ローカルモデルを混同せず、日次評価を再現できます。
 
 成功したマニフェストを実行中の API が使うには、別途明示的な reload/deploy
 が必要です。
@@ -64,4 +72,6 @@ pnpm tuning:patterns:daily
 引用、重複、反復文、機密らしい値、意味グループ分離、8種類の振る舞い、
 3言語、検証/テストのホールドアウトを検査します。合格したレビュー済み
 パックだけを `.local/tuning/active-behavior-pack.json` に原子的に書き込みます。
-失敗時は前のアクティブパックを変更しません。
+失敗時は前のアクティブパックを変更しません。マニフェストにはソースハッシュ、
+バージョン、メトリクス、学習行数、学習専用プロンプト、および指定時の正確な
+モデルランタイム情報が含まれます。
