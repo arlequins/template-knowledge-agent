@@ -40,6 +40,18 @@ pnpm tuning:patterns:daily -- \
   --input .local/tuning/reviewed-with-feedback.json
 ```
 
+For the scheduled job, use the combined command. It performs both operations
+in order and closes the database pool when finished:
+
+```bash
+AGENT_WORKSPACE_ID=<workspace-uuid> \
+AGENT_OWNER_USER_ID=<owner-user-uuid> \
+pnpm tuning:patterns:daily:with-feedback
+```
+
+Only the final manifest is consumed by the running API; a derived deployment
+must explicitly reload or deploy it after this command succeeds.
+
 Use the chunk UUID shown by the document/chunk APIs in the owner review form;
 an empty evidence list is intentionally skipped. This keeps private source
 content in the local database while only reviewed, citation-backed behavior
