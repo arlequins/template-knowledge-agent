@@ -14,6 +14,7 @@ function contextMessage(
 ): ModelMessage {
   const sections = [
     input.profile.instructions,
+    input.profile.reviewedBehaviorPrompt,
     input.conversationSummary
       ? `Conversation summary:\n${input.conversationSummary}`
       : undefined,

@@ -2,6 +2,8 @@ export type AgentProfile = {
   id: string;
   instructions: string;
   name: string;
+  /** Optional reviewed few-shot behavior pack. Never include held-out cases. */
+  reviewedBehaviorPrompt?: string;
   workspaceId: string;
 };
 

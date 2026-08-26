@@ -65,6 +65,13 @@ fully local data path. Application history remains in PostgreSQL. Separate
 shared server credentials from encrypted per-user credentials in any derived
 model picker.
 
+The baseline also uses `gpt-5.6-luna` as a cost-sensitive synthetic-data
+teacher for the [document-QA tuning kit](tuning-kit.md). It produces strict
+structured candidates from supplied evidence with tools disabled. Luna cannot
+fine-tune itself: its official model page lists Responses and Structured
+Outputs support but no fine-tuning support. Reviewed rows may instead guide the
+runtime immediately or feed a separately qualified local student model.
+
 ### Gemini
 
 Gemini is an extension candidate for user-funded inference. Treat a personal
