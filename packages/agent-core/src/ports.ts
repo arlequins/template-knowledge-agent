@@ -1,3 +1,4 @@
+import type { ModelRouteInput, ModelRouteProfile } from "./model-routing";
 import type {
   IndexDocumentRequest,
   KnowledgeMatch,
@@ -18,6 +19,16 @@ export type MemorySearchPort = {
 
 export type ModelProviderPort = {
   streamText(input: StreamTextRequest): AsyncIterable<string>;
+};
+
+/** Select a concrete provider without coupling application code to an SDK. */
+export type ModelSelectionPort = {
+  select(input: ModelRouteInput): {
+    model: ModelProviderPort;
+    modelId?: string;
+    profile: ModelRouteProfile;
+    reason: string;
+  };
 };
 
 /** Generates local or provider-hosted embeddings. Keep this separate from text generation. */

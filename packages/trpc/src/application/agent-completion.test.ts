@@ -153,6 +153,28 @@ describe("streamAgentCompletion", () => {
     expect(addMessage).not.toHaveBeenCalled();
   });
 
+  it("uses an injected model selector when the default model is absent", async () => {
+    const { services, streamText } = createServices({ model: false });
+    const modelSelector = {
+      select: vi.fn(() => ({
+        model: { streamText },
+        modelId: "selected-model",
+        profile: "coding" as const,
+        reason: "coding",
+      })),
+    };
+    services.modelSelector = modelSelector;
+
+    const events = await collect(services);
+    expect(events.at(-1)).toMatchObject({
+      message: { content: "답변" },
+      type: "complete",
+    });
+    expect(modelSelector.select).toHaveBeenCalledWith({
+      question: "질문",
+    });
+  });
+
   it("rejects empty model output instead of storing an empty answer", async () => {
     const { addMessage, services } = createServices({ chunks: [" ", "\n"] });
 

@@ -25,7 +25,19 @@ export async function* streamAgentCompletion(
   input: AgentCompletionInput,
   acquiredLease?: AgentJobLease,
 ): AsyncIterable<AgentCompletionEvent> {
-  if (!services.model) throw new Error("Model completion is not configured");
+  const selection =
+    services.modelSelector?.select({
+      question: input.question,
+    }) ??
+    (services.model
+      ? {
+          model: services.model,
+          modelId: services.modelId,
+          profile: "balanced" as const,
+          reason: "default",
+        }
+      : undefined);
+  if (!selection) throw new Error("Model completion is not configured");
   const lease =
     acquiredLease ??
     (await services.agent.acquireJob(userId, {
@@ -46,7 +58,7 @@ export async function* streamAgentCompletion(
     const runtime = createAgentRuntime({
       knowledgeSearch: services.knowledgeSearch,
       memorySearch: services.memorySearch,
-      model: services.model,
+      model: selection.model,
     });
     const text: string[] = [];
     let citations: Citation[] = [];
@@ -81,7 +93,7 @@ export async function* streamAgentCompletion(
     const message = await services.agent.addMessage(actor, {
       content,
       conversationId: input.conversationId,
-      model: services.modelId ?? "configured-model",
+      model: selection.modelId ?? services.modelId ?? "configured-model",
       role: "assistant",
     });
     if (!message) throw new Error("Assistant message creation failed");

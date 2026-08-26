@@ -182,6 +182,12 @@ retrieval confidence, conflicting evidence, previous failed answers, workspace
 data policy, and budget. Provider IDs and prices live in a versioned model
 registry rather than domain code.
 
+The completion use case accepts an optional `ModelSelectionPort`. It returns a
+concrete `ModelProviderPort` and model metadata for each request, so a derived
+repository can route coding questions to a local coding model or sensitive
+questions to a guarded provider without changing chat or retrieval code. The
+baseline omits the selector and uses the one configured model.
+
 Recent messages, a rolling conversation summary, unresolved questions, and
 prior answer fingerprints are supplied to the runtime. Final answers are not
 shared-cached. A similarity guard can request one regeneration when a new

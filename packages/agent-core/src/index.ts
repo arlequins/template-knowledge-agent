@@ -42,6 +42,7 @@ export type {
   KnowledgeSearchPort,
   MemorySearchPort,
   ModelProviderPort,
+  ModelSelectionPort,
   VectorIndexPort,
 } from "./ports";
 export { redactSensitiveRecord, redactSensitiveText } from "./privacy";

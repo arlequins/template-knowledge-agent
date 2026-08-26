@@ -251,7 +251,7 @@ export const agentRouter = {
   complete: protectedProcedure
     .input(completeAgentInputSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.services.model) {
+      if (!ctx.services.model && !ctx.services.modelSelector) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message: "Local model completion is not configured",
