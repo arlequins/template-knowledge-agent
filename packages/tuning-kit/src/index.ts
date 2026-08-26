@@ -79,6 +79,72 @@ export type PatternQualityReport = {
   passed: boolean;
 };
 
+export type BehaviorPackEvaluation = {
+  issues: PatternQualityIssue[];
+  metrics: {
+    groups: number;
+    languages: number;
+    reviewed: number;
+    test: number;
+    train: number;
+    validation: number;
+  };
+  passed: boolean;
+};
+
+/**
+ * Applies the promotion gates used by the daily loop. This is deliberately
+ * provider-neutral: it validates the reviewed behavior pack before any local
+ * student model or hosted runtime is allowed to consume it.
+ */
+export function evaluateReviewedBehaviorPack(
+  batch: PatternBatch,
+  options: { minimumTrainPatterns?: number } = {},
+): BehaviorPackEvaluation {
+  const quality = validatePatternBatch(batch);
+  const reviewed = batch.patterns.filter(
+    (pattern): pattern is ReviewedPattern => pattern.status === "reviewed",
+  );
+  const groups = new Set(reviewed.map(({ groupKey }) => groupKey));
+  const languages = new Set(reviewed.map(({ language }) => language));
+  const metrics = {
+    groups: groups.size,
+    languages: languages.size,
+    reviewed: reviewed.length,
+    test: reviewed.filter(({ split }) => split === "test").length,
+    train: reviewed.filter(({ split }) => split === "train").length,
+    validation: reviewed.filter(({ split }) => split === "validation").length,
+  };
+  const issues = [...quality.issues];
+  const minimumTrainPatterns = Math.max(
+    1,
+    Math.floor(options.minimumTrainPatterns ?? 6),
+  );
+  if (metrics.train < minimumTrainPatterns)
+    issues.push({
+      code: "invalid-field",
+      message: `Behavior pack needs at least ${minimumTrainPatterns} reviewed train patterns`,
+    });
+  for (const language of PATTERN_LANGUAGES)
+    if (!languages.has(language))
+      issues.push({
+        code: "invalid-field",
+        message: `Behavior pack is missing language: ${language}`,
+      });
+  for (const kind of DOCUMENT_QA_PATTERN_KINDS)
+    if (!reviewed.some((pattern) => pattern.patternKind === kind))
+      issues.push({
+        code: "invalid-field",
+        message: `Behavior pack is missing behavior kind: ${kind}`,
+      });
+  if (metrics.validation === 0 || metrics.test === 0)
+    issues.push({
+      code: "invalid-field",
+      message: "Behavior pack must keep validation and test holdouts",
+    });
+  return { issues, metrics, passed: issues.length === 0 };
+}
+
 export type SyntheticPatternGeneratorPort = {
   generate(seed: SyntheticPatternSeed): Promise<SyntheticPatternCandidate[]>;
 };

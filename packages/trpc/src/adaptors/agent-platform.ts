@@ -648,6 +648,85 @@ export function createAgentPlatformRepository(database: Database) {
         return { feedback, investigation };
       });
     },
+    /** Owner-only queue for turning feedback into reviewed training evidence. */
+    async listInvestigations(
+      actor: WorkspaceActor,
+      status: "queued" | "in-progress" | "approved" | "rejected" = "queued",
+    ) {
+      await assertOwner(actor);
+      const rows = await database
+        .select({
+          completedAt: Investigation.completedAt,
+          createdAt: Investigation.createdAt,
+          feedbackComment: Feedback.comment,
+          feedbackId: Feedback.id,
+          feedbackKind: Feedback.kind,
+          findings: Investigation.findings,
+          id: Investigation.id,
+          messageContent: Message.content,
+          messageId: Message.id,
+          resolution: Investigation.resolution,
+          startedAt: Investigation.startedAt,
+          status: Investigation.status,
+        })
+        .from(Investigation)
+        .innerJoin(Feedback, eq(Investigation.feedbackId, Feedback.id))
+        .innerJoin(Message, eq(Feedback.messageId, Message.id))
+        .innerJoin(Conversation, eq(Message.conversationId, Conversation.id))
+        .where(
+          and(
+            eq(Feedback.workspaceId, actor.workspaceId),
+            eq(Investigation.status, status),
+          ),
+        )
+        .orderBy(desc(Investigation.createdAt))
+        .limit(100);
+      return rows;
+    },
+    async reviewInvestigation(
+      actor: WorkspaceActor,
+      input: {
+        findings?: Record<string, unknown>;
+        investigationId: string;
+        resolution?: string;
+        status: "approved" | "rejected";
+      },
+    ) {
+      await assertOwner(actor);
+      const [investigation] = await database
+        .select({
+          feedbackId: Investigation.feedbackId,
+          id: Investigation.id,
+        })
+        .from(Investigation)
+        .innerJoin(Feedback, eq(Investigation.feedbackId, Feedback.id))
+        .where(
+          and(
+            eq(Investigation.id, input.investigationId),
+            eq(Feedback.workspaceId, actor.workspaceId),
+          ),
+        )
+        .limit(1);
+      if (!investigation)
+        throw new Error("Investigation was not found in this workspace");
+      const now = new Date();
+      const [updated] = await database
+        .update(Investigation)
+        .set({
+          completedAt: now,
+          ...(input.findings ? { findings: input.findings } : {}),
+          ...(input.resolution ? { resolution: input.resolution } : {}),
+          startedAt: now,
+          status: input.status,
+        })
+        .where(eq(Investigation.id, investigation.id))
+        .returning();
+      if (!updated) throw new Error("Investigation update failed");
+      await audit(actor, `investigation.${input.status}`, updated.id, {
+        feedbackId: investigation.feedbackId,
+      });
+      return updated;
+    },
     async listAuditLog(actor: WorkspaceActor) {
       await assertOwner(actor);
       return database

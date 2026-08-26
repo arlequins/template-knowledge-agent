@@ -11,6 +11,7 @@
     "pilot:verify": "tsx src/verify-pilot.ts",
     "tuning:patterns:generate": "tsx src/generate-tuning-patterns.ts",
     "tuning:patterns:verify": "tsx src/verify-tuning-patterns.ts",
+    "tuning:patterns:daily": "tsx src/evaluate-tuning-patterns.ts",
     "sync-official": "tsx src/sync-official-docs.ts",
     "lint": "biome lint .",
     "test": "vitest run",

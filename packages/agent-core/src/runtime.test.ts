@@ -73,4 +73,41 @@ describe("createAgentRuntime", () => {
       },
     ]);
   });
+
+  it("stops a repeated sentence loop before persisting the duplicate", async () => {
+    const runtime = createAgentRuntime({
+      knowledgeSearch: {
+        async search() {
+          return [];
+        },
+      },
+      memorySearch: {
+        async search() {
+          return [];
+        },
+      },
+      model: {
+        async *streamText() {
+          yield "This answer is grounded in the supplied source. ";
+          yield "This answer is grounded in the supplied source. ";
+        },
+      },
+    });
+    const texts: string[] = [];
+    for await (const event of runtime.run({
+      history: [],
+      profile: {
+        id: "assistant",
+        instructions: "",
+        name: "Assistant",
+        workspaceId: "workspace-1",
+      },
+      question: "Explain.",
+      workspaceId: "workspace-1",
+    }))
+      if (event.type === "text-delta") texts.push(event.text);
+    expect(texts.join("")).toBe(
+      "This answer is grounded in the supplied source. ",
+    );
+  });
 });

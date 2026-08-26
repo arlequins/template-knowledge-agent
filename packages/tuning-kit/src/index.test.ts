@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   assignDeterministicSplits,
   compileReviewedBehaviorPrompt,
+  evaluateReviewedBehaviorPack,
   exportReviewedTrainingJsonl,
   type PatternBatch,
   validatePatternBatch,
@@ -130,6 +131,20 @@ describe("tuning kit", () => {
     });
     expect(report.issues.map(({ code }) => code)).toContain(
       "possible-sensitive-data",
+    );
+  });
+
+  it("fails the daily promotion gate when holdouts or training coverage are missing", () => {
+    const report = evaluateReviewedBehaviorPack(batch(), {
+      minimumTrainPatterns: 2,
+    });
+    expect(report.passed).toBe(false);
+    expect(report.metrics.train).toBe(1);
+    expect(report.issues.map(({ message }) => message)).toEqual(
+      expect.arrayContaining([
+        "Behavior pack needs at least 2 reviewed train patterns",
+        "Behavior pack must keep validation and test holdouts",
+      ]),
     );
   });
 });

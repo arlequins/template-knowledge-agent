@@ -10,9 +10,11 @@ import {
   createWorkspaceInputSchema,
   documentScopeInputSchema,
   ingestTextDocumentInputSchema,
+  listInvestigationsInputSchema,
   memoryScopeInputSchema,
   messageCitationInputSchema,
   publishReleaseInputSchema,
+  reviewInvestigationInputSchema,
   reviewMemoryInputSchema,
   startIndexInputSchema,
   submitFeedbackInputSchema,
@@ -341,6 +343,23 @@ export const agentRouter = {
       return ctx.services.agent.submitFeedback(
         actor(ctx.session.user.id, workspaceId),
         feedback,
+      );
+    }),
+  investigations: protectedProcedure
+    .input(listInvestigationsInputSchema)
+    .query(({ ctx, input }) =>
+      ctx.services.agent.listInvestigations(
+        actor(ctx.session.user.id, input.workspaceId),
+        input.status,
+      ),
+    ),
+  reviewInvestigation: protectedProcedure
+    .input(reviewInvestigationInputSchema)
+    .mutation(({ ctx, input }) => {
+      const { workspaceId, ...review } = input;
+      return ctx.services.agent.reviewInvestigation(
+        actor(ctx.session.user.id, workspaceId),
+        review,
       );
     }),
   auditLog: protectedProcedure

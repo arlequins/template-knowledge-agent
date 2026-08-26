@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import {
   createBedrockGuardrailConfig,
   createBedrockModelProvider,
@@ -33,6 +35,25 @@ function bootstrapAdministratorIdentities() {
 }
 
 const agent = createAgentPlatformRepository(db);
+
+async function loadReviewedBehaviorPrompt() {
+  const path =
+    serverEnv.AGENT_BEHAVIOR_PACK_PATH?.trim() ??
+    (process.env.NODE_ENV === "development"
+      ? resolve(process.cwd(), ".local/tuning/active-behavior-pack.json")
+      : undefined);
+  if (!path) return undefined;
+  try {
+    const value = JSON.parse(await readFile(path, "utf8")) as {
+      behaviorPrompt?: unknown;
+    };
+    return typeof value.behaviorPrompt === "string"
+      ? value.behaviorPrompt.slice(0, 40_000)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function modelProviders() {
   if (serverEnv.OPENAI_API_KEY) {
@@ -94,6 +115,7 @@ export async function createTRPCContext(
     ? deriveTemplateSession(tokenSession, bootstrapAdministratorIdentities())
     : null;
   const providers = modelProviders();
+  const reviewedBehaviorPrompt = await loadReviewedBehaviorPrompt();
 
   if (session)
     options.logger.info("auth.login.succeeded", {
@@ -117,6 +139,7 @@ export async function createTRPCContext(
       memorySearch: createDatabaseMemorySearch(db),
       model: providers.model,
       modelId: providers.modelId,
+      reviewedBehaviorPrompt,
     },
   };
 }
