@@ -45,6 +45,8 @@ export type {
   VectorIndexPort,
 } from "./ports";
 export { redactSensitiveRecord, redactSensitiveText } from "./privacy";
+export type { RetentionPolicy } from "./retention";
+export { isExpired, validateRetentionPolicy } from "./retention";
 export { createAgentRuntime } from "./runtime";
 export type {
   AgentEvent,
