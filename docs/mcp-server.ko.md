@@ -8,6 +8,10 @@ HTTP 어댑터가 JSON-RPC와 Bearer/OIDC 세션을 확인한 뒤 서버로 전�
 도구가 사용자·역할·tenant 범위를 다시 검사한다. `initialize`, `tools/list`,
 `tools/call`을 지원하며, 실패 응답에는 스택 트레이스나 비밀값을 포함하지 않는다.
 
+실시간 업무 데이터는 `createMcpToolsFromLiveCapabilities(...)`로 기존 registry를
+연결한다. 파생 레포가 인증 컨텍스트에서 `resolveActor`와 capability별 JSON Schema를
+제공하며, 실행은 registry의 tenant·필드·행 수·감사·보존 정책을 그대로 거친다.
+
 도구는 타입이 지정되고 결과가 제한된 기능만 등록해야 한다. 임의 SQL, 셸,
 파일시스템, 범용 프록시는 금지한다. 실서비스 OAuth/OIDC issuer·audience·키
 교체 설정은 파생 레포에서 구성하고 로컬 OIDC mock은 테스트에만 사용한다.

@@ -25,6 +25,7 @@ export type {
 export {
   assertLiveCapabilityResultPersistable,
   createLiveCapabilityRegistry,
+  createMcpToolsFromLiveCapabilities,
   defineLiveCapability,
 } from "./live-capability";
 export {

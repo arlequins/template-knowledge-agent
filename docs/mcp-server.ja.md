@@ -8,6 +8,11 @@ HTTP アダプターが JSON-RPC と Bearer/OIDC セッションを検証した�
 ユーザー・ロール・テナント範囲を再確認します。`initialize`、`tools/list`、
 `tools/call` をサポートし、失敗応答にスタックトレースや秘密情報を含めません。
 
+ライブ業務データは `createMcpToolsFromLiveCapabilities(...)` で既存 registry に
+接続します。派生リポジトリが認証コンテキストから `resolveActor` と capability
+ごとの JSON Schema を渡し、tenant・フィールド・行数・監査・保存ポリシーは registry
+を通じて適用されます。
+
 ツールは型付きで結果を制限した機能だけを登録し、任意 SQL・シェル・ファイル
 システム・汎用プロキシは公開しません。実運用の OAuth/OIDC issuer・audience・
 鍵ローテーションは派生リポジトリで設定し、ローカル OIDC mock はテスト専用です。

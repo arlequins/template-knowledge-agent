@@ -34,8 +34,9 @@ Run the deterministic gate:
 pnpm pilot:evaluate -- --answers .local/evals/ollama-qwen.json
 ```
 
-It checks required terms, forbidden claims, non-empty answers, and citations for
-non-refusal cases. A failed gate exits non-zero and must not be promoted. Add
+It checks required terms, forbidden claims, non-empty answers, citations for
+non-refusal cases, repeated sentence loops, and duplicate answers across cases.
+A failed gate exits non-zero and must not be promoted. Add
 provider/model/runtime/quantization metadata beside each report so comparisons
 remain meaningful.
 
