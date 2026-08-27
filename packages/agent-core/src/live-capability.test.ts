@@ -57,6 +57,46 @@ describe("live capability registry", () => {
       ),
     ).resolves.toMatchObject({ capability: "notices.list" });
   });
+
+  it("uses a closed fallback schema and denies unresolved actors", async () => {
+    const registry = createLiveCapabilityRegistry([
+      defineLiveCapability<unknown>({
+        description: "List bounded items",
+        execute: async () => [],
+        maxRows: 1,
+        name: "items.list",
+        outputPolicy: {
+          auditInput: "omit",
+          classification: "public",
+          fields: { id: { exposure: "allow" } },
+          persistence: "conversation",
+        },
+        parse: (input) => input,
+      }),
+    ]);
+    const tools = createMcpToolsFromLiveCapabilities({
+      registry,
+      resolveActor: () => {
+        throw new Error("no actor");
+      },
+    });
+
+    expect(tools[0]?.inputSchema).toEqual({
+      additionalProperties: false,
+      type: "object",
+    });
+    await expect(
+      tools[0]?.authorize?.(
+        {
+          headers: new Headers(),
+          roles: [],
+          subject: "unknown",
+        },
+        {},
+      ),
+    ).resolves.toBe(false);
+  });
+
   it("validates input, caps rows, and audits metadata without result content", async () => {
     const audit = vi.fn();
     const registry = createLiveCapabilityRegistry(

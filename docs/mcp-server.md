@@ -20,6 +20,13 @@ deployment from accidentally exposing tools with no authorization policy.
 The core contract is transport-neutral, so a derived repository can mount the
 same server behind another gateway or an MCP-compatible stream transport.
 
+Tool names are restricted to portable letters, numbers, `_`, `-`, and `.`
+(maximum 128 characters), and every input schema must be a JSON object. The
+live-capability bridge uses a closed object schema by default when a derived
+repository does not provide a capability-specific schema. Provide explicit
+`properties`, types, and bounds for every production tool so unknown arguments
+are rejected by the downstream validator.
+
 For live application data, use `createMcpToolsFromLiveCapabilities(...)` to
 bridge the existing registry. The derived repository supplies `resolveActor`
 from the authenticated context and a JSON Schema per capability; execution

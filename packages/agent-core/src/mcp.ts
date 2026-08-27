@@ -54,8 +54,14 @@ export function createMcpServer(input: {
 }) {
   const names = new Set<string>();
   for (const tool of input.tools) {
-    if (!tool.name.trim() || names.has(tool.name))
-      throw new Error(`Duplicate or empty MCP tool: ${tool.name}`);
+    if (
+      !/^[a-zA-Z0-9_.-]+$/.test(tool.name) ||
+      tool.name.length > 128 ||
+      names.has(tool.name)
+    )
+      throw new Error(`Invalid or duplicate MCP tool: ${tool.name}`);
+    if (!isRecord(tool.inputSchema))
+      throw new Error(`Invalid MCP input schema: ${tool.name}`);
     names.add(tool.name);
   }
 

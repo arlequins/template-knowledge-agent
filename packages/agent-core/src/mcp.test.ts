@@ -9,6 +9,37 @@ const context = {
 };
 
 describe("createMcpServer", () => {
+  it("rejects unsafe tool names and non-object schemas at registration", () => {
+    expect(() =>
+      createMcpServer({
+        name: "knowledge-agent",
+        version: "1.0.0",
+        tools: [
+          {
+            description: "Unsafe name",
+            execute: async () => ({}),
+            inputSchema: { type: "object" },
+            name: "data/read",
+          },
+        ],
+      }),
+    ).toThrow("Invalid or duplicate MCP tool");
+    expect(() =>
+      createMcpServer({
+        name: "knowledge-agent",
+        version: "1.0.0",
+        tools: [
+          {
+            description: "Unsafe schema",
+            execute: async () => ({}),
+            inputSchema: [] as never,
+            name: "data.read",
+          },
+        ],
+      }),
+    ).toThrow("Invalid MCP input schema");
+  });
+
   it("serves initialize and tool metadata without exposing execution details", async () => {
     const server = createMcpServer({
       name: "knowledge-agent",
