@@ -118,7 +118,7 @@ export function createMcpToolsFromLiveCapabilities(input: {
         input: rawInput,
       }),
     inputSchema: input.inputSchema?.(definition) ?? {
-      additionalProperties: true,
+      additionalProperties: false,
       type: "object",
     },
     name: definition.name,
