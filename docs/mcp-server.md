@@ -20,6 +20,12 @@ deployment from accidentally exposing tools with no authorization policy.
 The core contract is transport-neutral, so a derived repository can mount the
 same server behind another gateway or an MCP-compatible stream transport.
 
+For live application data, use `createMcpToolsFromLiveCapabilities(...)` to
+bridge the existing registry. The derived repository supplies `resolveActor`
+from the authenticated context and a JSON Schema per capability; execution
+continues through the registry's tenant, field-exposure, row-limit, audit, and
+persistence checks.
+
 ## Tool rules
 
 - Register only typed, bounded capabilities. Never expose arbitrary SQL,

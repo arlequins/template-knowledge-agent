@@ -27,4 +27,37 @@ describe("pilot answer evaluation", () => {
       expect.arrayContaining(["missing term: source", "missing citation"]),
     );
   });
+
+  it("rejects repeated sentence loops and duplicate answers", () => {
+    const loop = "This is a repeated sentence that should be stopped. ".repeat(
+      2,
+    );
+    const result = evaluatePilotAnswers(
+      [
+        { id: "loop", kind: "refusal" },
+        { id: "duplicate", kind: "refusal" },
+      ],
+      [
+        { answer: loop, caseId: "loop" },
+        { answer: "No reliable source is available.", caseId: "duplicate" },
+      ],
+    );
+    expect(result.failures).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ reasons: ["repeated sentence"] }),
+      ]),
+    );
+
+    const duplicate = evaluatePilotAnswers(
+      [
+        { id: "one", kind: "refusal" },
+        { id: "two", kind: "refusal" },
+      ],
+      [
+        { answer: "The same safe answer.", caseId: "one" },
+        { answer: "The same safe answer.", caseId: "two" },
+      ],
+    );
+    expect(duplicate.failures[0]?.reasons).toContain("duplicate answer: one");
+  });
 });

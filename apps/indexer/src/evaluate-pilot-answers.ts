@@ -30,7 +30,17 @@ export type PilotAnswerEvaluation = {
 };
 
 function normalized(value: string) {
-  return value.toLocaleLowerCase("en-US");
+  return value.replace(/\s+/gu, " ").trim().toLocaleLowerCase("en-US");
+}
+
+function repeatedSentence(value: string): boolean {
+  const seen = new Set<string>();
+  for (const match of value.matchAll(/[^.!?。！？]{20,}[.!?。！？]/gu)) {
+    const sentence = normalized(match[0] ?? "");
+    if (seen.has(sentence)) return true;
+    seen.add(sentence);
+  }
+  return false;
 }
 
 /** Deterministic answer gate for provider/model replay; it never calls a model. */
@@ -39,12 +49,21 @@ export function evaluatePilotAnswers(
   answers: readonly PilotAnswer[],
 ): PilotAnswerEvaluation {
   const byId = new Map(answers.map((answer) => [answer.caseId, answer]));
+  const answerOwners = new Map<string, string>();
   const failures: Array<{ caseId: string; reasons: string[] }> = [];
   for (const testCase of cases) {
     const answer = byId.get(testCase.id);
     const reasons: string[] = [];
     if (!answer?.answer.trim()) reasons.push("missing answer");
     const text = normalized(answer?.answer ?? "");
+    if (answer?.answer && repeatedSentence(answer.answer))
+      reasons.push("repeated sentence");
+    if (text) {
+      const owner = answerOwners.get(text);
+      if (owner && owner !== testCase.id)
+        reasons.push(`duplicate answer: ${owner}`);
+      else answerOwners.set(text, testCase.id);
+    }
     for (const term of testCase.requiredTerms ?? [])
       if (!text.includes(normalized(term)))
         reasons.push(`missing term: ${term}`);

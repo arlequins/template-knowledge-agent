@@ -1,3 +1,5 @@
+import type { McpRequestContext, McpToolDefinition } from "./mcp";
+
 export type LiveCapabilityActor = {
   permissions: readonly string[];
   tenantId: string;
@@ -82,6 +84,46 @@ export type LiveCapabilityRegistry = {
     readOnly: true;
   }>;
 };
+
+/**
+ * Bridges the policy-enforcing live registry to MCP without exposing a generic
+ * database or HTTP tool. The derived repository supplies actor resolution and
+ * an input schema for each capability.
+ */
+export function createMcpToolsFromLiveCapabilities(input: {
+  inputSchema?(definition: {
+    description: string;
+    maxRows: number;
+    name: string;
+  }): Record<string, unknown>;
+  registry: LiveCapabilityRegistry;
+  resolveActor(
+    context: McpRequestContext,
+  ): LiveCapabilityActor | Promise<LiveCapabilityActor>;
+}): McpToolDefinition[] {
+  return input.registry.list().map((definition) => ({
+    authorize: async (context) => {
+      try {
+        await input.resolveActor(context);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    description: `${definition.description} Maximum ${definition.maxRows} rows.`,
+    execute: async (context, rawInput) =>
+      input.registry.execute({
+        actor: await input.resolveActor(context),
+        capability: definition.name,
+        input: rawInput,
+      }),
+    inputSchema: input.inputSchema?.(definition) ?? {
+      additionalProperties: true,
+      type: "object",
+    },
+    name: definition.name,
+  }));
+}
 
 export function defineLiveCapability<T>(input: {
   description: string;

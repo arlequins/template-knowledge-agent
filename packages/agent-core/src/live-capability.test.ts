@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   assertLiveCapabilityResultPersistable,
   createLiveCapabilityRegistry,
+  createMcpToolsFromLiveCapabilities,
   defineLiveCapability,
 } from "./live-capability";
 
@@ -14,6 +15,48 @@ const actor = {
 };
 
 describe("live capability registry", () => {
+  it("bridges registered capabilities to MCP with actor resolution", async () => {
+    const registry = createLiveCapabilityRegistry([
+      defineLiveCapability<{ limit: number }>({
+        description: "List recent announcements",
+        execute: async () => [{ id: "notice-1" }],
+        maxRows: 10,
+        name: "notices.list",
+        outputPolicy: {
+          auditInput: "omit",
+          classification: "public",
+          fields: { id: { exposure: "allow" } },
+          persistence: "conversation",
+        },
+        parse: (input) => input as { limit: number },
+      }),
+    ]);
+    const tools = createMcpToolsFromLiveCapabilities({
+      inputSchema: () => ({
+        properties: { limit: { maximum: 10, type: "integer" } },
+        type: "object",
+      }),
+      registry,
+      resolveActor: (context) => ({
+        permissions: context.roles,
+        tenantId: "tenant-a",
+        userId: context.subject,
+        workspaceId: "workspace-a",
+      }),
+    });
+
+    expect(tools).toHaveLength(1);
+    expect(tools[0]?.inputSchema).toEqual({
+      properties: { limit: { maximum: 10, type: "integer" } },
+      type: "object",
+    });
+    await expect(
+      tools[0]?.execute(
+        { headers: new Headers(), roles: ["reader"], subject: "user-1" },
+        { limit: 1 },
+      ),
+    ).resolves.toMatchObject({ capability: "notices.list" });
+  });
   it("validates input, caps rows, and audits metadata without result content", async () => {
     const audit = vi.fn();
     const registry = createLiveCapabilityRegistry(
