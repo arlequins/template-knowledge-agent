@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.8.1...v1.9.0) (2026-08-27)
+
+
+### Features
+
+* bridge live capabilities and strengthen answer gates ([be18bcf](https://github.com/arlequins/template-knowledge-agent/commit/be18bcfaf2a284522f19cfe4c49e2c4b2487a0a8))
+
 ## [1.8.1](https://github.com/arlequins/template-knowledge-agent/compare/v1.8.0...v1.8.1) (2026-08-26)
 
 
