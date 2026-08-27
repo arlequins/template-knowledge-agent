@@ -30,6 +30,11 @@ export default $config({
   },
   async run() {
     const { clientEnv } = await import("@arlequins/env");
+    const embedAllowedOrigins = (
+      clientEnv as typeof clientEnv & {
+        NEXT_PUBLIC_EMBED_ALLOWED_ORIGINS?: string;
+      }
+    ).NEXT_PUBLIC_EMBED_ALLOWED_ORIGINS;
 
     new sst.aws.StaticSite("Web", {
       path: ".",
@@ -37,6 +42,9 @@ export default $config({
       environment: {
         NEXT_PUBLIC_SITE_URL: clientEnv.NEXT_PUBLIC_SITE_URL,
         NEXT_PUBLIC_API_URL: clientEnv.NEXT_PUBLIC_API_URL,
+        ...(embedAllowedOrigins
+          ? { NEXT_PUBLIC_EMBED_ALLOWED_ORIGINS: embedAllowedOrigins }
+          : {}),
         NEXT_PUBLIC_OIDC_AUTHORITY: clientEnv.NEXT_PUBLIC_OIDC_AUTHORITY,
         NEXT_PUBLIC_OIDC_CLIENT_ID: clientEnv.NEXT_PUBLIC_OIDC_CLIENT_ID,
         ...(clientEnv.NEXT_PUBLIC_OIDC_RESOURCE

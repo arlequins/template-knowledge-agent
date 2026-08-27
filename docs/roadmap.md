@@ -21,7 +21,8 @@
 
 ## Phase 2: embedded chat and MCP
 
-- Origin-allowlisted iframe widget with popup authentication.
+- Origin-allowlisted iframe widget with a documented popup/session contract;
+  cross-origin handoff is implemented by a derived application.
 - Remote MCP endpoint with scoped OAuth authorization.
 - Shared conversation history across web, widget, and MCP channels.
 
@@ -46,7 +47,8 @@
 
 ## Phase 5: legacy analyzers
 
-- Add one language at a time, selected from real demand.
+- [x] Provider-neutral analyzer plugin SDK; add one language at a time, selected
+  from real demand.
 - Begin with project detection and symbol/route/data-model extraction; avoid a
   universal parser framework until the T3 contract has proved stable.
 - Candidates are Java/Spring, Ruby/Rails, and C#/ASP.NET.
