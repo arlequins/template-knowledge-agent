@@ -58,8 +58,11 @@ export function evaluateEnvironment({ env, features }) {
       status: missing.length === 0 ? "pass" : "fail",
     },
   ];
+  const googleAuth =
+    features.includes("auth") && env.AUTH_PROVIDER === "google";
   if (
     features.includes("auth") &&
+    !googleAuth &&
     env.NEXT_PUBLIC_OIDC_AUTHORITY !== env.OIDC_ISSUER_URL
   ) {
     results.push({
@@ -67,6 +70,23 @@ export function evaluateEnvironment({ env, features }) {
       fix: "Set NEXT_PUBLIC_OIDC_AUTHORITY and OIDC_ISSUER_URL to the same local issuer",
       name: "oidc-contract",
       status: "fail",
+    });
+  } else if (googleAuth) {
+    const validGoogleIssuer =
+      env.OIDC_ISSUER_URL === "https://accounts.google.com";
+    const hasGoogleClient = Boolean(env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+    const hasAllowedEmail = Boolean(env.AUTH_ALLOWED_EMAILS);
+    results.push({
+      detail:
+        validGoogleIssuer && hasGoogleClient && hasAllowedEmail
+          ? "Google GIS issuer, client ID, and allowlist are configured"
+          : "Google authentication configuration is incomplete",
+      fix: "Set OIDC_ISSUER_URL=https://accounts.google.com, NEXT_PUBLIC_GOOGLE_CLIENT_ID, and AUTH_ALLOWED_EMAILS",
+      name: "google-auth-contract",
+      status:
+        validGoogleIssuer && hasGoogleClient && hasAllowedEmail
+          ? "pass"
+          : "fail",
     });
   } else if (features.includes("auth"))
     results.push({

@@ -43,4 +43,25 @@ describe("template doctor", () => {
       "warn",
     );
   });
+
+  it("validates Google mode without comparing against the mock browser authority", () => {
+    const results = evaluateEnvironment({
+      env: {
+        AUTH_PROVIDER: "google",
+        AUTH_ALLOWED_EMAILS: "owner@example.com",
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "123.apps.googleusercontent.com",
+        NEXT_PUBLIC_OIDC_AUTHORITY: "http://localhost:5556",
+        OIDC_ISSUER_URL: "https://accounts.google.com",
+      },
+      features: ["auth"],
+    });
+    assert.equal(
+      results.find(({ name }) => name === "oidc-contract")?.status,
+      undefined,
+    );
+    assert.equal(
+      results.find(({ name }) => name === "google-auth-contract")?.status,
+      "pass",
+    );
+  });
 });
