@@ -96,6 +96,8 @@ its related code, tests, environment variables, and documentation.
   `ModelSelectionPort`; single-model installations keep the safe fallback.
 - [x] Guarded JSON-RPC MCP contract with opt-in HTTP mounting, bearer-session
   enforcement, per-tool authorization, and generic error responses.
+- [x] Embedded widget contract with exact-origin guidance and a fail-closed
+  popup/token handoff design; derived apps own the host integration.
 - [x] Provider-neutral pipeline failure notifier with recursive credential and
   personal-data redaction before logs or external alert adapters.
 - [ ] A production profile that needs exact personal values must provide a

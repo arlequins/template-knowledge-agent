@@ -34,6 +34,7 @@ export const env = createEnv({
           : DEFAULT_LOCALHOST_API_URL,
       z.url(),
     ),
+    NEXT_PUBLIC_EMBED_ALLOWED_ORIGINS: z.string().optional(),
     NEXT_PUBLIC_OIDC_AUTHORITY: z.url(),
     NEXT_PUBLIC_OIDC_CLIENT_ID: z.string().min(1),
     NEXT_PUBLIC_OIDC_RESOURCE: z.url().optional(),
@@ -48,6 +49,8 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_EMBED_ALLOWED_ORIGINS:
+      process.env.NEXT_PUBLIC_EMBED_ALLOWED_ORIGINS,
     NEXT_PUBLIC_OIDC_AUTHORITY: process.env.NEXT_PUBLIC_OIDC_AUTHORITY,
     NEXT_PUBLIC_OIDC_CLIENT_ID: process.env.NEXT_PUBLIC_OIDC_CLIENT_ID,
     NEXT_PUBLIC_OIDC_RESOURCE: process.env.NEXT_PUBLIC_OIDC_RESOURCE,
