@@ -68,6 +68,10 @@ describe("template:init", () => {
       [...resolveFeatures({ features: "auth,sst" })],
       ["auth", "sst"],
     );
+    assert.throws(
+      () => resolveFeatures({ features: "auth,example-ui" }),
+      /Unknown features: example-ui/,
+    );
     assert.deepEqual(
       [...resolveFeatures({ preset: "minimal", features: "auth,sst" })],
       ["auth", "sst"],
@@ -155,7 +159,7 @@ describe("template:init", () => {
       scope: "@company",
       domain: "customer.example.org",
       preset: "full",
-      features: ["auth", "batch", "sst", "example-ui"],
+      features: ["auth", "batch", "sst"],
     });
 
     const rootPackage = transformContent(
@@ -259,8 +263,6 @@ describe("template:init", () => {
         name: "@arlequins/web",
         scripts: { "sst:dev": "sst dev" },
         dependencies: {
-          "@arlequins/validators": "workspace:*",
-          "@tanstack/react-form": "catalog:",
           "oidc-client-ts": "catalog:",
           react: "catalog:react19",
         },

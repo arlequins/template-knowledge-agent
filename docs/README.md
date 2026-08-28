@@ -28,8 +28,8 @@ local application; the pages below explain design decisions and ongoing work.
    non-destructive copy-and-initialize workflow and public/private boundary.
 8. [Template readiness](template-readiness.md) lists the capabilities to retain
    or deliberately remove when adapting the template.
-9. [Generic application baseline](generic-application.md) explains the reusable
-   CRUD, authorization, upload, and Clean Architecture example.
+9. [Generic application baseline](generic-application.md) explains reusable
+   CRUD, authorization, upload, and Clean Architecture service patterns.
 10. [Feature-sliced clean architecture](conventions/feature-sliced-design.md)
     ([한국어](conventions/feature-sliced-design.ko.md) ·
     [日本語](conventions/feature-sliced-design.ja.md)) defines the canonical

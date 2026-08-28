@@ -6,19 +6,18 @@ This convention applies to this repository and its workspaces.
 
 | Branch                        | Purpose                                                                                    |
 | ----------------------------- | ------------------------------------------------------------------------------------------ |
-| `main`                        | Production branch. Only tagged release versions should land here.                          |
-| `develop`                     | Integration branch for the next release candidate.                                         |
-| `feature/<short-description>` | New features and improvements. Branch from `develop`, then merge back through a PR.        |
-| `fix/<short-description>`     | Non-urgent bug fixes. Branch from `develop`, then merge back through a PR.                 |
+| `main`                        | Protected integration and production branch. Reviewed changes and release tags land here. |
+| `feature/<short-description>` | New features and improvements. Branch from `main`, then merge through a PR.                |
+| `fix/<short-description>`     | Non-urgent bug fixes. Branch from `main`, then merge through a PR.                          |
 | `release/X.Y.Z`               | Release preparation, including version updates and final adjustments. Created by git-flow. |
-| `hotfix/X.Y.Z`                | Urgent production fixes. Branch from `main`, then merge into both `main` and `develop`.    |
+| `hotfix/X.Y.Z`                | Urgent production fixes. Branch from `main`, then merge into `main`.                       |
 
 Prefer stacked PRs for large changes so each review stays small and focused.
 
 ## Merge Strategy
 
-- Use squash merge for `feature/*` and `fix/*` into `develop`. The PR title becomes the commit message, so PR titles must follow [Conventional Commits](#commit-messages-conventional-commits-10).
-- Use merge commits for `release/X.Y.Z` into `main` and for `hotfix/X.Y.Z` into `main` and `develop`, so git-flow history remains traceable.
+- Use squash merge for `feature/*` and `fix/*` into `main`. The PR title becomes the commit message, so PR titles must follow [Conventional Commits](#commit-messages-conventional-commits-10).
+- Use merge commits for `release/X.Y.Z` and `hotfix/X.Y.Z` into `main` when a traceable release branch is required.
 
 ## Commit Messages: Conventional Commits 1.0
 
@@ -117,5 +116,5 @@ See [dependency and release automation](../automation.md) for repository setup.
 1. Run `git flow hotfix start X.Y.Z` to create `hotfix/X.Y.Z` from `main`.
 2. Commit the fix.
 3. Run `git flow hotfix finish X.Y.Z`.
-   - This merges into both `main` and `develop`, and adds the `vX.Y.Z` tag.
-4. Run `git push origin main develop --follow-tags`.
+   - This merges into `main` and adds the `vX.Y.Z` tag.
+4. Run `git push origin main --follow-tags`.

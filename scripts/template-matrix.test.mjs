@@ -13,9 +13,7 @@ describe("template feature matrix", () => {
   });
 
   it("rejects an incomplete matrix", () => {
-    assert.throws(() =>
-      assertPairwiseCoverage([[], ["auth", "batch", "sst", "example-ui"]]),
-    );
+    assert.throws(() => assertPairwiseCoverage([[], ["auth", "batch", "sst"]]));
   });
 
   it("qualifies every generated feature contract", () => {

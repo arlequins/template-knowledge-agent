@@ -10,7 +10,7 @@ release automation. Security policy and AWS trust configuration remain in
 | --- | --- | --- |
 | `CI` | pull requests, `main`, merge queue | Formatting, linting, workflow validation, production builds, types, tests, generated-template qualification, Storybook, and E2E |
 | `PR title` | pull request title changes | Conventional Commit validation for squash merges |
-| `Security` | pull requests, merge queue, `main`, `develop`, weekly | Dependency review, CodeQL, secret scanning, license policy, and SBOM |
+| `Security` | pull requests, merge queue, `main`, optional `develop`, weekly | Dependency review, CodeQL, secret scanning, license policy, and SBOM |
 | `Preview deployment` | same-repository pull requests | Deploy or remove isolated `pr-NUMBER` API and web stages |
 | `Production deployment` | manual | Deploy one application through the protected `production` environment |
 | `Release` | successful `CI` on `main`, manual | Maintain the Release Please PR and create version tags |

@@ -17,7 +17,8 @@ This document defines how AI coding agents should work in this repository.
 - Use branch names that describe the task, such as `feature/<short-description>`, `fix/<short-description>`, or `docs/<short-description>`.
 - Keep PRs focused on one coherent change.
 - Before opening or updating a PR, summarize the changed files, verification commands, and any known risks.
-- Do not push directly to `main` or `develop`.
+- Do not push directly to `main`. A derived repository may add a protected
+  `develop` branch, but it is not required by this template.
 
 ## Editing Rules
 
