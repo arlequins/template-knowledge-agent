@@ -16,7 +16,7 @@ jobs:
       group: quickstart-deployment
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: ./tooling/github/setup
