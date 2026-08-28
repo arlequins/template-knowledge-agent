@@ -31,6 +31,8 @@ public template.
 - Improve quality through replayable daily evaluations. Optional weight
   training requires source-reviewed examples, disjoint held-out data, guarded
   promotion, explicit reload, and rollback; it is never real-time.
+- Organize new business behavior as independent Feature-Sliced Design slices;
+  the generator and architecture check enforce the dependency direction.
 
 ## Stack
 
@@ -95,6 +97,7 @@ T3/Fumadocs acceptance corpus under `examples/pilot` can be checked with
 | `pnpm tuning:patterns:generate` | Generate private structured candidates with Luna under `.local/`. |
 | `pnpm tuning:patterns:daily` | Validate and atomically promote the reviewed behavior pack under `.local/`. |
 | `pnpm check` | Run Biome formatting and lint checks. |
+| `pnpm architecture:check` | Verify clean-architecture and feature-slice boundaries. |
 | `pnpm typecheck` | Typecheck every workspace. |
 | `pnpm test` | Run unit and contract tests. |
 | `pnpm test:integration` | Test PostgreSQL-backed repositories. |
@@ -110,6 +113,9 @@ Start with the **[privacy and sensitive-data boundary](docs/privacy-sensitive-da
 [日本語](docs/ec2-model-budget.ja.md)), [the product
 architecture](docs/architecture.md), [the delivery roadmap](docs/roadmap.md),
 and [the documentation index](docs/README.md).
+New feature placement is defined by [Feature-Sliced Clean Architecture](docs/conventions/feature-sliced-design.md)
+([한국어](docs/conventions/feature-sliced-design.ko.md) ·
+[日本語](docs/conventions/feature-sliced-design.ja.md)).
 Deployment-specific controls are documented in
 [deployment security](docs/deployment-security.md). AWS deployments use GitHub
 Actions with OIDC; no long-lived AWS credential belongs in this repository.

@@ -1,6 +1,6 @@
 import { create{{ pascalCase name }}Service } from "@arlequins/service";
-import { {{ camelCase name }}Adaptor } from "../adaptors/{{ name }}";
+import { {{ camelCase name }}Adapter } from "./adapters/{{ name }}";
 
 export const {{ camelCase name }}Service = create{{ pascalCase name }}Service({
-  {{ camelCase name }}: {{ camelCase name }}Adaptor,
+  {{ camelCase name }}: {{ camelCase name }}Adapter,
 });

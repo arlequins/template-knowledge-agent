@@ -48,15 +48,21 @@ Run `pnpm turbo gen` and select one of these generators:
 | `app` | A runnable TypeScript workspace under `apps/` |
 | `package` | A compiled TypeScript library under `packages/` |
 | `domain` | A DIP-aligned tRPC domain with types, port, service, adapter, composition, use case, router registration, and contract update |
-| `feature` | A clean-architecture command or query across `@arlequins/service` and `@arlequins/trpc`, including its first unit test |
+| `feature` | An independent FSD slice under `features/<name>` across `@arlequins/service` and `@arlequins/trpc`, including its first unit test |
 
 Names must be lowercase kebab-case. The active package scope is read from the initialized workspace instead of being hard-coded.
 
 Use `pnpm gen:feature`, enter a feature name, and select `command` or `query`.
-The generator registers the router, updates the public contract, formats the
-result, and runs the architecture boundary check. Replace the generated message
-input and pass-through adapter with domain-specific types and infrastructure;
-the generated dependency direction should remain intact.
+The generator creates the domain, application port/use case, adapter,
+composition root, router, and first unit test in one slice. It registers the
+router, updates the public contract, formats the result, and runs the
+architecture boundary check. Replace the generated message input and
+pass-through adapter with domain-specific types and infrastructure; keep the
+generated dependency direction intact.
+
+The older `domain` generator remains for compatibility with existing derived
+repositories. Do not use it for new work; migrate changed capabilities to the
+feature generator one slice at a time.
 
 ## Fast Feedback
 

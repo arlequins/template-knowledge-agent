@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { ApplicationLogger } from "./application/ports/application-logger";
+import type { ApplicationLogger } from "../../application/ports/application-logger";
 import type { ContentRepository } from "./application/ports/content-repository";
 import { createContentService } from "./application/use-cases/content";
 

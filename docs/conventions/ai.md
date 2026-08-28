@@ -59,10 +59,13 @@ Always report verification results. If a check cannot be run, explain why.
 ## tRPC Work
 
 - Keep routers thin. They should define procedures, validate input and output, and call usecase wrappers.
-- Put business logic in `lib/services/{domain}`.
-- Put I/O interfaces in `lib/services/ports`.
-- Put Drizzle and external API implementations in `lib/adaptors`.
-- Compose production dependencies in `lib/usecases/composition`.
+- Generate new behavior with `pnpm gen:feature` under
+  `packages/*/src/features/<name>`.
+- Put pure vocabulary and rules in the slice's `domain.ts`.
+- Put I/O interfaces in the slice's `application/ports`.
+- Put use cases in `application/use-cases` and test them with port doubles.
+- Put Drizzle and external API implementations in the slice's `adapters`.
+- Compose production dependencies in the slice's `composition.ts`.
 - Add explicit Zod outputs for complex procedure results.
 
 See [tRPC router convention](trpc.md) for the full pattern.

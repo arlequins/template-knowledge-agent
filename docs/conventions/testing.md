@@ -28,11 +28,14 @@ Operational details and the flaky-test policy live in
   transactions, or constraints are part of the contract.
 - Apply the existing Biome formatter, linter, and import-order conventions to
   test code.
-- There is no mandatory coverage percentage yet. At minimum, cover public API happy paths and representative edge cases.
+- CI enforces at least 75% statements, lines, functions, and branches through
+  `pnpm test:coverage`. Treat the threshold as a floor, not a substitute for
+  boundary-focused cases: cover public API happy paths, failure paths, and
+  authorization or redaction edges.
 
 ## Test File Location and Naming
 
-- Place tests next to source files, such as `packages/<name>/src/foo.ts` and `packages/<name>/src/foo.test.ts`.
+- Place tests next to source files, such as `packages/<name>/src/foo.ts` and `packages/<name>/src/foo.test.ts`. Feature-sliced tests belong inside the owning `features/<name>` directory.
 - Use `*.test.ts` and `*.test.tsx`.
 - Do not use `*.spec.ts`.
 - Shared helpers for multiple tests belong in `packages/<name>/src/__tests__/helpers/*.ts`. Helper files that do not match `*.test.*` should not be direct test targets.

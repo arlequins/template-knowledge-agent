@@ -30,6 +30,15 @@ Object.assign(authFreeEnv, {
   AWS_SHARED_CREDENTIALS_FILE: unavailableCredentialsPath,
   SST_AWS_PROFILE: "",
   SST_TELEMETRY_DISABLED: "1",
+  // SST evaluates the web authentication contract while loading the stack.
+  // These are deliberately local, non-secret defaults so a fresh checkout can
+  // validate the configuration without requiring a developer's .env file.
+  NEXT_PUBLIC_OIDC_AUTHORITY:
+    process.env.NEXT_PUBLIC_OIDC_AUTHORITY ?? "http://localhost:5556",
+  NEXT_PUBLIC_OIDC_CLIENT_ID:
+    process.env.NEXT_PUBLIC_OIDC_CLIENT_ID ?? "local-web",
+  NEXT_PUBLIC_OIDC_SCOPE:
+    process.env.NEXT_PUBLIC_OIDC_SCOPE ?? "openid profile email",
 });
 
 function run(args, env = process.env) {

@@ -222,7 +222,10 @@ the [model playbook](model-playbook.md) and the
 
 This template keeps policy independent from delivery frameworks and providers.
 The example content slice is intentionally small, but it demonstrates the same
-dependency direction expected from production features.
+dependency direction expected from production features. New behavior is also
+organized as one named Feature-Sliced Design capability; see
+[Feature-Sliced Clean Architecture](conventions/feature-sliced-design.md) for
+the canonical layout and migration rules.
 
 ```text
 apps/web -> tRPC router -> application use case -> port <- adapter
@@ -234,11 +237,11 @@ apps/batch -> composition -> application use case    <- provider SDKs
 
 | Layer | Location | Responsibility |
 | --- | --- | --- |
-| Domain | `packages/*/src/domain` | Business vocabulary and rules with no framework dependencies |
-| Application | `packages/*/src/application` | Use cases and outbound ports |
-| Adapters | `packages/trpc/src/adaptors`, `packages/db-backbone`, `apps/*/src/adaptors` | Translate object storage, optional databases, identity, and delivery mechanisms into ports |
-| Composition | `packages/trpc/src/composition`, `apps/*/composition` | Select concrete adapters and construct use cases |
-| Delivery | tRPC routers, Hono routes, Lambda handlers, React views | Validate and translate requests, then call application behavior |
+| Domain | `packages/*/src/features/<name>/domain.ts` | Business vocabulary and pure rules with no framework dependencies |
+| Application | `packages/*/src/features/<name>/application` | Use cases and outbound ports |
+| Adapters | `packages/*/src/features/<name>/adapters`, database/provider packages | Translate external systems into ports |
+| Composition | `packages/*/src/features/<name>/composition.ts` | Select concrete adapters and construct use cases |
+| Delivery | `packages/*/src/features/<name>/router.ts`, Hono routes, Lambda handlers, React views | Validate and translate requests, then call application behavior |
 
 Dependencies point inward. Domain and application code never imports Drizzle,
 Hono, tRPC, AWS SDKs, environment loaders, or concrete logging packages.
@@ -275,16 +278,18 @@ types.
 
 ## Feature Workflow
 
-1. Define domain vocabulary without transport or persistence types.
-2. Define an application port for every required external effect.
-3. Implement and unit test a use case against port doubles.
-4. Implement adapters at the infrastructure boundary.
-5. Select adapters in a composition root.
-6. Add a thin transport handler that validates input and calls the use case.
+1. Generate a named slice with `pnpm gen:feature`.
+2. Define domain vocabulary without transport or persistence types.
+3. Define an application port for every required external effect.
+4. Implement and unit test a use case against port doubles.
+5. Implement adapters at the infrastructure boundary.
+6. Select adapters in a composition root.
+7. Add a thin transport handler that validates input and calls the use case.
 
 Run `pnpm architecture:check` after moving files or adding dependencies. The
 check is also part of the root test command and rejects common inward dependency
-violations.
+violations, direct cross-feature imports, and new feature usage of the legacy
+`adaptors` spelling.
 
 ## Local Development
 

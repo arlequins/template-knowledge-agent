@@ -67,11 +67,20 @@ try {
     throw new Error("Generated feature was not registered in the tRPC root");
   }
   const featureRouter = await readFile(
-    resolve(target, "packages/trpc/src/router/inventory-query.ts"),
+    resolve(target, "packages/trpc/src/features/inventory-query/router.ts"),
     "utf8",
   );
   if (!featureRouter.includes(".query(")) {
     throw new Error("Generated query feature used the wrong procedure kind");
+  }
+  const featureDomain = await readFile(
+    resolve(target, "packages/service/src/features/inventory-query/domain.ts"),
+    "utf8",
+  );
+  if (featureDomain.includes("@trpc/") || featureDomain.includes("@aws-sdk/")) {
+    throw new Error(
+      "Generated feature domain crossed an infrastructure boundary",
+    );
   }
   console.log(
     "Application, package, domain, and feature generators passed qualification.",

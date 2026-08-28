@@ -81,6 +81,17 @@ jobs:
       - uses: ./tooling/github/setup
       - run: pnpm test:generators
 
+  architecture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: ./tooling/github/setup
+      - name: Check feature-sliced architecture boundaries
+        run: pnpm test:architecture && pnpm architecture:check
+
   migration-upgrade:
     runs-on: ubuntu-latest
     timeout-minutes: 15
