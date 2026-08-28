@@ -31,6 +31,11 @@ branding:
 - `--domain` replaces example hostnames.
 - `--preset` and `--features` choose optional modules; `--prune` removes them.
 
+The initializer fails fast on unknown flags, so a misspelled option cannot
+silently produce an incorrectly configured repository. Boolean flags are
+`--dry-run`, `--force`, and `--prune`; value flags are `--name`, `--scope`,
+`--display-name`, `--preset`, `--features`, `--description`, and `--domain`.
+
 The resulting `template.features.json` is the local composition manifest. Keep
 it committed so generators and future automation can discover the initialized
 identity and enabled features without parsing package files.
