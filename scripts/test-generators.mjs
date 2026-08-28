@@ -43,6 +43,15 @@ async function copyRepository() {
 
 try {
   await copyRepository();
+  const obsoleteDomainTemplate = resolve(
+    target,
+    "turbo/generators/templates/domain",
+  );
+  if (await stat(obsoleteDomainTemplate).catch(() => undefined)) {
+    throw new Error(
+      "Obsolete domain templates must not be copied into a generated repository",
+    );
+  }
   await copyFile(resolve(target, ".env.example"), resolve(target, ".env"));
   run(pnpm, ["install", "--frozen-lockfile"]);
   for (const [generator, ...args] of [
