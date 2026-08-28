@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.4](https://github.com/arlequins/template-knowledge-agent/compare/v1.11.3...v1.11.4) (2026-08-28)
+
+
+### Bug Fixes
+
+* **template:** align feature catalog and docs ([#55](https://github.com/arlequins/template-knowledge-agent/issues/55)) ([74c3688](https://github.com/arlequins/template-knowledge-agent/commit/74c3688f3ba6b3c46c224b1175786511d99fa1c7))
+
 ## [1.11.3](https://github.com/arlequins/template-knowledge-agent/compare/v1.11.2...v1.11.3) (2026-08-28)
 
 
