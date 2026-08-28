@@ -34,6 +34,15 @@ describe("template:init", () => {
     assert.throws(() =>
       validateOptions({ name: "Bad Name", scope: "company" }),
     );
+    assert.deepEqual(parseArgs(["--prune", "--force"]), {
+      dryRun: false,
+      force: true,
+      prune: true,
+    });
+    assert.throws(
+      () => parseArgs(["--dispay-name", "Typo"]),
+      /Unknown argument: --dispay-name/,
+    );
   });
 
   it("plans physical feature removal only when prune mode is enabled", () => {

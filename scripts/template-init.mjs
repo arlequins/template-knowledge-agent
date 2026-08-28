@@ -8,6 +8,16 @@ const TEMPLATE_SCOPE = "@arlequins";
 const TEMPLATE_DISPLAY_NAME = "Knowledge Agent Template";
 const REQUIRED_FEATURES = ["auth"];
 const OPTIONAL_FEATURES = ["auth", "batch", "sst", "example-ui"];
+const VALUE_OPTIONS = new Set([
+  "name",
+  "scope",
+  "display-name",
+  "preset",
+  "features",
+  "description",
+  "domain",
+]);
+const BOOLEAN_OPTIONS = new Set(["dry-run", "force", "prune"]);
 const DEPENDENCY_FIELDS = [
   "dependencies",
   "devDependencies",
@@ -68,11 +78,14 @@ export function parseArgs(args) {
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (argument === "--") continue;
-    if (argument === "--dry-run") options.dryRun = true;
-    else if (argument === "--force") options.force = true;
-    else if (argument === "--prune") options.prune = true;
-    else if (argument?.startsWith("--")) {
+    if (argument?.startsWith("--")) {
       const key = argument.slice(2);
+      if (BOOLEAN_OPTIONS.has(key)) {
+        options[key === "dry-run" ? "dryRun" : key] = true;
+        continue;
+      }
+      if (!VALUE_OPTIONS.has(key))
+        throw new Error(`Unknown argument: ${argument}`);
       const value = args[index + 1];
       if (!value || value.startsWith("--"))
         throw new Error(`Missing value for ${argument}`);
