@@ -35,6 +35,8 @@ The initializer fails fast on unknown flags, so a misspelled option cannot
 silently produce an incorrectly configured repository. Boolean flags are
 `--dry-run`, `--force`, and `--prune`; value flags are `--name`, `--scope`,
 `--display-name`, `--preset`, `--features`, `--description`, and `--domain`.
+The wrapper command `template:create` additionally accepts `--target` for the
+empty sibling directory; `template:init` intentionally rejects that flag.
 
 The resulting `template.features.json` is the local composition manifest. Keep
 it committed so generators and future automation can discover the initialized

@@ -66,7 +66,7 @@ const isCli =
 
 if (isCli) {
   try {
-    const options = parseArgs(process.argv.slice(2));
+    const options = parseArgs(process.argv.slice(2), { allowTarget: true });
     const result = await createDerivedRepository(options);
     if (!result.written) {
       console.log(
