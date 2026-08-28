@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.2](https://github.com/arlequins/template-knowledge-agent/compare/v1.11.1...v1.11.2) (2026-08-28)
+
+
+### Bug Fixes
+
+* **template:** reject unknown initializer flags ([#51](https://github.com/arlequins/template-knowledge-agent/issues/51)) ([1ce73c2](https://github.com/arlequins/template-knowledge-agent/commit/1ce73c2e98249c8ebbae68643851ae319a6bbb5d))
+
 ## [1.11.1](https://github.com/arlequins/template-knowledge-agent/compare/v1.11.0...v1.11.1) (2026-08-28)
 
 
