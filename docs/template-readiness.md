@@ -20,17 +20,17 @@ its related code, tests, environment variables, and documentation.
   files into an empty sibling directory before initialization.
 - [x] Repository initialization for package scope, machine name, display name,
   metadata, and example domains.
-- [x] Full and minimal presets with selectable auth, batch, SST, and example UI
-  features.
+- [x] Full and minimal presets with selectable auth, batch, and SST modules.
 - [x] Pairwise qualification of every two-feature enabled/disabled state.
+- [x] Feature validation rejects retired or unknown module names instead of
+  emitting a manifest for files that are not present.
 - [x] Prune mode for physically removing unselected modules and dependencies.
 - [x] Application, package, and DIP-aligned tRPC domain generators.
 - [x] Cross-package clean-architecture feature generator for commands and queries.
 - [x] Feature-sliced generator with machine-checked domain/application/adapter/
   composition/delivery boundaries and cross-feature import protection.
-- [x] Removable and regenerable example CRUD functionality.
-- [x] Generic CRUD UI with search, sorting, pagination, shared states, and
-  permission-aware actions.
+- [x] Generic application services with versioned CRUD, authorization, and
+  upload ports that can be extended by a derived feature slice.
 - [x] Provider-neutral file upload port with an optional S3 adapter.
 - [x] Exact OIDC identity based initial-administrator bootstrap.
 
@@ -126,5 +126,5 @@ Before publishing a repository created from this template:
 3. Replace local and example identity, domain, seed, and IAM values.
 4. Configure protected environments, branch rules, and cloud roles.
 5. Run the full qualification commands documented in the
-   [root README](../README.md#template-qualification).
+   [derived-repository guide](create-derived-repository.md#first-qualification).
 6. Update `LICENSE`, `NOTICE`, ownership, support, and incident contacts.

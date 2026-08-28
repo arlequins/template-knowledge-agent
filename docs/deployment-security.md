@@ -29,7 +29,7 @@ the invocation-logging decision, exact field policies, and retention controls.
 
 ## Environments and Branch Protection
 
-Create a `production` GitHub Environment with required reviewers, prevent self-review, restrict deployment to protected release branches or tags, and configure an approval timeout. Protect `main` and `develop`, require the CI and Security checks, require review, dismiss stale approvals, and disallow force pushes.
+Create a `production` GitHub Environment with required reviewers, prevent self-review, restrict deployment to protected release branches or tags, and configure an approval timeout. Protect `main`, require the CI and Security checks, require review, dismiss stale approvals, and disallow force pushes. If a project adds a separate `develop` integration branch, apply the same protections there.
 
 Preview deployments only run for branches in the same repository. Fork pull requests never receive AWS credentials. A closed pull request removes its `pr-NUMBER` stage.
 

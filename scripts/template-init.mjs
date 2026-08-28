@@ -7,7 +7,10 @@ const TEMPLATE_NAME = "template-knowledge-agent";
 const TEMPLATE_SCOPE = "@arlequins";
 const TEMPLATE_DISPLAY_NAME = "Knowledge Agent Template";
 const REQUIRED_FEATURES = ["auth"];
-const OPTIONAL_FEATURES = ["auth", "batch", "sst", "example-ui"];
+// Keep this list aligned with modules that actually exist in the template.
+// Retired feature names must fail validation instead of silently producing a
+// manifest that advertises files which are not present.
+const OPTIONAL_FEATURES = ["auth", "batch", "sst"];
 const VALUE_OPTIONS = new Set([
   "name",
   "scope",
@@ -136,21 +139,6 @@ export function pathsToPrune(options) {
       "tooling/sst-bootstrap",
     );
   }
-  if (!features.has("example-ui")) {
-    paths.push(
-      "apps/web/public/blog",
-      "apps/web/src/app/admin",
-      "apps/web/src/app/editor",
-      "apps/web/src/app/posts",
-      "apps/web/src/app/users",
-      "apps/web/src/components/blog",
-      "apps/web/src/components/content",
-      "apps/web/src/components/authorization",
-      "apps/web/src/lib/blog-data.ts",
-      "scripts/example-crud.mjs",
-    );
-  }
-
   return paths.sort();
 }
 
@@ -199,17 +187,6 @@ function prunePackageJson(relativePath, source, options) {
       "sst:install",
       "sst:remove",
     ]);
-  }
-
-  if (!features.has("example-ui") && relativePath === "apps/web/package.json") {
-    removeDependencies(packageJson, [
-      `${options.scope}/validators`,
-      "@tanstack/react-form",
-      "lucide-react",
-    ]);
-  }
-  if (!features.has("example-ui") && relativePath === "package.json") {
-    removeScripts(packageJson, ["example:remove", "example:regenerate"]);
   }
 
   return `${JSON.stringify(packageJson, undefined, 2)}\n`;
@@ -393,11 +370,6 @@ export function transformContent(relativePath, source, options) {
         .replace('import { AuthStatus } from "~/auth/status";\n', "")
         .replace("        <AuthStatus />\n", "");
     }
-    if (relativePath === "apps/web/src/components/blog/app-shell.tsx") {
-      output = output
-        .replace('import { AuthStatus } from "~/auth/status";\n', "")
-        .replace("            <AuthStatus compact />\n", "");
-    }
     if (relativePath === "apps/web/src/auth/status.tsx") {
       output = "export function AuthStatus() {\n  return null;\n}\n";
     }
@@ -451,26 +423,6 @@ export function transformContent(relativePath, source, options) {
       );
       output = `${JSON.stringify(journal, undefined, 2)}\n`;
     }
-  }
-
-  if (
-    !features.has("example-ui") &&
-    relativePath === "apps/web/src/app/page.tsx"
-  ) {
-    const authImport = features.has("auth")
-      ? 'import { AuthStatus } from "~/auth/status";\n'
-      : "";
-    const authStatus = features.has("auth") ? "      <AuthStatus />\n" : "";
-    output = `"use client";\n\n${authImport}import { env } from "~/env";\n\nexport default function HomePage() {\n  return (\n    <main className="container py-16">\n${authStatus}      <h1 className="text-4xl font-bold">${resolveDisplayName(options)}</h1>\n      <p className="text-muted-foreground mt-4">\n        API: {env.NEXT_PUBLIC_API_URL}\n      </p>\n    </main>\n  );\n}\n`;
-  }
-
-  if (
-    !features.has("example-ui") &&
-    relativePath === "apps/web/src/app/layout.tsx"
-  ) {
-    output = output
-      .replace('import { AppShell } from "~/components/blog/app-shell";\n', "")
-      .replace("<AppShell>{props.children}</AppShell>", "{props.children}");
   }
 
   if (relativePath === "apps/web/src/config/site.ts") {
@@ -579,7 +531,7 @@ if (isCli) {
   } catch (error) {
     console.error(error instanceof Error ? error.message : error);
     console.error(
-      "pnpm template:init -- --name my-app --scope @company [--display-name 'My App'] [--preset full|minimal] [--features auth,batch,sst,example-ui] [--prune] [--description text] [--domain example.org] [--dry-run] [--force]",
+      "pnpm template:init -- --name my-app --scope @company [--display-name 'My App'] [--preset full|minimal] [--features auth,batch,sst] [--prune] [--description text] [--domain example.org] [--dry-run] [--force]",
     );
     process.exitCode = 1;
   }

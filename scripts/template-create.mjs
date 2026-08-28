@@ -84,7 +84,7 @@ if (isCli) {
   } catch (error) {
     console.error(error instanceof Error ? error.message : error);
     console.error(
-      "pnpm template:create -- --target ../my-agent --name my-agent --scope @company [--display-name 'My Agent'] [--preset full|minimal] [--features auth,batch,sst,example-ui] [--prune] [--description text] [--domain example.org] [--dry-run]",
+      "pnpm template:create -- --target ../my-agent --name my-agent --scope @company [--display-name 'My Agent'] [--preset full|minimal] [--features auth,batch,sst] [--prune] [--description text] [--domain example.org] [--dry-run]",
     );
     process.exitCode = 1;
   }

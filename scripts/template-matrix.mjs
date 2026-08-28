@@ -9,13 +9,13 @@ import {
 } from "./template-init.mjs";
 
 export const RequiredFeatureNames = ["auth"];
-export const FeatureNames = ["batch", "sst", "example-ui"];
+export const FeatureNames = ["batch", "sst"];
 
-// Orthogonal array OA(4, 3, 2): every pair of optional feature flags appears in all four states.
+// Orthogonal array OA(4, 2, 2): every pair of optional feature flags appears in all four states.
 export const PairwiseFeatureMatrix = [
   [...RequiredFeatureNames],
-  [...RequiredFeatureNames, "sst", "example-ui"],
-  [...RequiredFeatureNames, "batch", "example-ui"],
+  [...RequiredFeatureNames, "sst"],
+  [...RequiredFeatureNames, "batch"],
   [...RequiredFeatureNames, "batch", "sst"],
 ];
 
@@ -51,10 +51,6 @@ export function qualifyFeatureMatrix() {
       pruned.includes("tooling/sst-bootstrap"),
       !features.includes("sst"),
     );
-    assert.equal(
-      pruned.includes("apps/web/src/components/blog"),
-      !features.includes("example-ui"),
-    );
 
     const manifest = JSON.parse(
       transformContent("template.features.json", "{}", options),
@@ -68,8 +64,6 @@ export function qualifyFeatureMatrix() {
           scripts: {
             "batch:run": "batch",
             "dev:sst": "sst",
-            "example:remove": "remove",
-            "example:regenerate": "regen",
             "sst:ws": "sst",
             test: "test",
             "test:e2e": "e2e",
@@ -89,10 +83,6 @@ export function qualifyFeatureMatrix() {
       features.includes("batch"),
     );
     assert.equal("dev:sst" in rootPackage.scripts, features.includes("sst"));
-    assert.equal(
-      "example:remove" in rootPackage.scripts,
-      features.includes("example-ui"),
-    );
     assert.equal("test:e2e" in rootPackage.scripts, features.includes("auth"));
   }
   return PairwiseFeatureMatrix.length;

@@ -35,6 +35,9 @@ The initializer fails fast on unknown flags, so a misspelled option cannot
 silently produce an incorrectly configured repository. Boolean flags are
 `--dry-run`, `--force`, and `--prune`; value flags are `--name`, `--scope`,
 `--display-name`, `--preset`, `--features`, `--description`, and `--domain`.
+Supported feature names are `auth`, `batch`, and `sst`; the former
+`example-ui` name is intentionally rejected because that placeholder surface
+is no longer part of the template.
 The wrapper command `template:create` additionally accepts `--target` for the
 empty sibling directory; `template:init` intentionally rejects that flag.
 
@@ -74,13 +77,13 @@ feature generator one slice at a time.
 ## Fast Feedback
 
 - `pnpm env:check` verifies every validated server and browser variable appears in `.env.example`.
-- `pnpm check:changed` runs lint, typecheck, and test only for workspaces changed since `origin/develop`. Pass `-- --base <ref>` or set `CHANGE_BASE` to override it.
-- `pnpm example:remove` removes the public example post CRUD surface and preserves its source in `.template/example-crud`.
-- `pnpm example:regenerate` restores that preserved CRUD surface.
+- `pnpm check:changed` runs lint, typecheck, and test only for workspaces changed since `origin/main` (or `origin/develop` when that optional branch exists). Pass `-- --base <ref>` or set `CHANGE_BASE` to override it.
 - `pnpm pilot:verify` checks the public T3/Fumadocs evidence, official-source,
   live-capability, and refusal fixtures.
 
-Commit `.template/example-crud` together with an intentional example removal if later regeneration must remain available to other contributors.
+The template does not include a placeholder CRUD or blog application. Add a
+real domain slice with `pnpm gen:feature` instead of retaining example routes,
+sample records, or UI-only dependencies in a derived repository.
 
 ## Generated Project Qualification
 

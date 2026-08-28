@@ -130,7 +130,9 @@ Owner-only feedback investigations and their promotion gates are described in
 The [Luna-assisted tuning kit](docs/tuning-kit.md)
 ([한국어](docs/tuning-kit.ko.md) · [日本語](docs/tuning-kit.ja.md)) adds reviewed
 synthetic behavior patterns that work immediately as few-shot guidance and can
-later feed a separately qualified local student model.
+later feed a separately qualified local student model. For a new product,
+follow the [derived-repository qualification guide](docs/create-derived-repository.md)
+instead of modifying this checkout in place.
 
 ## Releases
 
