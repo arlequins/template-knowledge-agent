@@ -26,6 +26,8 @@ its related code, tests, environment variables, and documentation.
 - [x] Prune mode for physically removing unselected modules and dependencies.
 - [x] Application, package, and DIP-aligned tRPC domain generators.
 - [x] Cross-package clean-architecture feature generator for commands and queries.
+- [x] Feature-sliced generator with machine-checked domain/application/adapter/
+  composition/delivery boundaries and cross-feature import protection.
 - [x] Removable and regenerable example CRUD functionality.
 - [x] Generic CRUD UI with search, sorting, pagination, shared states, and
   permission-aware actions.

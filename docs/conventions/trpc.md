@@ -6,10 +6,10 @@ Read this when adding or changing procedures in `packages/trpc`.
 
 ```text
 apps/api/src/app.ts
-  -> packages/trpc/src/router
-       -> request-scoped use cases from ctx.services
-            -> packages/service/src/application
-                 -> port <- adapter
+  -> packages/trpc/src/features/<name>/router.ts
+       -> feature composition
+            -> packages/service/src/features/<name>/application/use-cases
+                 -> port <- feature adapter
 ```
 
 The Hono app owns HTTP concerns. tRPC owns typed API contracts and request middleware. Services own application behavior and receive concrete I/O dependencies during composition. Drizzle owns persistence.
@@ -24,7 +24,8 @@ The Hono app owns HTTP concerns. tRPC owns typed API contracts and request middl
 
 ### tRPC Context
 
-- Build request-scoped dependencies in `packages/trpc/src/composition`.
+- Build request-scoped dependencies in the feature's `composition.ts` and the
+  application composition root.
 - Resolve authentication once per request.
 - Pass the request-scoped logger from Hono into tRPC and bind a component name for each service.
 - Expose application operations through `ctx.services`.
@@ -82,18 +83,22 @@ export function createPostService(database: Database, logger: Logger) {
 }
 ```
 
-For domains with substantial business logic or multiple I/O providers, split the service into ports, adapters, and use cases while preserving the same dependency direction:
+For new domains, use `pnpm gen:feature` and keep the complete capability in a
+named feature slice. Existing `src/router` modules are compatibility surfaces;
+new routers belong in `packages/trpc/src/features/<name>/router.ts`.
+
+The dependency direction is:
 
 ```text
-router -> usecase -> service -> port <- adapter
+router -> composition -> usecase -> port <- adapter
 ```
 
 ## Adding a Router
 
 1. Add shared Zod input contracts to `packages/validators` when the web client also needs them.
-2. Add or extend a dependency-injected service in `packages/service`.
-3. Compose the service in `createTRPCContext` under `ctx.services`.
-4. Add a thin router in `packages/trpc/src/router/{domain}.ts`.
+2. Generate or extend a dependency-injected feature in `packages/service/src/features`.
+3. Compose the feature in its `packages/trpc/src/features/{name}/composition.ts`.
+4. Add a thin router in `packages/trpc/src/features/{name}/router.ts`.
 5. Register it in `packages/trpc/src/root.ts`.
 6. Export browser-safe types only through `@arlequins/trpc/client`.
 7. Add tests for service behavior and representative router authorization or validation paths.

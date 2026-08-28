@@ -1,7 +1,7 @@
 import type {
   {{ pascalCase name }}Input,
   {{ pascalCase name }}Result,
-} from "../../domain/{{ name }}";
+} from "../../domain";
 
 export type {{ pascalCase name }}Port = {
   execute(input: {{ pascalCase name }}Input): Promise<{{ pascalCase name }}Result>;

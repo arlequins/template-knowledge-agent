@@ -26,7 +26,8 @@ Mutable example records include a numeric `version`. Updates must provide the
 version read by the client; the Drizzle adapter increments it atomically and
 returns a conflict when another request has already changed the row.
 
-The example content feature demonstrates a complete application slice without
+The example content feature under `packages/service/src/features/content`
+demonstrates a complete application slice without
 turning the template into a blog product. Rename or remove the slice when a
 real domain is introduced.
 

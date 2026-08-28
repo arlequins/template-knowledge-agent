@@ -78,10 +78,10 @@ function exportFeatureFromService(name: string) {
   const path = "packages/service/src/index.ts";
   const pascalName = pascalCase(name);
   const additions = [
-    `export type { ${pascalName}Input, ${pascalName}Result } from "./domain/${name}";`,
-    `export type { ${pascalName}Port } from "./application/ports/${name}-port";`,
-    `export type { ${pascalName}Service } from "./application/use-cases/${name}";`,
-    `export { create${pascalName}Service } from "./application/use-cases/${name}";`,
+    `export type { ${pascalName}Input, ${pascalName}Result } from "./features/${name}/domain";`,
+    `export type { ${pascalName}Port } from "./features/${name}/application/ports/${name}-port";`,
+    `export type { ${pascalName}Service } from "./features/${name}/application/use-cases/${name}";`,
+    `export { create${pascalName}Service } from "./features/${name}/application/use-cases/${name}";`,
   ];
   const source = readFileSync(path, "utf8");
   writeFileSync(path, `${source.trimEnd()}\n${additions.join("\n")}\n`, "utf8");
@@ -115,28 +115,40 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
   });
 
   plop.setGenerator("domain", {
-    description: "Generate a DIP-aligned tRPC domain module",
+    description:
+      "Compatibility alias: generate a command feature slice (use feature for new work)",
     prompts: [namePrompt],
     actions: [
       ...[
-        ["types/{{ name }}.ts", "types.ts.hbs"],
-        ["services/ports/{{ name }}-port.ts", "port.ts.hbs"],
-        ["services/{{ name }}/index.ts", "service.ts.hbs"],
-        ["adaptors/{{ name }}.ts", "adaptor.ts.hbs"],
-        ["usecases/composition/{{ name }}-deps.ts", "composition.ts.hbs"],
-        ["usecases/{{ name }}/index.ts", "usecase.ts.hbs"],
-        ["router/{{ name }}.ts", "router.ts.hbs"],
+        ["features/{{ name }}/domain.ts", "domain.ts.hbs"],
+        [
+          "features/{{ name }}/application/ports/{{ name }}-port.ts",
+          "port.ts.hbs",
+        ],
+        [
+          "features/{{ name }}/application/use-cases/{{ name }}.ts",
+          "usecase.ts.hbs",
+        ],
+        ["features/{{ name }}/{{ name }}.test.ts", "test.ts.hbs"],
+        ["features/{{ name }}/adapters/{{ name }}.ts", "adaptor.ts.hbs"],
+        ["features/{{ name }}/composition.ts", "composition.ts.hbs"],
+        ["features/{{ name }}/router.ts", "router.ts.hbs"],
       ].map(([path, template]) => ({
         type: "add",
-        path: `packages/trpc/src/${path}`,
-        templateFile: `templates/domain/${template}`,
+        path:
+          path.startsWith("features/{{ name }}/application") ||
+          path.startsWith("features/{{ name }}/domain") ||
+          path.endsWith("{{ name }}.test.ts")
+            ? `packages/service/src/${path}`
+            : `packages/trpc/src/${path}`,
+        templateFile: `templates/feature/${template}`,
       })),
       {
         type: "modify",
         path: "packages/trpc/src/root.ts",
         pattern: /import \{ createTRPCRouter \} from "\.\/trpc";/,
         template:
-          'import { {{ camelCase name }}Router } from "./router/{{ name }}";\nimport { createTRPCRouter } from "./trpc";',
+          'import { {{ camelCase name }}Router } from "./features/{{ name }}/router";\nimport { createTRPCRouter } from "./trpc";',
       },
       {
         type: "modify",
@@ -147,15 +159,18 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
       },
       (answers) => {
         const name = sanitizeName(String(answers.name));
+        exportFeatureFromService(name);
         addDomainToContract(name);
         execFileSync("pnpm", ["check:fix"], { stdio: "inherit" });
+        execFileSync("pnpm", ["architecture:check"], { stdio: "inherit" });
         return "Domain module scaffolded and registered";
       },
     ],
   });
 
   plop.setGenerator("feature", {
-    description: "Generate a clean-architecture command or query slice",
+    description:
+      "Generate an independent feature slice with domain, application, adapter, composition, and delivery layers",
     prompts: [
       namePrompt,
       {
@@ -168,19 +183,25 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
     ],
     actions: [
       ...[
-        ["domain/{{ name }}.ts", "domain.ts.hbs"],
-        ["application/ports/{{ name }}-port.ts", "port.ts.hbs"],
-        ["application/use-cases/{{ name }}.ts", "usecase.ts.hbs"],
-        ["{{ name }}.test.ts", "test.ts.hbs"],
+        ["features/{{ name }}/domain.ts", "domain.ts.hbs"],
+        [
+          "features/{{ name }}/application/ports/{{ name }}-port.ts",
+          "port.ts.hbs",
+        ],
+        [
+          "features/{{ name }}/application/use-cases/{{ name }}.ts",
+          "usecase.ts.hbs",
+        ],
+        ["features/{{ name }}/{{ name }}.test.ts", "test.ts.hbs"],
       ].map(([path, template]) => ({
         type: "add",
         path: `packages/service/src/${path}`,
         templateFile: `templates/feature/${template}`,
       })),
       ...[
-        ["adaptors/{{ name }}.ts", "adaptor.ts.hbs"],
-        ["composition/{{ name }}.ts", "composition.ts.hbs"],
-        ["router/{{ name }}.ts", "router.ts.hbs"],
+        ["features/{{ name }}/adapters/{{ name }}.ts", "adaptor.ts.hbs"],
+        ["features/{{ name }}/composition.ts", "composition.ts.hbs"],
+        ["features/{{ name }}/router.ts", "router.ts.hbs"],
       ].map(([path, template]) => ({
         type: "add",
         path: `packages/trpc/src/${path}`,
@@ -191,7 +212,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         path: "packages/trpc/src/root.ts",
         pattern: /import \{ createTRPCRouter \} from "\.\/trpc";/,
         template:
-          'import { {{ camelCase name }}Router } from "./router/{{ name }}";\nimport { createTRPCRouter } from "./trpc";',
+          'import { {{ camelCase name }}Router } from "./features/{{ name }}/router";\nimport { createTRPCRouter } from "./trpc";',
       },
       {
         type: "modify",

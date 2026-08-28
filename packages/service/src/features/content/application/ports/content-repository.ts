@@ -2,7 +2,7 @@ import type {
   ContentListInput,
   ContentPage,
   ContentRecord,
-} from "../../domain/content";
+} from "../../domain";
 
 export type ContentRepository = {
   create(input: { content: string; title: string }): Promise<ContentRecord>;

@@ -2,6 +2,12 @@
 
 Shared **`@arlequins/*`** packages consumed by `apps/*` and each other. Replace the scope when you fork.
 
+New domain behavior belongs to a named `src/features/<name>` slice. Keep its
+domain and application policy in the service package, and put its concrete
+adapters and transport composition in the delivery package. See the
+[feature-sliced architecture guide](../docs/conventions/feature-sliced-design.md)
+before adding a cross-package dependency.
+
 | Package | Role |
 | --- | --- |
 | [`@arlequins/agent-core`](./agent-core) | Provider-neutral agent loop, retrieval context, citations, and stream events |
