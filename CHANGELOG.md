@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.10.1...v1.11.0) (2026-08-28)
+
+
+### Features
+
+* **architecture:** establish feature-sliced clean architecture ([#48](https://github.com/arlequins/template-knowledge-agent/issues/48)) ([0cee875](https://github.com/arlequins/template-knowledge-agent/commit/0cee8756bf4471a340712fa92c5b56521175b0de))
+* **web:** add safe embedded chat contract ([#46](https://github.com/arlequins/template-knowledge-agent/issues/46)) ([ce5bc88](https://github.com/arlequins/template-knowledge-agent/commit/ce5bc888b3eed48241243d014e3cf17fc2b4e8b3))
+
 ## [1.10.1](https://github.com/arlequins/template-knowledge-agent/compare/v1.10.0...v1.10.1) (2026-08-27)
 
 
