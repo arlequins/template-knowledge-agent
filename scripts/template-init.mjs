@@ -17,6 +17,7 @@ const VALUE_OPTIONS = new Set([
   "description",
   "domain",
 ]);
+const CREATE_VALUE_OPTIONS = new Set([...VALUE_OPTIONS, "target"]);
 const BOOLEAN_OPTIONS = new Set(["dry-run", "force", "prune"]);
 const DEPENDENCY_FIELDS = [
   "dependencies",
@@ -73,8 +74,9 @@ function displayInitials(displayName) {
     .join("");
 }
 
-export function parseArgs(args) {
+export function parseArgs(args, { allowTarget = false } = {}) {
   const options = { dryRun: false, force: false, prune: false };
+  const valueOptions = allowTarget ? CREATE_VALUE_OPTIONS : VALUE_OPTIONS;
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (argument === "--") continue;
@@ -84,7 +86,7 @@ export function parseArgs(args) {
         options[key === "dry-run" ? "dryRun" : key] = true;
         continue;
       }
-      if (!VALUE_OPTIONS.has(key))
+      if (!valueOptions.has(key))
         throw new Error(`Unknown argument: ${argument}`);
       const value = args[index + 1];
       if (!value || value.startsWith("--"))

@@ -43,6 +43,14 @@ describe("template:init", () => {
       () => parseArgs(["--dispay-name", "Typo"]),
       /Unknown argument: --dispay-name/,
     );
+    assert.throws(
+      () => parseArgs(["--target", "../derived"]),
+      /Unknown argument/,
+    );
+    assert.equal(
+      parseArgs(["--target", "../derived"], { allowTarget: true }).target,
+      "../derived",
+    );
   });
 
   it("plans physical feature removal only when prune mode is enabled", () => {
