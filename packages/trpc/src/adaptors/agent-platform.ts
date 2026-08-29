@@ -209,6 +209,28 @@ export function createAgentPlatformRepository(database: Database) {
       await audit(actor, "conversation.archived", conversation.id);
       return conversation;
     },
+    async renameConversation(
+      actor: WorkspaceActor,
+      conversationId: string,
+      title: string,
+    ) {
+      await assertMember(actor);
+      const [conversation] = await database
+        .update(Conversation)
+        .set({ title, updatedAt: new Date() })
+        .where(
+          and(
+            eq(Conversation.id, conversationId),
+            eq(Conversation.workspaceId, actor.workspaceId),
+            isNull(Conversation.archivedAt),
+          ),
+        )
+        .returning();
+      if (!conversation)
+        throw new Error("Conversation was not found in this workspace");
+      await audit(actor, "conversation.renamed", conversation.id);
+      return conversation;
+    },
     async addMessage(
       actor: WorkspaceActor,
       input: {

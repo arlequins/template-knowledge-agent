@@ -528,6 +528,24 @@ export function createS3AgentPlatformRepository(
       await appendEvent(actor, "conversation.archived", conversationId);
       return publicConversation(value);
     },
+    async renameConversation(
+      actor: WorkspaceActor,
+      conversationId: string,
+      title: string,
+    ) {
+      await assertMember(actor);
+      const value = await mutate<Conversation>(
+        store,
+        stateKey(actor.workspaceId, "conversations", conversationId),
+        (current) => {
+          if (current.archivedAt)
+            throw new Error("Conversation is archived and cannot be renamed");
+          return { ...current, title, updatedAt: timestamp() };
+        },
+      );
+      await appendEvent(actor, "conversation.renamed", conversationId);
+      return publicConversation(value);
+    },
     async addMessage(
       actor: WorkspaceActor,
       input: {
