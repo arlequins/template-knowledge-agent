@@ -8,6 +8,18 @@ alerts, bounded PR concurrency, and compatibility groups for the major runtime
 stacks. Patch and stable minor updates may merge only after all required CI
 checks pass. Major updates always require review.
 
+### Dependency override ownership
+
+Keep every repository-wide dependency override in the `overrides` map at the
+bottom of `pnpm-workspace.yaml`. This is the single source of truth inherited
+by every workspace package. Do not add a second `pnpm.overrides` map to the
+root `package.json`: pnpm treats that as a competing map and a later edit can
+silently replace existing workspace pins. When a security advisory requires a
+temporary pin, update the workspace map, regenerate the lockfile, and record
+the reason in the pull request. The Security workflow runs `pnpm audit` with a
+high-severity gate in addition to dependency review, license checks, and SBOM
+generation.
+
 Keep `main` protected and require CI and Security checks before enabling
 Renovate automerge. The Dependency Dashboard is the operational view for
 blocked, pending, and manually approved updates.

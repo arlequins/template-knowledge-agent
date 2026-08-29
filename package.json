@@ -7,17 +7,6 @@
     "pnpm": "^10.19.0"
   },
   "packageManager": "pnpm@10.19.0",
-  "pnpm": {
-    "overrides": {
-      "@types/minimatch": "6.0.0",
-      "brace-expansion": "2.1.4",
-      "esbuild": "0.28.1",
-      "lightningcss": "1.32.0",
-      "nanoid": "3.3.18",
-      "postcss": "8.5.24",
-      "sharp": "0.35.4"
-    }
-  },
   "scripts": {
     "architecture:check": "node scripts/check-architecture.mjs",
     "preinstall": "node scripts/check-runtime.mjs",
@@ -77,7 +66,7 @@
     "sst:ws": "node ./scripts/sst-workspace.mjs",
     "test": "pnpm test:runtime && pnpm test:automation && pnpm test:template-init && pnpm test:architecture && pnpm pilot:verify && pnpm tuning:patterns:verify && pnpm architecture:check && turbo run test",
     "test:coverage": "dotenv -e .env.example -e .env -- vitest run --coverage --config vitest.coverage.config.ts",
-    "test:automation": "node --test scripts/validate-deployment-input.test.mjs",
+    "test:automation": "node --test scripts/validate-deployment-input.test.mjs scripts/check-dependency-policy.test.mjs",
     "test:architecture": "node --test scripts/check-architecture.test.mjs",
     "test:sst": "node scripts/test-sst.mjs",
     "test:runtime": "node --test scripts/check-runtime.test.mjs",

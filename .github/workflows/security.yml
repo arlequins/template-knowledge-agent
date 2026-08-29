@@ -67,6 +67,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./tooling/github/setup
+      - name: Audit dependencies
+        run: pnpm audit --audit-level=high
       - name: Enforce license policy
         run: pnpm security:licenses
       - name: Generate SBOM
