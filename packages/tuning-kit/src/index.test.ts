@@ -6,6 +6,7 @@ import {
   evaluateReviewedBehaviorPack,
   exportReviewedTrainingJsonl,
   type PatternBatch,
+  parseBehaviorPackManifest,
   validatePatternBatch,
   validateSyntheticPatternSeed,
 } from "./index";
@@ -114,6 +115,25 @@ describe("tuning kit", () => {
     ).toContain("split-leakage");
   });
 
+  it("rejects lexical near-duplicates that use different groups across splits", () => {
+    const fixture = batch();
+    const first = fixture.patterns[0];
+    if (first?.status !== "reviewed")
+      throw new Error("Fixture is missing a reviewed pattern");
+    fixture.patterns.push({
+      ...first,
+      answer:
+        "It is a reusable document and source-code knowledge agent. [evidence:purpose]",
+      groupKey: "incorrectly-separate-group",
+      id: "purpose-near-duplicate",
+      question: "What is this reusable repository for?",
+      split: "test",
+    });
+    expect(
+      validatePatternBatch(fixture).issues.map(({ code }) => code),
+    ).toContain("near-duplicate-leakage");
+  });
+
   it("blocks sensitive-looking evidence before hosted generation", () => {
     const report = validateSyntheticPatternSeed({
       evidence: [
@@ -146,5 +166,31 @@ describe("tuning kit", () => {
         "Behavior pack must keep validation and test holdouts",
       ]),
     );
+  });
+
+  it("parses only internally consistent behavior-pack manifests", () => {
+    const manifest = {
+      behaviorPrompt: "Use reviewed evidence-bound behavior.",
+      generatedAt: "2026-08-29T00:00:00.000Z",
+      metrics: {
+        groups: 8,
+        languages: 3,
+        reviewed: 8,
+        test: 1,
+        train: 6,
+        validation: 1,
+      },
+      schemaVersion: 1,
+      sourceSha256: "a".repeat(64),
+      trainingRows: 6,
+      version: "daily-20260829T000000000Z-aaaaaaaa",
+    };
+    expect(parseBehaviorPackManifest(manifest)).toEqual(manifest);
+    expect(
+      parseBehaviorPackManifest({
+        ...manifest,
+        metrics: { ...manifest.metrics, train: 7 },
+      }),
+    ).toBeUndefined();
   });
 });

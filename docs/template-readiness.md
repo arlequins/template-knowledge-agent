@@ -86,9 +86,13 @@ its related code, tests, environment variables, and documentation.
   `.local/`.
 - [x] Public reviewed document-QA patterns cover eight failure/answer behaviors
   in English, Japanese, and Korean, with citation, duplication, repetition,
-  privacy, semantic-group, and held-out-leakage gates.
+  privacy, semantic-group, lexical-near-duplicate, and held-out-leakage gates.
 - [x] Reviewed training patterns can be compiled into an immediate runtime
   behavior pack or exported for a separately qualified local student model.
+- [x] Passing behavior packs receive unique immutable releases, strict runtime
+  manifest validation, atomic activation, and an explicit local rollback path.
+- [x] Owner-only investigation review API/UI requires a corrected answer and
+  explicit evidence citations before an approval can enter the daily exporter.
 - [x] Read-only live capability registry validates inputs, scopes actors,
   bounds rows, enforces allow/mask/omit field policies, marks personal results
   ephemeral, emits citations, and records result-free audit metadata.
@@ -108,8 +112,6 @@ its related code, tests, environment variables, and documentation.
 - [ ] A generated repository that enables weight training must add its own
   trainer, output guard, scheduler, promotion, and rollback implementation
   around the reviewed exporter before advertising weight-tuning commands.
-- [ ] A production profile must add an owner-only investigation review API/UI;
-  direct operator database approval is not the target interface.
 
 ## Adaptation Review
 

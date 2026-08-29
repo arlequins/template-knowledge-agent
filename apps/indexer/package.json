@@ -12,6 +12,8 @@
     "tuning:patterns:generate": "tsx src/generate-tuning-patterns.ts",
     "tuning:patterns:verify": "tsx src/verify-tuning-patterns.ts",
     "tuning:patterns:daily": "tsx src/evaluate-tuning-patterns.ts",
+    "tuning:patterns:rollback": "tsx src/rollback-tuning-patterns.ts",
+    "tuning:patterns:verify-active": "tsx src/verify-active-tuning-pack.ts",
     "tuning:patterns:export-approved": "tsx src/export-approved-investigations.ts",
     "tuning:patterns:daily:with-feedback": "tsx src/run-daily-tuning-loop.ts",
     "pilot:evaluate": "tsx src/evaluate-pilot-answers.ts",

@@ -66,6 +66,7 @@ export type PatternQualityIssue = {
     | "invalid-field"
     | "missing-citation"
     | "missing-required-term"
+    | "near-duplicate-leakage"
     | "possible-sensitive-data"
     | "repeated-sentence"
     | "review-metadata"
@@ -90,6 +91,22 @@ export type BehaviorPackEvaluation = {
     validation: number;
   };
   passed: boolean;
+};
+
+export type BehaviorPackManifest = {
+  behaviorPrompt: string;
+  generatedAt: string;
+  metrics: BehaviorPackEvaluation["metrics"];
+  model?: {
+    model: string;
+    provider: string;
+    quantization?: string;
+    runtime: string;
+  };
+  schemaVersion: 1;
+  sourceSha256: string;
+  trainingRows: number;
+  version: string;
 };
 
 /**
@@ -158,6 +175,83 @@ const SENSITIVE_PATTERNS = [
 
 function normalized(value: string) {
   return value.replace(/\s+/gu, " ").trim().toLocaleLowerCase("en-US");
+}
+
+function characterTrigrams(value: string) {
+  const compact = normalized(value).replace(/[^\p{L}\p{N}]+/gu, "");
+  const grams = new Set<string>();
+  if (compact.length < 16) return grams;
+  for (let index = 0; index <= compact.length - 3; index += 1)
+    grams.add(compact.slice(index, index + 3));
+  return grams;
+}
+
+function trigramSimilarity(left: string, right: string) {
+  const leftGrams = characterTrigrams(left);
+  const rightGrams = characterTrigrams(right);
+  if (leftGrams.size === 0 || rightGrams.size === 0) return 0;
+  let intersection = 0;
+  for (const gram of leftGrams) if (rightGrams.has(gram)) intersection += 1;
+  return intersection / (leftGrams.size + rightGrams.size - intersection);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function nonNegativeInteger(value: unknown) {
+  return Number.isInteger(value) && Number(value) >= 0;
+}
+
+/** Rejects malformed or internally inconsistent packs before runtime loading. */
+export function parseBehaviorPackManifest(
+  value: unknown,
+): BehaviorPackManifest | undefined {
+  if (!isRecord(value) || value.schemaVersion !== 1) return undefined;
+  if (
+    !validText(value.behaviorPrompt, 40_000) ||
+    !validText(value.generatedAt, 64) ||
+    Number.isNaN(Date.parse(value.generatedAt)) ||
+    !validText(value.version, 128) ||
+    !/^daily-[A-Za-z0-9._-]+$/u.test(value.version) ||
+    typeof value.sourceSha256 !== "string" ||
+    !/^[a-f0-9]{64}$/u.test(value.sourceSha256) ||
+    !nonNegativeInteger(value.trainingRows) ||
+    Number(value.trainingRows) < 1 ||
+    !isRecord(value.metrics)
+  )
+    return undefined;
+  const metrics = value.metrics;
+  if (
+    !nonNegativeInteger(metrics.groups) ||
+    Number(metrics.groups) < 1 ||
+    !nonNegativeInteger(metrics.languages) ||
+    Number(metrics.languages) < 1 ||
+    !nonNegativeInteger(metrics.reviewed) ||
+    Number(metrics.reviewed) < 1 ||
+    !nonNegativeInteger(metrics.test) ||
+    !nonNegativeInteger(metrics.train) ||
+    Number(metrics.train) < 1 ||
+    !nonNegativeInteger(metrics.validation) ||
+    metrics.reviewed !==
+      Number(metrics.test) +
+        Number(metrics.train) +
+        Number(metrics.validation) ||
+    metrics.train !== value.trainingRows
+  )
+    return undefined;
+  if (value.model !== undefined) {
+    if (!isRecord(value.model)) return undefined;
+    if (
+      !validText(value.model.model, 256) ||
+      !validText(value.model.provider, 128) ||
+      !validText(value.model.runtime, 128) ||
+      (value.model.quantization !== undefined &&
+        !validText(value.model.quantization, 128))
+    )
+      return undefined;
+  }
+  return value as BehaviorPackManifest;
 }
 
 function hasRepeatedSentence(value: string) {
@@ -434,6 +528,38 @@ export function validatePatternBatch(
           patternId,
         });
       else groupSplits.set(pattern.groupKey, pattern.split);
+    }
+  }
+  const reviewed = batch.patterns.filter(
+    (pattern): pattern is ReviewedPattern => pattern.status === "reviewed",
+  );
+  for (let leftIndex = 0; leftIndex < reviewed.length; leftIndex += 1) {
+    const left = reviewed[leftIndex];
+    if (!left) continue;
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < reviewed.length;
+      rightIndex += 1
+    ) {
+      const right = reviewed[rightIndex];
+      if (
+        !right ||
+        left.split === right.split ||
+        left.groupKey === right.groupKey ||
+        left.language !== right.language
+      )
+        continue;
+      const questionSimilarity = trigramSimilarity(
+        left.question,
+        right.question,
+      );
+      const answerSimilarity = trigramSimilarity(left.answer, right.answer);
+      if (questionSimilarity >= 0.72 || answerSimilarity >= 0.86)
+        issues.push({
+          code: "near-duplicate-leakage",
+          message: `Pattern is lexically near ${left.id} across ${left.split} and ${right.split}`,
+          patternId: right.id,
+        });
     }
   }
   return { issues, passed: issues.length === 0 };

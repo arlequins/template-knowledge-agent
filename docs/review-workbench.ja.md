@@ -11,6 +11,9 @@
 - `agent.reviewInvestigation`: オーナー専用の承認/却下。`correctedAnswer`、
   `evidenceIds`、`requiredTerms`、`forbiddenClaims`、`resolution` を受け取ります。
 
+承認には、空でない修正文、1件以上の根拠 ID、修正文内のすべての
+`[evidence:ID]` 引用が必要です。却下では学習フィールドを省略できます。
+
 DB と S3 の両アダプターは同じ契約を実装します。すべての変更でワーク
 スペース所有権を確認し、改変不能な監査イベントを追加します。監査
 メタデータに本文、秘密、個人情報を入れないでください。
@@ -69,9 +72,28 @@ Bedrock・ホステッド・ローカルモデルを混同せず、日次評価�
 pnpm tuning:patterns:daily
 ```
 
-引用、重複、反復文、機密らしい値、意味グループ分離、8種類の振る舞い、
-3言語、検証/テストのホールドアウトを検査します。合格したレビュー済み
-パックだけを `.local/tuning/active-behavior-pack.json` に原子的に書き込みます。
-失敗時は前のアクティブパックを変更しません。マニフェストにはソースハッシュ、
-バージョン、メトリクス、学習行数、学習専用プロンプト、および指定時の正確な
-モデルランタイム情報が含まれます。
+引用、完全重複、分割をまたぐ語彙的な近似重複、反復文、機密らしい値、
+意味グループ分離、8種類の振る舞い、3言語、検証/テストのホールドアウトを
+検査します。合格したパックは `.local/tuning/releases/` に一意で不変の
+リリースとして保存した後、`.local/tuning/active-behavior-pack.json` へ原子的に
+有効化します。不正または内部整合性のないマニフェストは API が読み込みません。
+
+検証済みの以前のリリースへ戻せます。
+
+```bash
+pnpm tuning:patterns:rollback -- \
+  --release .local/tuning/releases/<version>.json
+```
+
+ロールバックはリリースを再検証し、アクティブパックだけを置き換えます。
+不変リリースは監査と再復旧のために保持します。重みアダプターの再読み込みと
+ロールバックは派生トレーナー側で別途実装します。
+
+再読み込みまたはデプロイ前に、元のレビュー済みパックとの整合性を再検証します。
+
+```bash
+pnpm tuning:patterns:verify-active -- \
+  --source .local/tuning/reviewed-with-feedback.json
+```
+
+公開レビュー例から作成した場合は `--source` を省略します。

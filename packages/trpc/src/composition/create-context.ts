@@ -16,6 +16,7 @@ import {
 import { authApi } from "@arlequins/auth";
 import { db } from "@arlequins/db-backbone/client";
 import { serverEnv } from "@arlequins/env";
+import { parseBehaviorPackManifest } from "@arlequins/tuning-kit";
 import { createAgentPlatformRepository } from "../adaptors/agent-platform";
 import {
   createDatabaseKnowledgeSearch,
@@ -44,12 +45,10 @@ async function loadReviewedBehaviorPrompt() {
       : undefined);
   if (!path) return undefined;
   try {
-    const value = JSON.parse(await readFile(path, "utf8")) as {
-      behaviorPrompt?: unknown;
-    };
-    return typeof value.behaviorPrompt === "string"
-      ? value.behaviorPrompt.slice(0, 40_000)
-      : undefined;
+    const manifest = parseBehaviorPackManifest(
+      JSON.parse(await readFile(path, "utf8")),
+    );
+    return manifest?.behaviorPrompt.slice(0, 40_000);
   } catch {
     return undefined;
   }

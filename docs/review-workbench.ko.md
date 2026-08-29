@@ -11,6 +11,9 @@
 - `agent.reviewInvestigation`: 소유자 전용 승인/거절. `correctedAnswer`,
   `evidenceIds`, `requiredTerms`, `forbiddenClaims`, `resolution`을 받습니다.
 
+승인은 수정 답변, 하나 이상의 근거 ID, 답변 안의 모든 `[evidence:ID]` 인용이
+있어야만 통과합니다. 거절은 학습 필드를 생략할 수 있습니다.
+
 두 저장소 어댑터(DB와 S3)는 같은 계약을 구현합니다. 모든 변경은
 워크스페이스 소유권을 다시 확인하고 변경 불가 감사 이벤트를 기록합니다.
 감사 메타데이터에는 원문, 비밀값, 개인정보를 넣지 마세요.
@@ -69,8 +72,28 @@ reload/deploy가 필요합니다.
 pnpm tuning:patterns:daily
 ```
 
-인용·중복·반복 문장·민감정보 패턴·의미 그룹 분리, 8개 행동 유형, 3개
-언어, 검증/테스트 홀드아웃을 검사합니다. 통과한 리뷰 팩만 원자적으로
-`.local/tuning/active-behavior-pack.json`에 기록됩니다. 실패하면 기존 활성
-팩은 보존됩니다. 매니페스트에는 소스 해시·버전·메트릭·학습 행 수·학습 전용
-행동 프롬프트와 (지정한 경우) 정확한 모델 런타임 정보가 포함됩니다.
+인용·정확한 중복·분할 사이의 어휘상 근접 중복·반복 문장·민감정보 패턴·
+의미 그룹 분리, 8개 행동 유형, 3개 언어, 검증/테스트 홀드아웃을 검사합니다.
+통과한 팩은 먼저 `.local/tuning/releases/`에 고유한 불변 릴리스로 저장한 뒤
+`.local/tuning/active-behavior-pack.json`에 원자적으로 활성화합니다. 매니페스트가
+잘못되었거나 내부 수치가 일치하지 않으면 API가 로드하지 않습니다.
+
+검증된 이전 릴리스로 되돌릴 수 있습니다.
+
+```bash
+pnpm tuning:patterns:rollback -- \
+  --release .local/tuning/releases/<version>.json
+```
+
+롤백은 릴리스를 다시 검증하고 활성 팩만 교체합니다. 불변 릴리스는 감사와
+재복구를 위해 유지됩니다. 가중치 어댑터의 재로딩과 롤백은 파생 학습기가
+별도로 구현해야 합니다.
+
+재로딩이나 배포 전에는 원본 팩과의 무결성을 다시 검사합니다.
+
+```bash
+pnpm tuning:patterns:verify-active -- \
+  --source .local/tuning/reviewed-with-feedback.json
+```
+
+공개 검수 예제에서 만든 팩이라면 `--source`를 생략합니다.

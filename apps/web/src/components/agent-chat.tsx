@@ -743,6 +743,16 @@ export function AgentChat() {
                 <ul className="mt-3 space-y-3">
                   {investigations.data.map((item) => {
                     const selected = selectedInvestigationId === item.id;
+                    const reviewedEvidenceIds = investigationEvidenceIds
+                      .split(",")
+                      .map((id) => id.trim())
+                      .filter(Boolean);
+                    const canApproveInvestigation =
+                      investigationAnswer.trim().length > 0 &&
+                      reviewedEvidenceIds.length > 0 &&
+                      reviewedEvidenceIds.every((id) =>
+                        investigationAnswer.includes(`[evidence:${id}]`),
+                      );
                     return (
                       <li
                         className="rounded-md border p-3 text-xs"
@@ -834,17 +844,17 @@ export function AgentChat() {
                             />
                             <div className="flex gap-2">
                               <Button
-                                disabled={reviewInvestigation.isPending}
+                                disabled={
+                                  reviewInvestigation.isPending ||
+                                  !canApproveInvestigation
+                                }
                                 onClick={() =>
                                   workspaceId &&
                                   reviewInvestigation.mutate({
                                     findings: {
                                       correctedAnswer:
                                         investigationAnswer.trim() || undefined,
-                                      evidenceIds: investigationEvidenceIds
-                                        .split(",")
-                                        .map((id) => id.trim())
-                                        .filter(Boolean),
+                                      evidenceIds: reviewedEvidenceIds,
                                       forbiddenClaims: [],
                                       language: investigationLanguage,
                                       requiredTerms: [],
@@ -880,6 +890,13 @@ export function AgentChat() {
                                 보류/거절
                               </Button>
                             </div>
+                            {!canApproveInvestigation && (
+                              <p className="text-muted-foreground">
+                                승인하려면 수정 답변과 근거 ID를 입력하고,
+                                답변에 각 ID를 `[evidence:ID]` 형식으로
+                                인용하세요.
+                              </p>
+                            )}
                           </div>
                         )}
                       </li>

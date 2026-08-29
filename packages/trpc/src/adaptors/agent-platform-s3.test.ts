@@ -217,9 +217,19 @@ describe("S3 agent platform repository", () => {
     expect(await repository.listInvestigations(actor)).toMatchObject([
       { id: investigationId, messageContent: "반복된 답변", status: "queued" },
     ]);
+    await expect(
+      repository.reviewInvestigation(actor, {
+        findings: {
+          correctedAnswer: "근거 ID를 적었지만 인용하지 않은 답변",
+          evidenceIds: ["chunk-1"],
+        },
+        investigationId,
+        status: "approved",
+      }),
+    ).rejects.toThrow("cite");
     await repository.reviewInvestigation(actor, {
       findings: {
-        correctedAnswer: "근거를 확인한 답변입니다.",
+        correctedAnswer: "근거를 확인한 답변입니다. [evidence:chunk-1]",
         evidenceIds: ["chunk-1"],
         forbiddenClaims: ["추론을 표시"],
         requiredTerms: ["근거"],
@@ -233,7 +243,9 @@ describe("S3 agent platform repository", () => {
       await repository.listInvestigations(actor, "approved"),
     ).toMatchObject([
       {
-        findings: { correctedAnswer: "근거를 확인한 답변입니다." },
+        findings: {
+          correctedAnswer: "근거를 확인한 답변입니다. [evidence:chunk-1]",
+        },
         status: "approved",
       },
     ]);

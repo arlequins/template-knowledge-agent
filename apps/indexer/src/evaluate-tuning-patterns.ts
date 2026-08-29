@@ -1,13 +1,15 @@
-import { createHash } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { createHash, randomUUID } from "node:crypto";
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  type BehaviorPackManifest,
   compileReviewedBehaviorPrompt,
   evaluateReviewedBehaviorPack,
   exportReviewedTrainingJsonl,
   type PatternBatch,
+  parseBehaviorPackManifest,
 } from "@arlequins/tuning-kit";
 
 const REPOSITORY_ROOT = resolve(
@@ -30,15 +32,30 @@ function argument(name: string) {
 
 function localPath(value: string) {
   const output = resolve(REPOSITORY_ROOT, value);
-  if (!output.startsWith(`${resolve(REPOSITORY_ROOT, ".local")}/`))
+  const fromLocal = relative(resolve(REPOSITORY_ROOT, ".local"), output);
+  if (
+    fromLocal === "" ||
+    fromLocal === ".." ||
+    fromLocal.startsWith(`..${sep}`)
+  )
     throw new Error("Daily promotion outputs must stay under .local/");
   return output;
+}
+
+function repositoryPath(value: string) {
+  const input = resolve(REPOSITORY_ROOT, value);
+  const fromRoot = relative(REPOSITORY_ROOT, input);
+  if (fromRoot === ".." || fromRoot.startsWith(`..${sep}`))
+    throw new Error("Daily promotion inputs must stay inside the repository");
+  return input;
 }
 
 export async function evaluateAndPromoteTuningPatterns(options: {
   inputPath: string;
   model?: ModelRuntimeMetadata;
+  now?: () => Date;
   outputPath: string;
+  releaseDirectory?: string;
 }) {
   const raw = await readFile(options.inputPath, "utf8");
   const batch = JSON.parse(raw) as PatternBatch;
@@ -48,8 +65,9 @@ export async function evaluateAndPromoteTuningPatterns(options: {
       `Behavior pack failed daily promotion gates: ${evaluation.issues[0]?.message}`,
     );
   const sourceSha256 = createHash("sha256").update(raw).digest("hex");
-  const generatedAt = new Date().toISOString();
-  const manifest = {
+  const generatedAt = (options.now?.() ?? new Date()).toISOString();
+  const version = `daily-${generatedAt.replace(/[-:.]/gu, "")}-${sourceSha256.slice(0, 8)}`;
+  const manifest: BehaviorPackManifest = {
     behaviorPrompt: compileReviewedBehaviorPrompt(batch, { maxExamples: 12 }),
     generatedAt,
     ...(options.model ? { model: options.model } : {}),
@@ -57,22 +75,31 @@ export async function evaluateAndPromoteTuningPatterns(options: {
     schemaVersion: 1 as const,
     sourceSha256,
     trainingRows: exportReviewedTrainingJsonl(batch).split("\n").length,
-    version: `daily-${generatedAt.slice(0, 10)}`,
+    version,
   };
+  if (!parseBehaviorPackManifest(manifest))
+    throw new Error("Generated behavior-pack manifest is invalid");
+  const serialized = `${JSON.stringify(manifest, undefined, 2)}\n`;
+  const releaseDirectory =
+    options.releaseDirectory ??
+    resolve(dirname(options.outputPath), "releases");
+  const releasePath = resolve(releaseDirectory, `${version}.json`);
+  await mkdir(releaseDirectory, { recursive: true });
+  await writeFile(releasePath, serialized, { flag: "wx" });
   await mkdir(dirname(options.outputPath), { recursive: true });
-  const temporaryPath = `${options.outputPath}.tmp-${process.pid}`;
-  await writeFile(
-    temporaryPath,
-    `${JSON.stringify(manifest, undefined, 2)}\n`,
-    {
-      flag: "wx",
-    },
-  );
-  await rename(temporaryPath, options.outputPath);
+  const temporaryPath = `${options.outputPath}.tmp-${randomUUID()}`;
+  try {
+    await writeFile(temporaryPath, serialized, { flag: "wx" });
+    await rename(temporaryPath, options.outputPath);
+  } catch (error) {
+    await unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
   return {
     ...evaluation,
     outputPath: options.outputPath,
-    version: manifest.version,
+    releasePath,
+    version,
   };
 }
 
@@ -80,8 +107,7 @@ if (
   process.argv[1] &&
   fileURLToPath(import.meta.url) === resolve(process.argv[1])
 ) {
-  const inputPath = resolve(
-    REPOSITORY_ROOT,
+  const inputPath = repositoryPath(
     argument("--input") ?? "examples/tuning/reviewed-patterns.json",
   );
   const outputPath = localPath(

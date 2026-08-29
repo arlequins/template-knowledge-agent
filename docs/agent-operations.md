@@ -43,6 +43,9 @@ cross-region replication only when recovery objectives justify the cost.
 
 Derived weight-training profiles also need model-process reload and rollback
 checks from [Reviewed feedback and learning pipeline](reviewed-learning.md).
+For the local reviewed behavior pack, restore a known-good immutable release
+with `pnpm tuning:patterns:rollback -- --release <path>` and restart or redeploy
+the consuming API when the runtime does not reload configuration dynamically.
 
 Pipeline failures use the injectable `PipelineFailureNotifier` described in the
 [MCP server contract](mcp-server.md). Keep the default structured warning in
