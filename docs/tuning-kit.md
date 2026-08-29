@@ -27,8 +27,8 @@ and [evaluation guide](https://developers.openai.com/api/docs/guides/evals).
 - `examples/tuning/reviewed-patterns.json` is a manually reviewed public pack
   covering eight behaviors in English, Japanese, and Korean.
 - `pnpm tuning:patterns:verify` checks citations, required and forbidden
-  claims, duplicates, repetition, possible sensitive data, group leakage, and
-  held-out prompt leakage.
+  claims, exact duplicates, lexical near-duplicates across splits, repetition,
+  possible sensitive data, group leakage, and held-out prompt leakage.
 
 The eight behavior classes are grounded answer, insufficient evidence,
 conflicting evidence, required citation, static-versus-live data, code
@@ -97,6 +97,10 @@ const profile = {
 The examples teach response behavior, not repository facts. The runtime prompt
 explicitly says not to copy example facts into unrelated answers and still
 requires current retrieved evidence.
+
+The automatic near-duplicate gate uses character-trigram overlap within the
+same language. It catches accidental paraphrase leakage but does not replace
+the reviewer-assigned semantic `groupKey` or a domain-specific embedding audit.
 
 ## Student-model export
 

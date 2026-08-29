@@ -69,8 +69,10 @@ promoted. The initial profile does not perform real-time fine-tuning.
 The template defines a separate optional reviewed-learning contract for derived
 applications. It requires active source evidence, distinct and disjoint data,
 held-out quality gates, atomic promotion, explicit serving reload, and rollback.
-The baseline does not claim those commands exist until a generated repository
-adds and tests the implementation. See
+The baseline implements these controls for prompt behavior packs, including a
+versioned local rollback command. Weight-trained adapters still require a
+generated repository to add and test its trainer, model reload, and rollback.
+See
 [Reviewed feedback and learning pipeline](reviewed-learning.md).
 
 ## Provider policy

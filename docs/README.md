@@ -60,7 +60,8 @@ local application; the pages below explain design decisions and ongoing work.
   approval, isolated datasets, guarded LoRA promotion, reload, and rollback.
 - [Owner review workbench and daily promotion](review-workbench.md) ·
   [한국어](review-workbench.ko.md) · [日本語](review-workbench.ja.md): owner-only
-  investigation review and the local daily behavior-pack gate.
+  evidence-bound investigation review, versioned daily behavior-pack
+  promotion, and rollback.
 - [Model registry and replay evaluation](model-evaluation.md) ·
   [한국어](model-evaluation.ko.md) · [日本語](model-evaluation.ja.md): deterministic
   routing and Golden Evaluation replay.

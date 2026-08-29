@@ -74,8 +74,8 @@ export const investigationScopeInputSchema = workspaceScopeInputSchema.extend({
 export const listInvestigationsInputSchema = workspaceScopeInputSchema.extend({
   status: z.enum(["queued", "in-progress", "approved", "rejected"]).optional(),
 });
-export const reviewInvestigationInputSchema =
-  investigationScopeInputSchema.extend({
+export const reviewInvestigationInputSchema = investigationScopeInputSchema
+  .extend({
     findings: z
       .object({
         evidenceIds: z
@@ -108,6 +108,30 @@ export const reviewInvestigationInputSchema =
       .optional(),
     resolution: z.string().trim().max(20_000).optional(),
     status: z.enum(["approved", "rejected"]),
+  })
+  .superRefine((input, context) => {
+    if (input.status !== "approved") return;
+    const answer = input.findings?.correctedAnswer?.trim() ?? "";
+    const evidenceIds = input.findings?.evidenceIds ?? [];
+    if (!answer)
+      context.addIssue({
+        code: "custom",
+        message: "Approved investigations require a corrected answer",
+        path: ["findings", "correctedAnswer"],
+      });
+    if (evidenceIds.length === 0)
+      context.addIssue({
+        code: "custom",
+        message: "Approved investigations require evidence ids",
+        path: ["findings", "evidenceIds"],
+      });
+    for (const evidenceId of evidenceIds)
+      if (answer && !answer.includes(`[evidence:${evidenceId}]`))
+        context.addIssue({
+          code: "custom",
+          message: `Corrected answer must cite [evidence:${evidenceId}]`,
+          path: ["findings", "correctedAnswer"],
+        });
   });
 export const completeAgentInputSchema = workspaceScopeInputSchema.extend({
   conversationId: z.uuid(),

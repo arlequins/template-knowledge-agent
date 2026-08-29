@@ -14,6 +14,10 @@ identifiers, and an audit-safe review record are retained.
   accepts `correctedAnswer`, `evidenceIds`, `requiredTerms`,
   `forbiddenClaims`, and a short `resolution`.
 
+Approval fails closed unless the corrected answer is non-empty, at least one
+evidence ID is present, and the answer contains every corresponding
+`[evidence:ID]` citation. Rejection may omit training fields.
+
 The database and S3 repository adapters implement the same contract. Every
 mutation checks workspace ownership and writes an immutable audit event. Do not
 put source content, secrets, or personal data in audit metadata.
@@ -74,13 +78,35 @@ Run this after the owner has reviewed new items:
 pnpm tuning:patterns:daily
 ```
 
-The loop validates citations, duplicate questions/answers, repeated sentences,
-sensitive-looking values, semantic-group split isolation, all eight behavior
-kinds, all three supported languages, and non-empty validation/test holdouts.
-Only a passing reviewed pack is written atomically to
+The loop validates citations, duplicate questions/answers, lexical
+near-duplicates across splits, repeated sentences, sensitive-looking values,
+semantic-group split isolation, all eight behavior kinds, all three supported
+languages, and non-empty validation/test holdouts.
+Every passing pack is first stored as an immutable timestamped release under
+`.local/tuning/releases/`, then written atomically to
 `.local/tuning/active-behavior-pack.json`. The manifest contains a source hash,
-version, metrics, training-row count, a train-only behavior prompt, and (when
-provided) exact model runtime metadata.
+unique version, metrics, training-row count, a train-only behavior prompt, and
+(when provided) exact model runtime metadata. The API ignores malformed or
+internally inconsistent manifests.
+
+Restore a previously qualified release without rebuilding it:
+
+```bash
+pnpm tuning:patterns:rollback -- \
+  --release .local/tuning/releases/<version>.json
+```
+
+Rollback validates the release manifest and replaces only the active pointer;
+the immutable releases remain available for audit and forward recovery.
+
+Before reload or deployment, replay the source-derived integrity checks:
+
+```bash
+pnpm tuning:patterns:verify-active -- \
+  --source .local/tuning/reviewed-with-feedback.json
+```
+
+Omit `--source` when the active pack came from the public reviewed example.
 
 This is scheduled evaluation and behavior-pack promotion, not online learning.
 Loading a promoted prompt or adapter into a running server remains an explicit
@@ -89,7 +115,8 @@ cron, GitHub Actions schedule, or AWS EventBridge/Lambda job after adding its
 own secret and approval boundaries.
 
 If a gate fails, the command exits non-zero and leaves the previous active pack
-untouched. Keep the prior manifest and base model available for rollback.
+untouched. Weight-trained adapters still require a separate trainer, model
+reload, evaluation, and base-model rollback implementation.
 
 In local development the API reads this manifest automatically when
 `NODE_ENV=development`; set `AGENT_BEHAVIOR_PACK_PATH` to an explicit manifest

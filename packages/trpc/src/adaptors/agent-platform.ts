@@ -17,6 +17,7 @@ import {
   Workspace,
   WorkspaceMember,
 } from "@arlequins/db-backbone/schema";
+import { reviewInvestigationInputSchema } from "@arlequins/validators";
 import { and, count, desc, eq, inArray, isNull, lt } from "drizzle-orm";
 
 export type WorkspaceActor = { userId: string; workspaceId: string };
@@ -755,6 +756,10 @@ export function createAgentPlatformRepository(database: Database) {
       },
     ) {
       await assertOwner(actor);
+      const review = reviewInvestigationInputSchema.parse({
+        ...input,
+        workspaceId: actor.workspaceId,
+      });
       const [investigation] = await database
         .select({
           feedbackId: Investigation.feedbackId,
@@ -764,7 +769,7 @@ export function createAgentPlatformRepository(database: Database) {
         .innerJoin(Feedback, eq(Investigation.feedbackId, Feedback.id))
         .where(
           and(
-            eq(Investigation.id, input.investigationId),
+            eq(Investigation.id, review.investigationId),
             eq(Feedback.workspaceId, actor.workspaceId),
           ),
         )
@@ -773,7 +778,7 @@ export function createAgentPlatformRepository(database: Database) {
         throw new Error("Investigation was not found in this workspace");
       const now = new Date();
       const findings = {
-        ...(input.findings ?? {}),
+        ...(review.findings ?? {}),
         reviewedAt: now.toISOString(),
         reviewedBy: actor.userId,
       };
@@ -782,14 +787,14 @@ export function createAgentPlatformRepository(database: Database) {
         .set({
           completedAt: now,
           findings,
-          ...(input.resolution ? { resolution: input.resolution } : {}),
+          ...(review.resolution ? { resolution: review.resolution } : {}),
           startedAt: now,
-          status: input.status,
+          status: review.status,
         })
         .where(eq(Investigation.id, investigation.id))
         .returning();
       if (!updated) throw new Error("Investigation update failed");
-      await audit(actor, `investigation.${input.status}`, updated.id, {
+      await audit(actor, `investigation.${review.status}`, updated.id, {
         feedbackId: investigation.feedbackId,
       });
       return updated;

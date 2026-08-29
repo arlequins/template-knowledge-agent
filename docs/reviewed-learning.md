@@ -151,9 +151,11 @@ that another Mac will use the same memory.
 
 The baseline now implements evidence-bound pattern schemas, Luna-assisted
 candidate generation, duplicate/citation/repetition/privacy gates,
-semantic-group split checks, held-out prompt exclusion, and reviewed training
-export. Generated rows remain candidates and are written under `.local/`; this
-does not replace owner approval or student-model qualification.
+semantic-group and lexical-near-duplicate split checks, held-out prompt
+exclusion, strict owner approval, reviewed training export, versioned behavior
+pack activation, and local behavior-pack rollback. Generated rows remain
+candidates and are written under `.local/`; this does not replace owner
+approval or student-model weight qualification.
 
 An MLX extension for a generated repository should add, test, and document:
 

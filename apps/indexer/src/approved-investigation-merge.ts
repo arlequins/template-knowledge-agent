@@ -5,6 +5,7 @@ import {
   type PatternEvidence,
   type PatternLanguage,
   type ReviewedPattern,
+  validatePatternBatch,
 } from "@arlequins/tuning-kit";
 
 export type InvestigationRecord = {
@@ -104,7 +105,7 @@ export function mergeApprovedInvestigations(
       skipped.push({ id: item.id, reason: "duplicate question or answer" });
       continue;
     }
-    additions.push({
+    const addition: ReviewedPattern = {
       answer,
       evidenceIds,
       forbiddenClaims: strings(findings.forbiddenClaims),
@@ -125,7 +126,23 @@ export function mergeApprovedInvestigations(
           : reviewedBy,
       split: "train",
       status: "reviewed",
+    };
+    const candidateReport = validatePatternBatch({
+      evidence: [...evidence.values()],
+      patterns: [...batch.patterns, ...additions, addition],
+      schemaVersion: 1,
     });
+    const candidateIssue = candidateReport.issues.find(
+      ({ patternId }) => patternId === addition.id,
+    );
+    if (candidateIssue) {
+      skipped.push({
+        id: item.id,
+        reason: `quality gate: ${candidateIssue.message}`,
+      });
+      continue;
+    }
+    additions.push(addition);
     existingQuestions.add(questionKey);
     existingAnswers.add(answerKey);
   }

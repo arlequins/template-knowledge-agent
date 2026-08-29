@@ -41,6 +41,7 @@
     "@arlequins/env": "workspace:*",
     "@arlequins/logger": "workspace:*",
     "@arlequins/service": "workspace:*",
+    "@arlequins/tuning-kit": "workspace:*",
     "@arlequins/validators": "workspace:*",
     "@aws-sdk/client-bedrock-runtime": "catalog:",
     "@aws-sdk/client-s3": "catalog:",

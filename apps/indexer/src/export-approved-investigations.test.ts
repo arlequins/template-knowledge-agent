@@ -104,4 +104,35 @@ describe("approved investigation export", () => {
       "private-doc",
     ]);
   });
+
+  it("skips a lexical near-duplicate that would leak into another split", () => {
+    const result = mergeApprovedInvestigations(
+      {
+        ...baseBatch,
+        patterns: baseBatch.patterns.map((pattern) => ({
+          ...pattern,
+          question: "What does the public documentation describe?",
+          split: "test" as const,
+        })),
+      },
+      [
+        {
+          completedAt: new Date("2026-08-26T01:00:00.000Z"),
+          findings: {
+            correctedAnswer:
+              "The public documentation answer. [evidence:public-doc]",
+            evidenceIds: ["public-doc"],
+            language: "en",
+          },
+          id: "near-duplicate",
+          question: "What exactly does the public documentation describe?",
+        },
+      ],
+      [],
+      "owner-1",
+    );
+
+    expect(result.additions).toEqual([]);
+    expect(result.skipped[0]?.reason).toContain("quality gate:");
+  });
 });

@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { FeedbackKind } from "@arlequins/agent-core";
+import { reviewInvestigationInputSchema } from "@arlequins/validators";
 import type { JsonObjectStore } from "./s3-json-store";
 import { ObjectAlreadyExistsError, ObjectConflictError } from "./s3-json-store";
 
@@ -1131,22 +1132,26 @@ export function createS3AgentPlatformRepository(
       },
     ) {
       await assertOwner(actor);
+      const review = reviewInvestigationInputSchema.parse({
+        ...input,
+        workspaceId: actor.workspaceId,
+      });
       const investigation = await required<Investigation>(
         store,
-        stateKey(actor.workspaceId, "investigations", input.investigationId),
+        stateKey(actor.workspaceId, "investigations", review.investigationId),
         "Investigation was not found in this workspace",
       );
       const reviewedAt = timestamp();
       const updated = await mutate<Investigation>(
         store,
-        stateKey(actor.workspaceId, "investigations", input.investigationId),
+        stateKey(actor.workspaceId, "investigations", review.investigationId),
         (current) => ({
           ...current,
           completedAt: reviewedAt,
-          ...(input.findings
+          ...(review.findings
             ? {
                 findings: {
-                  ...input.findings,
+                  ...review.findings,
                   reviewedAt,
                   reviewedBy: actor.userId,
                 },
@@ -1154,12 +1159,12 @@ export function createS3AgentPlatformRepository(
             : {
                 findings: { reviewedAt, reviewedBy: actor.userId },
               }),
-          ...(input.resolution ? { resolution: input.resolution } : {}),
+          ...(review.resolution ? { resolution: review.resolution } : {}),
           startedAt: current.startedAt ?? reviewedAt,
-          status: input.status,
+          status: review.status,
         }),
       );
-      await appendEvent(actor, `investigation.${input.status}`, updated.id, {
+      await appendEvent(actor, `investigation.${review.status}`, updated.id, {
         feedbackId: investigation.value.feedbackId,
       });
       return {
