@@ -47,6 +47,7 @@ describe("public tRPC contract", () => {
       "messages",
       "publishRelease",
       "purgeExpiredMemories",
+      "renameConversation",
       "reviewInvestigation",
       "reviewMemory",
       "runEvaluation",

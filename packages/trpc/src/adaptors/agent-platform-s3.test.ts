@@ -50,6 +50,31 @@ describe("S3 agent platform repository", () => {
     ).rejects.toThrow("archived");
   });
 
+  it("renames active conversations and records an audit event", async () => {
+    const { actor, repository } = await fixture();
+    const conversation = await repository.createConversation(
+      actor,
+      "초기 제목",
+    );
+    await repository.renameConversation(
+      actor,
+      conversation.id,
+      "문서 검색 질문",
+    );
+    expect(await repository.listConversations(actor)).toMatchObject([
+      { id: conversation.id, title: "문서 검색 질문" },
+    ]);
+    expect(await repository.listAuditLog(actor)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: "conversation.renamed" }),
+      ]),
+    );
+    await repository.archiveConversation(actor, conversation.id);
+    await expect(
+      repository.renameConversation(actor, conversation.id, "보관된 대화"),
+    ).rejects.toThrow("archived");
+  });
+
   it("keeps deleted personal records as tombstoned immutable history", async () => {
     const { actor, repository, store } = await fixture();
     const memory = await repository.createMemory(actor, { content: "기억" });

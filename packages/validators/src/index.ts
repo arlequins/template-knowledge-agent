@@ -116,6 +116,10 @@ export const completeAgentInputSchema = workspaceScopeInputSchema.extend({
 export const conversationScopeInputSchema = workspaceScopeInputSchema.extend({
   conversationId: z.uuid(),
 });
+export const renameConversationInputSchema =
+  conversationScopeInputSchema.extend({
+    title: z.string().trim().min(1).max(256),
+  });
 export const ingestTextDocumentInputSchema = workspaceScopeInputSchema.extend({
   content: z.string().trim().min(1).max(1_000_000),
   contentType: z

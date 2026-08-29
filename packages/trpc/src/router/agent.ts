@@ -14,6 +14,7 @@ import {
   memoryScopeInputSchema,
   messageCitationInputSchema,
   publishReleaseInputSchema,
+  renameConversationInputSchema,
   reviewInvestigationInputSchema,
   reviewMemoryInputSchema,
   startIndexInputSchema,
@@ -121,6 +122,15 @@ export const agentRouter = {
       ctx.services.agent.archiveConversation(
         actor(ctx.session.user.id, input.workspaceId),
         input.conversationId,
+      ),
+    ),
+  renameConversation: protectedProcedure
+    .input(renameConversationInputSchema)
+    .mutation(({ ctx, input }) =>
+      ctx.services.agent.renameConversation(
+        actor(ctx.session.user.id, input.workspaceId),
+        input.conversationId,
+        input.title,
       ),
     ),
   messages: protectedProcedure

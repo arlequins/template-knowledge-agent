@@ -4,7 +4,13 @@ import { Button } from "@arlequins/ui/button";
 import { Input } from "@arlequins/ui/input";
 import { Textarea } from "@arlequins/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useState } from "react";
+import {
+  type FormEvent,
+  type KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { useAuth } from "~/auth/provider";
 import { env } from "~/env";
@@ -26,6 +32,34 @@ function streamErrorMessage(error: unknown): string {
     return "에이전트 API에 연결하지 못했습니다. 로컬 개발 서버가 실행 중인지 확인한 뒤 다시 보내세요.";
   }
   return message;
+}
+
+function MessageContent({ content }: { content: string }) {
+  const tokens = content.split(
+    /(\*\*[^*\n]+\*\*|__[^_\n]+__|`[^`\n]+`|\*[^*\n]+\*|_[^_\n]+_)/g,
+  );
+  return (
+    <p className="whitespace-pre-wrap text-sm leading-6">
+      {tokens.map((token, index) => {
+        if (/^\*\*.+\*\*$/.test(token) || /^__.+__$/.test(token))
+          return (
+            <strong key={`${token}-${index}`}>{token.slice(2, -2)}</strong>
+          );
+        if (/^`.+`$/.test(token))
+          return (
+            <code
+              className="rounded bg-black/10 px-1 py-0.5 font-mono text-[0.9em] dark:bg-white/10"
+              key={`${token}-${index}`}
+            >
+              {token.slice(1, -1)}
+            </code>
+          );
+        if (/^\*.+\*$/.test(token) || /^_.+_$/.test(token))
+          return <em key={`${token}-${index}`}>{token.slice(1, -1)}</em>;
+        return token;
+      })}
+    </p>
+  );
 }
 
 function MessageCitations({
@@ -63,6 +97,9 @@ export function AgentChat() {
   const queryClient = useQueryClient();
   const [workspaceId, setWorkspaceId] = useState<string>();
   const [conversationId, setConversationId] = useState<string>();
+  const [conversationQuery, setConversationQuery] = useState("");
+  const [isRenamingConversation, setIsRenamingConversation] = useState(false);
+  const [conversationTitle, setConversationTitle] = useState("");
   const [workspaceName, setWorkspaceName] = useState("");
   const [documentContent, setDocumentContent] = useState("");
   const [documentContentType, setDocumentContentType] = useState<
@@ -84,6 +121,7 @@ export function AgentChat() {
   const [streamedText, setStreamedText] = useState("");
   const [streamError, setStreamError] = useState<string>();
   const [isStreaming, setIsStreaming] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const workspaces = useQuery(trpc.agent.workspaces.queryOptions());
   const conversations = useQuery({
@@ -118,6 +156,12 @@ export function AgentChat() {
   const isOwner =
     workspaces.data?.find((workspace) => workspace.id === workspaceId)?.role ===
     "owner";
+  const visibleConversations = (conversations.data ?? []).filter(
+    (conversation) =>
+      conversation.title
+        .toLocaleLowerCase()
+        .includes(conversationQuery.trim().toLocaleLowerCase()),
+  );
   const auditLog = useQuery({
     ...trpc.agent.auditLog.queryOptions({ workspaceId: workspaceId ?? "" }),
     enabled: Boolean(workspaceId && isOwner),
@@ -141,6 +185,20 @@ export function AgentChat() {
     }
   }, [conversationId, conversations.data]);
 
+  useEffect(() => {
+    const selected = conversations.data?.find(
+      (conversation) => conversation.id === conversationId,
+    );
+    setConversationTitle(selected?.title ?? "");
+    setIsRenamingConversation(false);
+  }, [conversationId, conversations.data]);
+
+  const scrollTrigger = `${messages.data?.at(-1)?.id ?? ""}:${streamedText.length}`;
+  useEffect(() => {
+    if (!scrollTrigger) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [scrollTrigger]);
+
   const createWorkspace = useMutation(
     trpc.agent.createWorkspace.mutationOptions({
       onSuccess: async (workspace) => {
@@ -157,6 +215,30 @@ export function AgentChat() {
     trpc.agent.createConversation.mutationOptions({
       onSuccess: async (conversation) => {
         setConversationId(conversation?.id);
+        await queryClient.invalidateQueries({
+          queryKey: trpc.agent.conversations.queryKey({
+            workspaceId: workspaceId ?? "",
+          }),
+        });
+      },
+    }),
+  );
+  const renameConversation = useMutation(
+    trpc.agent.renameConversation.mutationOptions({
+      onSuccess: async () => {
+        setIsRenamingConversation(false);
+        await queryClient.invalidateQueries({
+          queryKey: trpc.agent.conversations.queryKey({
+            workspaceId: workspaceId ?? "",
+          }),
+        });
+      },
+    }),
+  );
+  const archiveConversation = useMutation(
+    trpc.agent.archiveConversation.mutationOptions({
+      onSuccess: async () => {
+        setConversationId(undefined);
         await queryClient.invalidateQueries({
           queryKey: trpc.agent.conversations.queryKey({
             workspaceId: workspaceId ?? "",
@@ -320,6 +402,14 @@ export function AgentChat() {
   async function submitQuestion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!workspaceId || !conversationId || !question.trim()) return;
+    const questionText = question.trim();
+    const selectedConversation = conversations.data?.find(
+      (conversation) => conversation.id === conversationId,
+    );
+    const shouldAutoTitle =
+      messages.data?.length === 0 &&
+      (selectedConversation?.title === "새 대화" ||
+        selectedConversation?.title === "New conversation");
     setIsStreaming(true);
     setStreamedText("");
     setStreamError(undefined);
@@ -334,7 +424,11 @@ export function AgentChat() {
               : {}),
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ conversationId, question, workspaceId }),
+          body: JSON.stringify({
+            conversationId,
+            question: questionText,
+            workspaceId,
+          }),
         },
       );
       if (!response.ok || !response.body) {
@@ -366,12 +460,36 @@ export function AgentChat() {
       await queryClient.invalidateQueries({
         queryKey: trpc.agent.messages.queryKey({ conversationId, workspaceId }),
       });
+      if (shouldAutoTitle) {
+        const generatedTitle = questionText.replace(/\s+/g, " ").slice(0, 48);
+        try {
+          await renameConversation.mutateAsync({
+            conversationId,
+            title: generatedTitle,
+            workspaceId,
+          });
+        } catch {
+          // The conversation remains usable; the user can rename it manually.
+        }
+      }
     } catch (error) {
       setStreamError(streamErrorMessage(error));
     } finally {
       setIsStreaming(false);
       setStreamedText("");
     }
+  }
+
+  function handleQuestionKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (
+      event.key !== "Enter" ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey
+    )
+      return;
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
   }
 
   if (workspaces.isLoading)
@@ -419,6 +537,7 @@ export function AgentChat() {
           onChange={(event) => {
             setWorkspaceId(event.target.value);
             setConversationId(undefined);
+            setConversationQuery("");
           }}
           value={workspaceId}
         >
@@ -438,8 +557,15 @@ export function AgentChat() {
         >
           새 대화
         </Button>
-        <div className="mt-4 space-y-1">
-          {conversations.data?.map((conversation) => (
+        <Input
+          aria-label="대화 검색"
+          className="mt-4"
+          onChange={(event) => setConversationQuery(event.target.value)}
+          placeholder="대화 검색"
+          value={conversationQuery}
+        />
+        <div className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-1">
+          {visibleConversations.map((conversation) => (
             <button
               className={`w-full rounded-md px-2 py-2 text-left text-sm ${conversationId === conversation.id ? "bg-accent" : "hover:bg-accent/60"}`}
               key={conversation.id}
@@ -449,6 +575,13 @@ export function AgentChat() {
               {conversation.title}
             </button>
           ))}
+          {visibleConversations.length === 0 && (
+            <p className="text-muted-foreground px-2 py-2 text-xs">
+              {conversationQuery.trim()
+                ? "검색 결과가 없습니다."
+                : "아직 대화가 없습니다."}
+            </p>
+          )}
         </div>
         <details className="mt-5 border-t pt-4">
           <summary className="cursor-pointer text-sm font-medium">
@@ -763,12 +896,80 @@ export function AgentChat() {
         </details>
       </aside>
       <div className="flex min-h-[34rem] flex-col rounded-xl border">
-        <div className="border-b px-5 py-4">
-          <h2 className="font-semibold">
-            {conversations.data?.find(
-              (conversation) => conversation.id === conversationId,
-            )?.title ?? "대화를 선택하세요"}
-          </h2>
+        <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
+          {isRenamingConversation ? (
+            <form
+              className="flex min-w-0 flex-1 gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (
+                  !workspaceId ||
+                  !conversationId ||
+                  !conversationTitle.trim()
+                )
+                  return;
+                renameConversation.mutate({
+                  conversationId,
+                  title: conversationTitle.trim(),
+                  workspaceId,
+                });
+              }}
+            >
+              <Input
+                aria-label="대화 제목"
+                autoFocus
+                className="h-8"
+                maxLength={256}
+                onChange={(event) => setConversationTitle(event.target.value)}
+                value={conversationTitle}
+              />
+              <Button
+                disabled={renameConversation.isPending}
+                size="sm"
+                type="submit"
+              >
+                저장
+              </Button>
+              <Button
+                onClick={() => setIsRenamingConversation(false)}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                취소
+              </Button>
+            </form>
+          ) : (
+            <h2 className="truncate font-semibold">
+              {conversations.data?.find(
+                (conversation) => conversation.id === conversationId,
+              )?.title ?? "대화를 선택하세요"}
+            </h2>
+          )}
+          {conversationId && !isRenamingConversation && (
+            <div className="flex shrink-0 gap-2">
+              <Button
+                onClick={() => setIsRenamingConversation(true)}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                이름 변경
+              </Button>
+              <Button
+                disabled={archiveConversation.isPending}
+                onClick={() =>
+                  workspaceId &&
+                  archiveConversation.mutate({ conversationId, workspaceId })
+                }
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                보관
+              </Button>
+            </div>
+          )}
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto p-5">
           {messages.data?.map((message) => (
@@ -780,9 +981,7 @@ export function AgentChat() {
               }
               key={message.id}
             >
-              <p className="whitespace-pre-wrap text-sm leading-6">
-                {message.content}
-              </p>
+              <MessageContent content={message.content} />
               {message.role === "assistant" && (
                 <div className="mt-3 flex gap-2">
                   <button
@@ -825,11 +1024,10 @@ export function AgentChat() {
           ))}
           {isStreaming && (
             <article className="mr-auto max-w-[85%] rounded-xl bg-muted px-4 py-3">
-              <p className="whitespace-pre-wrap text-sm leading-6">
-                {streamedText || "생성 중…"}
-              </p>
+              <MessageContent content={streamedText || "생성 중…"} />
             </article>
           )}
+          <div aria-hidden="true" ref={messagesEndRef} />
           {!conversationId && (
             <p className="text-muted-foreground text-sm">
               새 대화를 만들어 시작하세요.
@@ -840,13 +1038,15 @@ export function AgentChat() {
           <Textarea
             aria-label="질문"
             disabled={!conversationId || isStreaming}
+            onKeyDown={handleQuestionKeyDown}
             onChange={(event) => setQuestion(event.target.value)}
             placeholder="무엇을 도와드릴까요?"
             value={question}
           />
           <div className="mt-3 flex items-center justify-between gap-3">
             <p className="text-muted-foreground text-xs">
-              응답은 현재 로컬 Ollama에서 생성됩니다.
+              Enter로 전송 · Ctrl+Enter로 줄바꿈 · 응답은 현재 로컬 Ollama에서
+              생성됩니다.
             </p>
             <Button
               disabled={!question.trim() || !conversationId || isStreaming}
