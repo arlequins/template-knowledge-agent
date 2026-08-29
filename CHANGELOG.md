@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.11.7...v1.12.0) (2026-08-29)
+
+
+### Features
+
+* **chat:** improve conversation discovery and lifecycle ([#64](https://github.com/arlequins/template-knowledge-agent/issues/64)) ([c62da5f](https://github.com/arlequins/template-knowledge-agent/commit/c62da5fc7d48e9758b308aff20f5573268197f8f))
+
 ## [1.11.7](https://github.com/arlequins/template-knowledge-agent/compare/v1.11.6...v1.11.7) (2026-08-29)
 
 
