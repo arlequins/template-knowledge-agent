@@ -30,7 +30,7 @@ jobs:
           AWS_QUICKSTART_ROLE_ARN: ${{ vars.AWS_QUICKSTART_ROLE_ARN }}
         run: test -n "$AWS_QUICKSTART_ROLE_ARN"
       - id: aws
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_QUICKSTART_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
