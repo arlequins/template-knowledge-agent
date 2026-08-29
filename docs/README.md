@@ -26,11 +26,13 @@ local application; the pages below explain design decisions and ongoing work.
    feedback commands, and template qualification.
 7. [Create a derived repository](create-derived-repository.md) provides the
    non-destructive copy-and-initialize workflow and public/private boundary.
-8. [Template readiness](template-readiness.md) lists the capabilities to retain
+8. [Derived qualification](create-derived-repository.md#first-qualification)
+   defines the repeatable pre-handoff gate for generated repositories.
+9. [Template readiness](template-readiness.md) lists the capabilities to retain
    or deliberately remove when adapting the template.
-9. [Generic application baseline](generic-application.md) explains reusable
+10. [Generic application baseline](generic-application.md) explains reusable
    CRUD, authorization, upload, and Clean Architecture service patterns.
-10. [Feature-sliced clean architecture](conventions/feature-sliced-design.md)
+11. [Feature-sliced clean architecture](conventions/feature-sliced-design.md)
     ([한국어](conventions/feature-sliced-design.ko.md) ·
     [日本語](conventions/feature-sliced-design.ja.md)) defines the canonical
     feature layout and machine-checked dependency rules.

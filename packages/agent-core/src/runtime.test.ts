@@ -110,4 +110,76 @@ describe("createAgentRuntime", () => {
       "This answer is grounded in the supplied source. ",
     );
   });
+
+  it("stops a provider that repeats a long suffix without punctuation", async () => {
+    const repeated =
+      "grounded answers cite supplied evidence and distinguish source facts from unknown current state ";
+    const runtime = createAgentRuntime({
+      knowledgeSearch: {
+        async search() {
+          return [];
+        },
+      },
+      memorySearch: {
+        async search() {
+          return [];
+        },
+      },
+      model: {
+        async *streamText() {
+          yield repeated;
+          yield repeated;
+        },
+      },
+    });
+    const texts: string[] = [];
+    for await (const event of runtime.run({
+      history: [],
+      profile: {
+        id: "assistant",
+        instructions: "",
+        name: "Assistant",
+        workspaceId: "workspace-1",
+      },
+      question: "Explain.",
+      workspaceId: "workspace-1",
+    }))
+      if (event.type === "text-delta") texts.push(event.text);
+    expect(texts.join("")).toBe(repeated);
+  });
+
+  it("caps output before an unbounded provider can exhaust the request", async () => {
+    const runtime = createAgentRuntime({
+      knowledgeSearch: {
+        async search() {
+          return [];
+        },
+      },
+      memorySearch: {
+        async search() {
+          return [];
+        },
+      },
+      maxOutputChars: 256,
+      model: {
+        async *streamText() {
+          yield "x".repeat(500);
+        },
+      },
+    });
+    const texts: string[] = [];
+    for await (const event of runtime.run({
+      history: [],
+      profile: {
+        id: "assistant",
+        instructions: "",
+        name: "Assistant",
+        workspaceId: "workspace-1",
+      },
+      question: "Explain.",
+      workspaceId: "workspace-1",
+    }))
+      if (event.type === "text-delta") texts.push(event.text);
+    expect(texts.join("")).toHaveLength(256);
+  });
 });

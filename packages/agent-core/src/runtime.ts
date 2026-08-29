@@ -6,6 +6,7 @@ import type {
 import type { AgentInput, AgentRun, ModelMessage } from "./types";
 
 const MAX_CONTEXT_ITEMS = 6;
+const DEFAULT_MAX_OUTPUT_CHARS = 24_000;
 
 function normalizeSentence(value: string) {
   return value.replace(/\s+/gu, " ").trim().toLocaleLowerCase("en-US");
@@ -24,6 +25,23 @@ function repeatedSentenceCut(value: string) {
   for (const sentence of sentences) {
     if (seen.has(sentence.value)) return sentence.start;
     seen.add(sentence.value);
+  }
+  return undefined;
+}
+
+/** Returns the start of a repeated suffix when a provider loops without punctuation. */
+function repeatedSuffixCut(value: string) {
+  const normalized = (part: string) => part.replace(/\s+/gu, " ").trim();
+  for (const size of [256, 128, 64, 32]) {
+    if (value.length < size * 2) continue;
+    const first = normalized(value.slice(-size * 2, -size));
+    const second = normalized(value.slice(-size));
+    if (
+      first.length >= 24 &&
+      new Set(first.split(" ").filter(Boolean)).size >= 3 &&
+      first === second
+    )
+      return value.length - size;
   }
   return undefined;
 }
@@ -55,7 +73,12 @@ export function createAgentRuntime(dependencies: {
   knowledgeSearch: KnowledgeSearchPort;
   memorySearch: MemorySearchPort;
   model: ModelProviderPort;
+  maxOutputChars?: number;
 }): { run(input: AgentInput): AgentRun } {
+  const maxOutputChars =
+    dependencies.maxOutputChars ?? DEFAULT_MAX_OUTPUT_CHARS;
+  if (!Number.isInteger(maxOutputChars) || maxOutputChars < 256)
+    throw new Error("maxOutputChars must be an integer of at least 256");
   return {
     async *run(input) {
       const [matches, memories] = await Promise.all([
@@ -90,19 +113,28 @@ export function createAgentRuntime(dependencies: {
       ];
 
       let emitted = "";
+      let previousChunk = "";
       for await (const text of dependencies.model.streamText({ messages })) {
+        const normalizedChunk = text.replace(/\s+/gu, " ").trim();
+        if (normalizedChunk.length >= 24 && normalizedChunk === previousChunk)
+          break;
+        previousChunk = normalizedChunk;
         const candidate = emitted + text;
-        const cut = repeatedSentenceCut(candidate);
+        const bounded = candidate.slice(0, maxOutputChars);
+        const cut = repeatedSentenceCut(bounded) ?? repeatedSuffixCut(bounded);
         if (cut !== undefined) {
           if (cut > emitted.length)
             yield {
-              text: candidate.slice(emitted.length, cut),
+              text: bounded.slice(emitted.length, cut),
               type: "text-delta",
             };
           break;
         }
-        emitted = candidate;
-        yield { type: "text-delta", text };
+        if (bounded.length <= emitted.length) break;
+        const delta = bounded.slice(emitted.length);
+        emitted = bounded;
+        yield { type: "text-delta", text: delta };
+        if (emitted.length >= maxOutputChars) break;
       }
 
       yield { type: "complete", citations };
