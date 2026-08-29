@@ -1,6 +1,6 @@
 {
   "name": "template-knowledge-agent",
-  "version": "1.13.1",
+  "version": "1.14.0",
   "private": true,
   "engines": {
     "node": "^24.14.0",
