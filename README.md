@@ -92,6 +92,7 @@ T3/Fumadocs acceptance corpus under `examples/pilot` can be checked with
 | `pnpm knowledge:bootstrap` | Create the repeatable local test workspace. |
 | `pnpm knowledge:sync-official` | Index allowlisted official stack documentation. |
 | `pnpm template:create` | Copy tracked public files into and initialize a separate repository. |
+| `pnpm derived:qualify` | Run the deterministic generated-repository qualification gate; add `--full` for the complete suite. |
 | `pnpm pilot:verify` | Verify the synthetic T3/Fumadocs, live-data, and refusal cases. |
 | `pnpm tuning:patterns:verify` | Verify the public reviewed document-QA behavior pack and held-out isolation. |
 | `pnpm tuning:patterns:generate` | Generate private structured candidates with Luna under `.local/`. |
