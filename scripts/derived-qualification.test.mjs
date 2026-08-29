@@ -22,6 +22,10 @@ test("full qualification appends the complete test suite", () => {
     full: true,
     skipDoctor: true,
   });
+  assert.deepEqual(parseQualificationArgs(["--", "--full"]), {
+    full: true,
+    skipDoctor: false,
+  });
 });
 
 test("qualification stops at the first failed command", () => {

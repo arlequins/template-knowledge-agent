@@ -15,6 +15,9 @@ export const QUALIFICATION_STEPS = Object.freeze([
 export function parseQualificationArgs(args) {
   const options = { full: false, skipDoctor: false };
   for (const argument of args) {
+    // Accept the conventional `pnpm run ... -- --flag` separator as well as
+    // direct `pnpm ... --flag` invocation.
+    if (argument === "--") continue;
     if (argument === "--full") options.full = true;
     else if (argument === "--skip-doctor") options.skipDoctor = true;
     else throw new Error(`Unknown argument: ${argument}`);
