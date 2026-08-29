@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.6](https://github.com/arlequins/template-knowledge-agent/compare/v1.11.5...v1.11.6) (2026-08-29)
+
+
+### Bug Fixes
+
+* **security:** preserve workspace dependency overrides ([d31d86f](https://github.com/arlequins/template-knowledge-agent/commit/d31d86fc1657f97ff853ab784839106f997decf1))
+
 ## [1.11.5](https://github.com/arlequins/template-knowledge-agent/compare/v1.11.4...v1.11.5) (2026-08-29)
 
 
