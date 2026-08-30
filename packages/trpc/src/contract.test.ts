@@ -51,6 +51,7 @@ describe("public tRPC contract", () => {
       "reviewInvestigation",
       "reviewMemory",
       "runEvaluation",
+      "runtimeInfo",
       "startIndex",
       "submitFeedback",
       "usage",

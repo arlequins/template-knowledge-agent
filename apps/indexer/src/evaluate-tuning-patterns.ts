@@ -50,6 +50,51 @@ function repositoryPath(value: string) {
   return input;
 }
 
+function sameModel(
+  left: BehaviorPackManifest["model"],
+  right: BehaviorPackManifest["model"],
+) {
+  return (
+    left?.model === right?.model &&
+    left?.provider === right?.provider &&
+    left?.quantization === right?.quantization &&
+    left?.runtime === right?.runtime
+  );
+}
+
+async function matchingActiveRelease(options: {
+  expected: Omit<BehaviorPackManifest, "generatedAt" | "version">;
+  outputPath: string;
+  releaseDirectory: string;
+}) {
+  try {
+    const active = parseBehaviorPackManifest(
+      JSON.parse(await readFile(options.outputPath, "utf8")),
+    );
+    if (
+      !active ||
+      active.behaviorPrompt !== options.expected.behaviorPrompt ||
+      active.sourceSha256 !== options.expected.sourceSha256 ||
+      active.trainingRows !== options.expected.trainingRows ||
+      JSON.stringify(active.metrics) !==
+        JSON.stringify(options.expected.metrics) ||
+      !sameModel(active.model, options.expected.model)
+    )
+      return undefined;
+    const releasePath = resolve(
+      options.releaseDirectory,
+      `${active.version}.json`,
+    );
+    const release = parseBehaviorPackManifest(
+      JSON.parse(await readFile(releasePath, "utf8")),
+    );
+    if (JSON.stringify(release) !== JSON.stringify(active)) return undefined;
+    return { releasePath, version: active.version };
+  } catch {
+    return undefined;
+  }
+}
+
 export async function evaluateAndPromoteTuningPatterns(options: {
   inputPath: string;
   model?: ModelRuntimeMetadata;
@@ -65,24 +110,40 @@ export async function evaluateAndPromoteTuningPatterns(options: {
       `Behavior pack failed daily promotion gates: ${evaluation.issues[0]?.message}`,
     );
   const sourceSha256 = createHash("sha256").update(raw).digest("hex");
-  const generatedAt = (options.now?.() ?? new Date()).toISOString();
-  const version = `daily-${generatedAt.replace(/[-:.]/gu, "")}-${sourceSha256.slice(0, 8)}`;
-  const manifest: BehaviorPackManifest = {
+  const releaseDirectory =
+    options.releaseDirectory ??
+    resolve(dirname(options.outputPath), "releases");
+  const expected = {
     behaviorPrompt: compileReviewedBehaviorPrompt(batch, { maxExamples: 12 }),
-    generatedAt,
     ...(options.model ? { model: options.model } : {}),
     metrics: evaluation.metrics,
     schemaVersion: 1 as const,
     sourceSha256,
     trainingRows: exportReviewedTrainingJsonl(batch).split("\n").length,
+  };
+  const current = await matchingActiveRelease({
+    expected,
+    outputPath: options.outputPath,
+    releaseDirectory,
+  });
+  if (current)
+    return {
+      ...evaluation,
+      outputPath: options.outputPath,
+      promoted: false,
+      releasePath: current.releasePath,
+      version: current.version,
+    };
+  const generatedAt = (options.now?.() ?? new Date()).toISOString();
+  const version = `daily-${generatedAt.replace(/[-:.]/gu, "")}-${sourceSha256.slice(0, 8)}`;
+  const manifest: BehaviorPackManifest = {
+    ...expected,
+    generatedAt,
     version,
   };
   if (!parseBehaviorPackManifest(manifest))
     throw new Error("Generated behavior-pack manifest is invalid");
   const serialized = `${JSON.stringify(manifest, undefined, 2)}\n`;
-  const releaseDirectory =
-    options.releaseDirectory ??
-    resolve(dirname(options.outputPath), "releases");
   const releasePath = resolve(releaseDirectory, `${version}.json`);
   await mkdir(releaseDirectory, { recursive: true });
   await writeFile(releasePath, serialized, { flag: "wx" });
@@ -98,6 +159,7 @@ export async function evaluateAndPromoteTuningPatterns(options: {
   return {
     ...evaluation,
     outputPath: options.outputPath,
+    promoted: true,
     releasePath,
     version,
   };

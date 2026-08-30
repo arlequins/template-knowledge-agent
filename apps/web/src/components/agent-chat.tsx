@@ -26,7 +26,7 @@ function streamErrorMessage(error: unknown): string {
     message === "Local model request failed" ||
     message === "Local model completion is not configured"
   ) {
-    return "OpenAI 응답을 받지 못했습니다. `.env.localhost`의 API 키와 모델 설정을 확인한 뒤 다시 보내세요.";
+    return "모델 응답을 받지 못했습니다. 서버의 모델 제공자, API 키, 엔드포인트 설정을 확인한 뒤 다시 보내세요.";
   }
   if (message === "응답 스트림을 시작하지 못했습니다.") {
     return "에이전트 API에 연결하지 못했습니다. 로컬 개발 서버가 실행 중인지 확인한 뒤 다시 보내세요.";
@@ -136,6 +136,10 @@ export function AgentChat() {
       workspaceId: workspaceId ?? "",
     }),
     enabled: Boolean(workspaceId && conversationId),
+  });
+  const runtimeInfo = useQuery({
+    ...trpc.agent.runtimeInfo.queryOptions({ workspaceId: workspaceId ?? "" }),
+    enabled: Boolean(workspaceId),
   });
   const documents = useQuery({
     ...trpc.agent.documents.queryOptions({ workspaceId: workspaceId ?? "" }),
@@ -459,6 +463,9 @@ export function AgentChat() {
       setQuestion("");
       await queryClient.invalidateQueries({
         queryKey: trpc.agent.messages.queryKey({ conversationId, workspaceId }),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: trpc.agent.runtimeInfo.queryKey({ workspaceId }),
       });
       if (shouldAutoTitle) {
         const generatedTitle = questionText.replace(/\s+/g, " ").slice(0, 48);
@@ -999,6 +1006,11 @@ export function AgentChat() {
               key={message.id}
             >
               <MessageContent content={message.content} />
+              {message.role === "assistant" && message.model && (
+                <p className="text-muted-foreground mt-2 text-[11px]">
+                  모델 {message.model}
+                </p>
+              )}
               {message.role === "assistant" && (
                 <div className="mt-3 flex gap-2">
                   <button
@@ -1062,8 +1074,17 @@ export function AgentChat() {
           />
           <div className="mt-3 flex items-center justify-between gap-3">
             <p className="text-muted-foreground text-xs">
-              Enter로 전송 · Ctrl+Enter로 줄바꿈 · 응답은 현재 로컬 Ollama에서
-              생성됩니다.
+              Enter로 전송 · Ctrl+Enter로 줄바꿈 · 현재 모델{" "}
+              {runtimeInfo.data?.modelId ?? "서버 설정 확인 중"}
+              {runtimeInfo.data?.modelProvider
+                ? ` (${runtimeInfo.data.modelProvider})`
+                : ""}
+              {runtimeInfo.data?.behaviorPack?.version
+                ? ` · 행동 팩 ${runtimeInfo.data.behaviorPack.version}`
+                : " · 기본 행동"}
+              {runtimeInfo.data?.behaviorPack?.model?.model
+                ? ` · 팩 검증 모델 ${runtimeInfo.data.behaviorPack.model.model}`
+                : ""}
             </p>
             <Button
               disabled={!question.trim() || !conversationId || isStreaming}

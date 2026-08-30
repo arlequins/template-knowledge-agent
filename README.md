@@ -96,7 +96,7 @@ T3/Fumadocs acceptance corpus under `examples/pilot` can be checked with
 | `pnpm pilot:verify` | Verify the synthetic T3/Fumadocs, live-data, and refusal cases. |
 | `pnpm tuning:patterns:verify` | Verify the public reviewed document-QA behavior pack and held-out isolation. |
 | `pnpm tuning:patterns:generate` | Generate private structured candidates with Luna under `.local/`. |
-| `pnpm tuning:patterns:daily` | Validate and atomically promote the reviewed behavior pack under `.local/`. |
+| `pnpm tuning:patterns:daily` | Validate and atomically promote a changed reviewed behavior pack; unchanged input is a no-op. |
 | `pnpm tuning:patterns:rollback -- --release <path>` | Restore a validated immutable behavior-pack release. |
 | `pnpm tuning:patterns:verify-active` | Recompute source integrity before behavior-pack reload or deployment. |
 | `pnpm check` | Run Biome formatting and lint checks. |

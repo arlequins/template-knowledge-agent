@@ -72,6 +72,7 @@ export type PatternQualityIssue = {
     | "review-metadata"
     | "split-leakage";
   message: string;
+  evidenceId?: string;
   patternId?: string;
 };
 
@@ -369,7 +370,52 @@ export function validatePatternBatch(
       code: "invalid-field",
       message: "Unsupported pattern batch schemaVersion",
     });
-  const evidenceIds = new Set(batch.evidence.map(({ id }) => id));
+  const evidenceIds = new Set<string>();
+  for (const evidence of batch.evidence) {
+    if (!validText(evidence.id, 160))
+      issues.push({
+        code: "invalid-field",
+        evidenceId: evidence.id,
+        message: "Evidence id is invalid",
+      });
+    if (!validText(evidence.label, 240))
+      issues.push({
+        code: "invalid-field",
+        evidenceId: evidence.id,
+        message: "Evidence label is invalid",
+      });
+    if (!validText(evidence.locator, 500))
+      issues.push({
+        code: "invalid-field",
+        evidenceId: evidence.id,
+        message: "Evidence locator is invalid",
+      });
+    if (!validText(evidence.text, 12_000))
+      issues.push({
+        code: "invalid-field",
+        evidenceId: evidence.id,
+        message: "Evidence text is invalid",
+      });
+    if (evidenceIds.has(evidence.id))
+      issues.push({
+        code: "invalid-field",
+        evidenceId: evidence.id,
+        message: `Duplicate evidence id: ${evidence.id}`,
+      });
+    evidenceIds.add(evidence.id);
+    if (
+      SENSITIVE_PATTERNS.some((expression) =>
+        expression.test(
+          `${evidence.id}\n${evidence.label}\n${evidence.locator}\n${evidence.text}`,
+        ),
+      )
+    )
+      issues.push({
+        code: "possible-sensitive-data",
+        evidenceId: evidence.id,
+        message: `Evidence may contain sensitive data: ${evidence.id}`,
+      });
+  }
   const questionOwners = new Map<string, string>();
   const answerOwners = new Map<string, string>();
   const patternIds = new Set<string>();

@@ -284,6 +284,7 @@ export function createAgentPlatformRepository(database: Database) {
           content: Message.content,
           createdAt: Message.createdAt,
           id: Message.id,
+          model: Message.model,
           role: Message.role,
         })
         .from(Message)

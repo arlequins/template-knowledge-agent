@@ -55,8 +55,9 @@ export function mergeApprovedInvestigations(
   const evidence = new Map<string, PatternEvidence>(
     batch.evidence.map((item) => [item.id, item]),
   );
+  const availableEvidence = new Map(evidence);
   for (const chunk of chunks)
-    evidence.set(chunk.id, {
+    availableEvidence.set(chunk.id, {
       id: chunk.id,
       label: chunk.label,
       locator: chunk.locator ?? "database",
@@ -90,7 +91,7 @@ export function mergeApprovedInvestigations(
       });
       continue;
     }
-    if (evidenceIds.some((id) => !evidence.has(id))) {
+    if (evidenceIds.some((id) => !availableEvidence.has(id))) {
       skipped.push({
         id: item.id,
         reason: "one or more evidenceIds are outside this workspace",
@@ -127,20 +128,27 @@ export function mergeApprovedInvestigations(
       split: "train",
       status: "reviewed",
     };
+    const candidateEvidence = new Map(evidence);
+    for (const evidenceId of evidenceIds) {
+      const item = availableEvidence.get(evidenceId);
+      if (item) candidateEvidence.set(evidenceId, item);
+    }
     const candidateReport = validatePatternBatch({
-      evidence: [...evidence.values()],
+      evidence: [...candidateEvidence.values()],
       patterns: [...batch.patterns, ...additions, addition],
       schemaVersion: 1,
     });
-    const candidateIssue = candidateReport.issues.find(
-      ({ patternId }) => patternId === addition.id,
-    );
+    const candidateIssue = candidateReport.issues[0];
     if (candidateIssue) {
       skipped.push({
         id: item.id,
         reason: `quality gate: ${candidateIssue.message}`,
       });
       continue;
+    }
+    for (const evidenceId of evidenceIds) {
+      const evidenceItem = candidateEvidence.get(evidenceId);
+      if (evidenceItem) evidence.set(evidenceId, evidenceItem);
     }
     additions.push(addition);
     existingQuestions.add(questionKey);

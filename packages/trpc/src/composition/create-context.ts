@@ -37,7 +37,7 @@ function bootstrapAdministratorIdentities() {
 
 const agent = createAgentPlatformRepository(db);
 
-async function loadReviewedBehaviorPrompt() {
+async function loadReviewedBehaviorPack() {
   const path =
     serverEnv.AGENT_BEHAVIOR_PACK_PATH?.trim() ??
     (process.env.NODE_ENV === "development"
@@ -48,7 +48,7 @@ async function loadReviewedBehaviorPrompt() {
     const manifest = parseBehaviorPackManifest(
       JSON.parse(await readFile(path, "utf8")),
     );
-    return manifest?.behaviorPrompt.slice(0, 40_000);
+    return manifest;
   } catch {
     return undefined;
   }
@@ -70,6 +70,7 @@ function modelProviders() {
         model: serverEnv.OPENAI_MODEL,
       }),
       modelId: serverEnv.OPENAI_MODEL ?? "gpt-5.6-luna",
+      provider: "openai" as const,
     };
   }
   if (serverEnv.BEDROCK_MODEL_ID) {
@@ -89,6 +90,7 @@ function modelProviders() {
         modelId: serverEnv.BEDROCK_MODEL_ID,
       }),
       modelId: serverEnv.BEDROCK_MODEL_ID,
+      provider: "bedrock" as const,
     };
   }
   if (serverEnv.OLLAMA_BASE_URL)
@@ -102,6 +104,7 @@ function modelProviders() {
         model: serverEnv.OLLAMA_MODEL,
       }),
       modelId: serverEnv.OLLAMA_MODEL ?? "qwen2.5:3b",
+      provider: "ollama" as const,
     };
   return { embedding: undefined, model: undefined, modelId: undefined };
 }
@@ -114,7 +117,7 @@ export async function createTRPCContext(
     ? deriveTemplateSession(tokenSession, bootstrapAdministratorIdentities())
     : null;
   const providers = modelProviders();
-  const reviewedBehaviorPrompt = await loadReviewedBehaviorPrompt();
+  const reviewedBehaviorPack = await loadReviewedBehaviorPack();
 
   if (session)
     options.logger.info("auth.login.succeeded", {
@@ -138,7 +141,22 @@ export async function createTRPCContext(
       memorySearch: createDatabaseMemorySearch(db),
       model: providers.model,
       modelId: providers.modelId,
-      reviewedBehaviorPrompt,
+      modelProvider: providers.provider,
+      ...(reviewedBehaviorPack
+        ? {
+            reviewedBehaviorPack: {
+              generatedAt: reviewedBehaviorPack.generatedAt,
+              ...(reviewedBehaviorPack.model
+                ? { model: reviewedBehaviorPack.model }
+                : {}),
+              version: reviewedBehaviorPack.version,
+            },
+            reviewedBehaviorPrompt: reviewedBehaviorPack.behaviorPrompt.slice(
+              0,
+              40_000,
+            ),
+          }
+        : {}),
     },
   };
 }

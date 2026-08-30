@@ -27,10 +27,11 @@ describe("S3 agent platform repository", () => {
     await repository.addMessage(actor, {
       content: "안녕",
       conversationId: conversation.id,
-      role: "user",
+      model: "ornith-1.5-9b",
+      role: "assistant",
     });
     expect(await repository.listMessages(actor, conversation.id)).toMatchObject(
-      [{ content: "안녕", role: "user" }],
+      [{ content: "안녕", model: "ornith-1.5-9b", role: "assistant" }],
     );
     expect(await store.list(`workspaces/${workspace.id}/events/`)).toHaveLength(
       3,

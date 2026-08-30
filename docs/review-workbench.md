@@ -62,13 +62,15 @@ model ID, runtime, and quantization in the active manifest. This makes daily
 quality results reproducible and keeps a Bedrock, hosted, or local candidate
 from being confused with another model that happens to have the same nickname.
 
-Only the final manifest is consumed by the running API; a derived deployment
-must explicitly reload or deploy it after this command succeeds.
+The API validates and reads the active behavior manifest for every authenticated
+request, so behavior-prompt promotion is visible without a process restart.
+The chat footer shows the current model provider, model ID, and behavior-pack
+version. Weight adapters still require an explicit model-server reload.
 
 Use the chunk UUID shown by the document/chunk APIs in the owner review form;
-an empty evidence list is intentionally skipped. This keeps private source
-content in the local database while only reviewed, citation-backed behavior
-enters the daily pack.
+an empty evidence list is intentionally skipped. The exporter includes only
+chunks cited by an accepted correction, not every chunk in the workspace. This
+keeps unrelated private source content out of the derived pack.
 
 ## Daily loop
 
@@ -80,14 +82,19 @@ pnpm tuning:patterns:daily
 
 The loop validates citations, duplicate questions/answers, lexical
 near-duplicates across splits, repeated sentences, sensitive-looking values,
-semantic-group split isolation, all eight behavior kinds, all three supported
-languages, and non-empty validation/test holdouts.
+sensitive-looking cited evidence, semantic-group split isolation, all eight
+behavior kinds, all three supported languages, and non-empty validation/test
+holdouts.
 Every passing pack is first stored as an immutable timestamped release under
 `.local/tuning/releases/`, then written atomically to
 `.local/tuning/active-behavior-pack.json`. The manifest contains a source hash,
 unique version, metrics, training-row count, a train-only behavior prompt, and
 (when provided) exact model runtime metadata. The API ignores malformed or
 internally inconsistent manifests.
+
+If the reviewed source, compiled prompt, metrics, and model metadata already
+match the active immutable release, the command returns `promoted: false` and
+does not create a timestamp-only duplicate.
 
 Restore a previously qualified release without rebuilding it:
 
@@ -109,10 +116,10 @@ pnpm tuning:patterns:verify-active -- \
 Omit `--source` when the active pack came from the public reviewed example.
 
 This is scheduled evaluation and behavior-pack promotion, not online learning.
-Loading a promoted prompt or adapter into a running server remains an explicit
-reload/deploy step. A derived repository may run this command from a daily
-cron, GitHub Actions schedule, or AWS EventBridge/Lambda job after adding its
-own secret and approval boundaries.
+The baseline hot-loads a promoted behavior prompt on the next request. A
+weight-trained adapter remains an explicit reload/deploy step. A derived
+repository may run this command from a daily cron, GitHub Actions schedule, or
+AWS EventBridge/Lambda job after adding its own secret and approval boundaries.
 
 If a gate fails, the command exits non-zero and leaves the previous active pack
 untouched. Weight-trained adapters still require a separate trainer, model

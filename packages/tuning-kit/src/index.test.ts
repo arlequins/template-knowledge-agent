@@ -154,6 +154,16 @@ describe("tuning kit", () => {
     );
   });
 
+  it("blocks sensitive-looking evidence from a reviewed training batch", () => {
+    const fixture = batch();
+    const evidence = fixture.evidence[0];
+    if (!evidence) throw new Error("Fixture is missing evidence");
+    evidence.text = "Contact person@example.com for this account.";
+    expect(
+      validatePatternBatch(fixture).issues.map(({ code }) => code),
+    ).toContain("possible-sensitive-data");
+  });
+
   it("fails the daily promotion gate when holdouts or training coverage are missing", () => {
     const report = evaluateReviewedBehaviorPack(batch(), {
       minimumTrainPatterns: 2,
