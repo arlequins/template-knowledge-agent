@@ -30,6 +30,14 @@ function localPath(value: string) {
   return output;
 }
 
+function repositoryPath(value: string) {
+  const input = resolve(REPOSITORY_ROOT, value);
+  const pathFromRoot = relative(REPOSITORY_ROOT, input);
+  if (pathFromRoot === ".." || pathFromRoot.startsWith(`..${sep}`))
+    throw new Error("Daily tuning inputs must stay inside the repository");
+  return input;
+}
+
 /** Export approved DB findings, then run the existing promotion gates atomically. */
 export async function runDailyTuningLoop(options: {
   basePackPath: string;
@@ -80,8 +88,7 @@ if (
             );
           })()
       : undefined;
-  const basePackPath = resolve(
-    REPOSITORY_ROOT,
+  const basePackPath = repositoryPath(
     argument("--input") ?? "examples/tuning/reviewed-patterns.json",
   );
   const reviewedPackPath = localPath(

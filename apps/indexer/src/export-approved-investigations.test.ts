@@ -67,6 +67,17 @@ describe("approved investigation export", () => {
           id: "investigation-3",
           question: "A paraphrase of the public question",
         },
+        {
+          completedAt: null,
+          findings: {
+            correctedAnswer:
+              "The customer contact is documented. [evidence:sensitive-doc]",
+            evidenceIds: ["sensitive-doc"],
+            language: "en",
+          },
+          id: "investigation-4",
+          question: "Where is the customer contact documented?",
+        },
       ],
       [
         {
@@ -74,6 +85,18 @@ describe("approved investigation export", () => {
           id: "private-doc",
           label: "private.md",
           locator: "private.md#code",
+        },
+        {
+          content: "Unrelated personal data must not enter the export.",
+          id: "uncited-private-doc",
+          label: "customer.md",
+          locator: "customer.md#private",
+        },
+        {
+          content: "Contact person@example.com for the account.",
+          id: "sensitive-doc",
+          label: "customer.md",
+          locator: "customer.md#contact",
         },
       ],
       "owner-1",
@@ -97,6 +120,11 @@ describe("approved investigation export", () => {
       {
         id: "investigation-3",
         reason: "duplicate question or answer",
+      },
+      {
+        id: "investigation-4",
+        reason:
+          "quality gate: Evidence may contain sensitive data: sensitive-doc",
       },
     ]);
     expect(result.batch.evidence.map(({ id }) => id)).toEqual([

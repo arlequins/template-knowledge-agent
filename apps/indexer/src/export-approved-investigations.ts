@@ -1,4 +1,5 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -40,6 +41,14 @@ function localPath(value: string) {
   )
     throw new Error("Feedback exports must stay under .local/");
   return output;
+}
+
+function repositoryPath(value: string) {
+  const input = resolve(REPOSITORY_ROOT, value);
+  const pathFromRoot = relative(REPOSITORY_ROOT, input);
+  if (pathFromRoot === ".." || pathFromRoot.startsWith(`..${sep}`))
+    throw new Error("Feedback inputs must stay inside the repository");
+  return input;
 }
 
 export async function exportApprovedInvestigations(options: {
@@ -136,15 +145,18 @@ export async function exportApprovedInvestigations(options: {
     );
 
   await mkdir(dirname(options.outputPath), { recursive: true });
-  const temporaryPath = `${options.outputPath}.tmp-${process.pid}`;
-  await writeFile(
-    temporaryPath,
-    `${JSON.stringify(merged.batch, undefined, 2)}\n`,
-    {
-      flag: "wx",
-    },
-  );
-  await rename(temporaryPath, options.outputPath);
+  const temporaryPath = `${options.outputPath}.tmp-${randomUUID()}`;
+  try {
+    await writeFile(
+      temporaryPath,
+      `${JSON.stringify(merged.batch, undefined, 2)}\n`,
+      { flag: "wx" },
+    );
+    await rename(temporaryPath, options.outputPath);
+  } catch (error) {
+    await unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
   return {
     added: merged.additions.length,
     outputPath: options.outputPath,
@@ -161,8 +173,7 @@ if (
   const userId = process.env.AGENT_OWNER_USER_ID?.trim();
   if (!workspaceId || !userId)
     throw new Error("AGENT_WORKSPACE_ID and AGENT_OWNER_USER_ID are required");
-  const inputPath = resolve(
-    REPOSITORY_ROOT,
+  const inputPath = repositoryPath(
     argument("--input") ?? "examples/tuning/reviewed-patterns.json",
   );
   const outputPath = localPath(

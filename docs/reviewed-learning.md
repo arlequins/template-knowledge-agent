@@ -153,9 +153,12 @@ The baseline now implements evidence-bound pattern schemas, Luna-assisted
 candidate generation, duplicate/citation/repetition/privacy gates,
 semantic-group and lexical-near-duplicate split checks, held-out prompt
 exclusion, strict owner approval, reviewed training export, versioned behavior
-pack activation, and local behavior-pack rollback. Generated rows remain
-candidates and are written under `.local/`; this does not replace owner
-approval or student-model weight qualification.
+pack activation, no-op detection for unchanged packs, request-time behavior
+hot-loading with visible runtime provenance, and local behavior-pack rollback.
+The exporter includes only evidence chunks cited by accepted corrections.
+Cited evidence is also scanned for sensitive-looking values before it can enter
+the pack. Generated rows remain candidates and are written under `.local/`;
+this does not replace owner approval or student-model weight qualification.
 
 An MLX extension for a generated repository should add, test, and document:
 

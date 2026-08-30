@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -54,6 +54,23 @@ describe("behavior-pack promotion", () => {
           JSON.parse(await readFile(outputPath, "utf8")),
         )?.model?.model,
       ).toBe("ornith-1.5-9b");
+      const unchanged = await evaluateAndPromoteTuningPatterns({
+        inputPath,
+        model: {
+          model: "ornith-1.5-9b",
+          provider: "local",
+          quantization: "4bit",
+          runtime: "mlx",
+        },
+        now: () => new Date("2026-08-31T00:00:00.000Z"),
+        outputPath,
+        releaseDirectory,
+      });
+      expect(unchanged).toMatchObject({
+        promoted: false,
+        version: second.version,
+      });
+      expect(await readdir(releaseDirectory)).toHaveLength(2);
 
       const tampered = parseBehaviorPackManifest(
         JSON.parse(await readFile(outputPath, "utf8")),

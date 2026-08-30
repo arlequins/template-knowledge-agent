@@ -8,13 +8,19 @@ import type {
 } from "@arlequins/agent-core";
 import type { AuthSession, TRPCAuth } from "@arlequins/auth";
 import type { Logger, Telemetry } from "@arlequins/logger";
+import type { BehaviorPackManifest } from "@arlequins/tuning-kit";
 import type { createAgentPlatformRepository } from "./adaptors/agent-platform";
 
 export type TRPCServices = {
   agent: ReturnType<typeof createAgentPlatformRepository>;
   model?: ModelProviderPort;
   modelId?: string;
+  modelProvider?: "bedrock" | "ollama" | "openai";
   modelSelector?: ModelSelectionPort;
+  reviewedBehaviorPack?: Pick<
+    BehaviorPackManifest,
+    "generatedAt" | "model" | "version"
+  >;
   reviewedBehaviorPrompt?: string;
   embedding?: EmbeddingProviderPort;
   documentExtraction: DocumentExtractionPort;

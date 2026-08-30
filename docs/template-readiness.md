@@ -90,9 +90,15 @@ its related code, tests, environment variables, and documentation.
 - [x] Reviewed training patterns can be compiled into an immediate runtime
   behavior pack or exported for a separately qualified local student model.
 - [x] Passing behavior packs receive unique immutable releases, strict runtime
-  manifest validation, atomic activation, and an explicit local rollback path.
+  manifest validation, unchanged-pack no-op detection, atomic activation, and
+  an explicit local rollback path.
+- [x] The runtime hot-loads validated behavior packs per request and exposes the
+  current provider, model ID, and behavior-pack version to authenticated users.
 - [x] Owner-only investigation review API/UI requires a corrected answer and
   explicit evidence citations before an approval can enter the daily exporter.
+- [x] Feedback export includes only evidence chunks cited by accepted
+  corrections instead of copying every workspace chunk into the tuning pack,
+  and sensitive-looking cited evidence fails the promotion gate.
 - [x] Read-only live capability registry validates inputs, scopes actors,
   bounds rows, enforces allow/mask/omit field policies, marks personal results
   ephemeral, emits citations, and records result-free audit metadata.

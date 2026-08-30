@@ -87,6 +87,18 @@ export const agentRouter = {
         runId: run.id,
       });
     }),
+  runtimeInfo: protectedProcedure
+    .input(workspaceScopeInputSchema)
+    .query(async ({ ctx, input }) => {
+      await ctx.services.agent.assertMember(
+        actor(ctx.session.user.id, input.workspaceId),
+      );
+      return {
+        behaviorPack: ctx.services.reviewedBehaviorPack ?? null,
+        modelId: ctx.services.modelId ?? null,
+        modelProvider: ctx.services.modelProvider ?? null,
+      };
+    }),
   evaluationRuns: protectedProcedure
     .input(workspaceScopeInputSchema)
     .query(({ ctx, input }) =>
