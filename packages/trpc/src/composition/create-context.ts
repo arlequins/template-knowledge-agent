@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { open } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
   createBedrockGuardrailConfig,
@@ -36,6 +36,7 @@ function bootstrapAdministratorIdentities() {
 }
 
 const agent = createAgentPlatformRepository(db);
+const MAX_BEHAVIOR_PACK_BYTES = 1_000_000;
 
 async function loadReviewedBehaviorPack() {
   const path =
@@ -45,12 +46,23 @@ async function loadReviewedBehaviorPack() {
       : undefined);
   if (!path) return { status: "unavailable" as const };
   try {
-    const manifest = parseBehaviorPackManifest(
-      JSON.parse(await readFile(path, "utf8")),
-    );
-    return manifest
-      ? { manifest, status: "active" as const }
-      : { error: "manifest-schema-invalid", status: "invalid" as const };
+    const file = await open(path, "r");
+    try {
+      const metadata = await file.stat();
+      if (!metadata.isFile() || metadata.size > MAX_BEHAVIOR_PACK_BYTES)
+        return {
+          error: "manifest-file-too-large-or-not-a-file",
+          status: "invalid" as const,
+        };
+      const manifest = parseBehaviorPackManifest(
+        JSON.parse(await file.readFile("utf8")),
+      );
+      return manifest
+        ? { manifest, status: "active" as const }
+        : { error: "manifest-schema-invalid", status: "invalid" as const };
+    } finally {
+      await file.close();
+    }
   } catch {
     return {
       error: "manifest-read-or-parse-failed",

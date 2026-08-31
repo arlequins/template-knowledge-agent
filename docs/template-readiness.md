@@ -95,7 +95,8 @@ its related code, tests, environment variables, and documentation.
 - [x] The runtime hot-loads validated behavior packs per request and exposes the
   current provider, model ID, and behavior-pack version to authenticated users;
   invalid manifests fail closed to the base behavior and emit a redacted
-  diagnostic status.
+  diagnostic status; non-files and manifests over 1 MB are rejected before
+  parsing.
 - [x] Owner-only investigation review API/UI requires a corrected answer and
   explicit evidence citations before an approval can enter the daily exporter.
 - [x] Feedback export includes only evidence chunks cited by accepted
