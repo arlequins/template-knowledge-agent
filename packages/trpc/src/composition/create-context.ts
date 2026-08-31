@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
   createBedrockGuardrailConfig,
@@ -36,6 +36,7 @@ function bootstrapAdministratorIdentities() {
 }
 
 const agent = createAgentPlatformRepository(db);
+const MAX_BEHAVIOR_PACK_BYTES = 1_000_000;
 
 async function loadReviewedBehaviorPack() {
   const path =
@@ -45,6 +46,12 @@ async function loadReviewedBehaviorPack() {
       : undefined);
   if (!path) return { status: "unavailable" as const };
   try {
+    const file = await stat(path);
+    if (!file.isFile() || file.size > MAX_BEHAVIOR_PACK_BYTES)
+      return {
+        error: "manifest-file-too-large-or-not-a-file",
+        status: "invalid" as const,
+      };
     const manifest = parseBehaviorPackManifest(
       JSON.parse(await readFile(path, "utf8")),
     );
