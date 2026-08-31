@@ -65,7 +65,9 @@ from being confused with another model that happens to have the same nickname.
 The API validates and reads the active behavior manifest for every authenticated
 request, so behavior-prompt promotion is visible without a process restart.
 The chat footer shows the current model provider, model ID, and behavior-pack
-version. Weight adapters still require an explicit model-server reload.
+version. If the manifest is invalid, it explicitly shows a fallback warning and
+the server records a redacted diagnostic; it never silently presents the pack
+as active. Weight adapters still require an explicit model-server reload.
 
 Use the chunk UUID shown by the document/chunk APIs in the owner review form;
 an empty evidence list is intentionally skipped. The exporter includes only

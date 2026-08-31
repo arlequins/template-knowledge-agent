@@ -1081,7 +1081,9 @@ export function AgentChat() {
                 : ""}
               {runtimeInfo.data?.behaviorPack?.version
                 ? ` · 행동 팩 ${runtimeInfo.data.behaviorPack.version}`
-                : " · 기본 행동"}
+                : runtimeInfo.data?.behaviorPackStatus === "invalid"
+                  ? " · 행동 팩 오류(기본 행동)"
+                  : " · 기본 행동"}
               {runtimeInfo.data?.behaviorPack?.model?.model
                 ? ` · 팩 검증 모델 ${runtimeInfo.data.behaviorPack.model.model}`
                 : ""}

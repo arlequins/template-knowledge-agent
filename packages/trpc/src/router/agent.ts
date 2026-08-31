@@ -95,6 +95,8 @@ export const agentRouter = {
       );
       return {
         behaviorPack: ctx.services.reviewedBehaviorPack ?? null,
+        behaviorPackStatus:
+          ctx.services.reviewedBehaviorPackStatus ?? "unavailable",
         modelId: ctx.services.modelId ?? null,
         modelProvider: ctx.services.modelProvider ?? null,
       };

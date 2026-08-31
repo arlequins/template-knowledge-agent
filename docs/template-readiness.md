@@ -93,7 +93,9 @@ its related code, tests, environment variables, and documentation.
   manifest validation, unchanged-pack no-op detection, atomic activation, and
   an explicit local rollback path.
 - [x] The runtime hot-loads validated behavior packs per request and exposes the
-  current provider, model ID, and behavior-pack version to authenticated users.
+  current provider, model ID, and behavior-pack version to authenticated users;
+  invalid manifests fail closed to the base behavior and emit a redacted
+  diagnostic status.
 - [x] Owner-only investigation review API/UI requires a corrected answer and
   explicit evidence citations before an approval can enter the daily exporter.
 - [x] Feedback export includes only evidence chunks cited by accepted

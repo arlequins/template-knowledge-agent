@@ -18,6 +18,7 @@ function context(options?: { authenticated?: boolean }) {
         agent: { assertMember },
         modelId: "ornith-1.5-9b",
         modelProvider: "ollama",
+        reviewedBehaviorPackStatus: "active",
         reviewedBehaviorPack: {
           generatedAt: "2026-08-30T00:00:00.000Z",
           model: {
@@ -70,6 +71,7 @@ describe("agent runtimeInfo", () => {
         },
         version: "daily-20260830T000000000Z-example",
       },
+      behaviorPackStatus: "active",
       modelId: "ornith-1.5-9b",
       modelProvider: "ollama",
     });

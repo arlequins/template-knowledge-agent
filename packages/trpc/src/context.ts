@@ -21,6 +21,7 @@ export type TRPCServices = {
     BehaviorPackManifest,
     "generatedAt" | "model" | "version"
   >;
+  reviewedBehaviorPackStatus?: "active" | "invalid" | "unavailable";
   reviewedBehaviorPrompt?: string;
   embedding?: EmbeddingProviderPort;
   documentExtraction: DocumentExtractionPort;
