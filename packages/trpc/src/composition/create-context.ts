@@ -43,14 +43,19 @@ async function loadReviewedBehaviorPack() {
     (process.env.NODE_ENV === "development"
       ? resolve(process.cwd(), ".local/tuning/active-behavior-pack.json")
       : undefined);
-  if (!path) return undefined;
+  if (!path) return { status: "unavailable" as const };
   try {
     const manifest = parseBehaviorPackManifest(
       JSON.parse(await readFile(path, "utf8")),
     );
-    return manifest;
+    return manifest
+      ? { manifest, status: "active" as const }
+      : { error: "manifest-schema-invalid", status: "invalid" as const };
   } catch {
-    return undefined;
+    return {
+      error: "manifest-read-or-parse-failed",
+      status: "invalid" as const,
+    };
   }
 }
 
@@ -118,6 +123,10 @@ export async function createTRPCContext(
     : null;
   const providers = modelProviders();
   const reviewedBehaviorPack = await loadReviewedBehaviorPack();
+  if (reviewedBehaviorPack.status === "invalid")
+    options.logger.warn("agent.behavior-pack.invalid", {
+      reason: reviewedBehaviorPack.error ?? "manifest validation failed",
+    });
 
   if (session)
     options.logger.info("auth.login.succeeded", {
@@ -142,19 +151,18 @@ export async function createTRPCContext(
       model: providers.model,
       modelId: providers.modelId,
       modelProvider: providers.provider,
-      ...(reviewedBehaviorPack
+      reviewedBehaviorPackStatus: reviewedBehaviorPack.status,
+      ...(reviewedBehaviorPack.status === "active"
         ? {
             reviewedBehaviorPack: {
-              generatedAt: reviewedBehaviorPack.generatedAt,
-              ...(reviewedBehaviorPack.model
-                ? { model: reviewedBehaviorPack.model }
+              generatedAt: reviewedBehaviorPack.manifest.generatedAt,
+              ...(reviewedBehaviorPack.manifest.model
+                ? { model: reviewedBehaviorPack.manifest.model }
                 : {}),
-              version: reviewedBehaviorPack.version,
+              version: reviewedBehaviorPack.manifest.version,
             },
-            reviewedBehaviorPrompt: reviewedBehaviorPack.behaviorPrompt.slice(
-              0,
-              40_000,
-            ),
+            reviewedBehaviorPrompt:
+              reviewedBehaviorPack.manifest.behaviorPrompt.slice(0, 40_000),
           }
         : {}),
     },
