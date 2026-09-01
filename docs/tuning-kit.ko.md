@@ -79,6 +79,35 @@ pnpm tuning:patterns:generate -- \
 검증, 보류 평가, 반복/허위 주장 차단, 원자적 승격, 서버 재로딩과 롤백을
 별도로 구현해야 한다.
 
+### 제공자 중립 weight-training 계약
+
+패키지는 파생 학생 모델 파이프라인을 위한 기본 거부(default-deny) 계약도
+제공한다. `createTrainingDatasetIdentity`는 보호된 원본 verifier를 필수로 받고,
+locale-independent NFC/code-point 순서로 검수 배치를 정규화하여 학습 JSONL,
+원본 바이트, 각 분할의 전체 내용을 묶은 모듈 발급 frozen identity를 반환한다.
+`validateWeightTrainingRunSpec`는 외부 dataset·개인정보·라이선스 증적 verifier,
+정확한 base model·trainer hash, 제한된 비용·시간·동시성·lease, canonical 실행
+identity에서 생성한 idempotency key를 요구한다.
+
+`authorizeWeightTrainingCandidate`는 모든 게이트에 외부 증적 verifier를 적용하고,
+각 증적을 정확한 실행·dataset·base·trainer·artifact에 묶는다. 내용 주소형
+artifact locator/version, artifact/manifest hash, 전체 provenance, strict 서명
+검증을 요구한다. 보호된 artifact resolver가 불변 artifact·manifest bytes와
+registry identity를 반드시 반환해야 하며, 패키지가 두 SHA-256을 다시 계산한
+뒤 동결된 metadata/bytes snapshot을 서명 verifier에 전달한다. hash 함수는
+Node 표준 SHA-256을 사용하며 호출자가 주입할 수 없다. `assertWeightTrainingActivationReady`는 재로딩 후 제공 중인
+artifact 일치, 신선하고 시간순인 증적, 별도 롤백 대상, 전체 애플리케이션 RAG
+replay를 요구한다. `authorizeWeightTraining`은 정확한 불변 candidate/activation
+descriptor에 묶인 permit을 발급한다. permit 만료는 두 approval 만료 시각과
+approval 승인 시각의 최대 연령, run 생성 시각의 최대 연령, artifact provenance,
+모든 gate, 모든 activation 증적의 freshness deadline 중 가장 이른 시각이다.
+
+이 기능은 계약과 validator만 제공한다. 모델을 학습·예약·저장·승격·재로딩·롤백하지
+않으며 보호된 원본·승인·게이트·서명을 직접 검증하지 않는다. 파생 레포가 외부
+verifier, coordinator/lease 저장소, artifact registry와 서명 키, 제공자별 출력 가드
+및 통합 테스트를 구현해야 한다. 이 작업이 끝나고 경계에서 permit과 descriptor를
+검사하기 전에는 weight-training 명령을 공개하지 않는다.
+
 빠른 개선 순서는 다음과 같다.
 
 1. 바뀌지 않는 보류 질문과 기대 근거를 정한다.

@@ -123,7 +123,9 @@ export function evaluateReviewedBehaviorPack(
   const reviewed = batch.patterns.filter(
     (pattern): pattern is ReviewedPattern => pattern.status === "reviewed",
   );
-  const groups = new Set(reviewed.map(({ groupKey }) => groupKey));
+  const groups = new Set(
+    reviewed.map(({ groupKey }) => groupKey.normalize("NFC")),
+  );
   const languages = new Set(reviewed.map(({ language }) => language));
   const metrics = {
     groups: groups.size,
@@ -566,14 +568,15 @@ export function validatePatternBatch(
         patternId,
       });
     if (pattern.status === "reviewed") {
-      const existingSplit = groupSplits.get(pattern.groupKey);
+      const normalizedGroupKey = pattern.groupKey.normalize("NFC");
+      const existingSplit = groupSplits.get(normalizedGroupKey);
       if (existingSplit && existingSplit !== pattern.split)
         issues.push({
           code: "split-leakage",
           message: `Semantic group crosses ${existingSplit} and ${pattern.split}`,
           patternId,
         });
-      else groupSplits.set(pattern.groupKey, pattern.split);
+      else groupSplits.set(normalizedGroupKey, pattern.split);
     }
   }
   const reviewed = batch.patterns.filter(
@@ -591,7 +594,7 @@ export function validatePatternBatch(
       if (
         !right ||
         left.split === right.split ||
-        left.groupKey === right.groupKey ||
+        left.groupKey.normalize("NFC") === right.groupKey.normalize("NFC") ||
         left.language !== right.language
       )
         continue;
@@ -620,13 +623,32 @@ function stableHash(value: string) {
   return hash >>> 0;
 }
 
+/** Compares NFC-normalized Unicode code points without locale/ICU variance. */
+export function compareCanonicalText(left: string, right: string) {
+  const leftPoints = [...left.normalize("NFC")].map(
+    (value) => value.codePointAt(0) ?? 0,
+  );
+  const rightPoints = [...right.normalize("NFC")].map(
+    (value) => value.codePointAt(0) ?? 0,
+  );
+  const length = Math.min(leftPoints.length, rightPoints.length);
+  for (let index = 0; index < length; index += 1) {
+    const leftPoint = leftPoints[index] ?? 0;
+    const rightPoint = rightPoints[index] ?? 0;
+    if (leftPoint !== rightPoint) return leftPoint - rightPoint;
+  }
+  return leftPoints.length - rightPoints.length;
+}
+
 /** Assigns whole paraphrase groups to one split so near-duplicates cannot leak. */
 export function assignDeterministicSplits<T extends { groupKey: string }>(
   patterns: readonly T[],
 ): Array<T & { split: PatternSplit }> {
-  const groups = [...new Set(patterns.map(({ groupKey }) => groupKey))].sort(
+  const groups = [
+    ...new Set(patterns.map(({ groupKey }) => groupKey.normalize("NFC"))),
+  ].sort(
     (left, right) =>
-      stableHash(left) - stableHash(right) || left.localeCompare(right),
+      stableHash(left) - stableHash(right) || compareCanonicalText(left, right),
   );
   if (groups.length < 6)
     throw new Error("At least six distinct pattern groups are required");
@@ -644,7 +666,7 @@ export function assignDeterministicSplits<T extends { groupKey: string }>(
   });
   return patterns.map((pattern) => ({
     ...pattern,
-    split: splitByGroup.get(pattern.groupKey) ?? "train",
+    split: splitByGroup.get(pattern.groupKey.normalize("NFC")) ?? "train",
   }));
 }
 
@@ -711,3 +733,5 @@ export function exportReviewedTrainingJsonl(batch: PatternBatch) {
     )
     .join("\n");
 }
+
+export * from "./weight-training";

@@ -57,6 +57,51 @@ card로 직접 표시한다. 이 응답은 모델 context와 대화 history 밖�
 “구매자 연락처 열기”는 별도 permission이 필요한 UI 동작이며, 모델 tool의 상세 조회
 형태로 구현하지 않는다.
 
+### 애플리케이션 준비성 게이트
+
+provider-neutral `@arlequins/agent-core` 패키지는
+`assertExactPersonalDataSourceReady`와 `authorizeExactPersonalDataSource`를
+제공한다. 파생 애플리케이션은 정확한 개인정보 source를 등록하기 직전에 명시적인
+준비성 계약을 이 게이트에 전달해야 한다. 계약은 다음을 모두 요구한다.
+
+- `non-model` transport를 사용하고 모델 context에서 제외된 versioned 구조화 UI route와
+  `data-owner`, `privacy-owner`, `security-reviewer` 중 하나의 승인 역할, approval ID·
+  subject·source binding·policy version·날짜·route/version 증거;
+- 보존기간 상한과 짧고 제한된 UI cache 기간;
+- 식별된 deletion workflow를 가진 provider-neutral 삭제 port;
+- 90일보다 오래되지 않고 재검토 기한이 365일 이내인 최신 access review;
+- 365일보다 오래되지 않으며 제한된 미래 만료일이 있는 긍정 상태·날짜 기록의
+  privacy-owner acceptance와 acceptance ID·subject·source binding·policy version·role
+  증거.
+
+계약은 `ExactPersonalDataApprovalVerifierPort`를 주입해야 하며 템플릿에는 기본 verifier가
+없다. verifier는 두 승인 기록을 확인한 뒤 정확히 일치하는 증거를 반환하거나 `false`를
+반환해야 한다. false, 예외, identity·role·source·route/version·policy version·날짜가
+일치하지 않는 결과는 fail-closed로 거부한다.
+
+검증기는 `unknown` 설정을 받아 누락, 잘못된 형식, 미래 날짜, 만료된 증거를
+fail-closed로 거부한다. 기본 활성화나 인자가 없는 경로는 없다. 승인에 성공하면
+동결된 모듈 발급 opaque permit과 immutable registration descriptor를 반환한다. 파생 source
+등록 경계는 두 값을 `assertExactPersonalDataAuthorizationPermit`에 전달하고, 반환된
+descriptor snapshot만 사용해야 한다. 따라서 등록 코드가 변경 가능한 readiness 객체를
+다시 읽지 않는다. snapshot은 삭제 함수 identity를 보존하고 UI route/version과 만료 증거에
+permit을 결합한다. 복사·위조 permit이나 다른 계약은 거부되지만, 템플릿이 파생 개발자가
+API를 우회하는 것까지 막을 수는 없다. 따라서 code review와 integration test가 여전히
+필요하다.
+
+모든 계약 날짜는 canonical RFC3339 UTC 형식인
+`YYYY-MM-DDTHH:mm:ss.sssZ`를 사용해야 한다. timezone이 없거나 locale 형식이거나
+offset을 사용하거나 달력 날짜가 자동 보정된 값은 거부한다. access review는 최대
+90일 이내에 수행되어야 하고 재검토 기한은 365일 이내여야 한다. privacy-owner
+acceptance는 최대 365일 이내의 것이어야 하며 365일을 넘지 않는 미래 만료일이 있어야
+한다. 구조화 UI 승인은 최대 90일 이내의 것이어야 하며 만료일은 365일을 넘을 수 없다.
+
+삭제 port는 인증된 actor의 tenant·workspace context와 명시적 purpose를 함께 받는다.
+파생 저장소는 integration test로 삭제가 멱등적이고 감사 가능하며 승인된 모든 복사본에
+전파되고 모델 allowlist를 통해 source가 노출되지 않음을 증명해야 한다. 게이트를 통과해도
+정확한 값이 모델 context, 대화 history, 로그, feedback, 평가 또는 튜닝 export로
+들어가서는 안 된다.
+
 ## Bedrock Guardrail 연결
 
 아래 두 값을 모두 설정하면 버전이 지정된 기존 Bedrock Guardrail을 모든 Converse
@@ -127,6 +172,10 @@ AWS도 Bedrock custom model 학습 데이터에 같은 주의를 명시한다.
 - [ ] schema drift와 선언되지 않은 column은 fail-closed로 실패한다.
 - [ ] 개인정보 결과는 마스킹되고 ephemeral이며 감사 입력 요약에 남지 않는다.
 - [ ] 정확한 개인정보는 모델을 거치지 않는 구조화된 UI에서만 표시한다.
+- [ ] source를 활성화하기 직전에 agent-core 정확한 개인정보 준비성 게이트를 통과한다.
+- [x] 템플릿 primitive가 최신 versioned 구조화 UI 승인과 정확한 준비성 snapshot에
+      결합된 opaque authorization permit, 등록 경계 assertion을 제공하며 파생 코드가
+      이를 사용한다.
 - [ ] Bedrock Guardrail 입력·출력 정책과 최소 권한 IAM을 설정하고 테스트했다.
 - [ ] model invocation logging을 끄거나 별도 보호·승인했다.
 - [ ] 교차 tenant, prompt injection, history·field 누출, MCP/tool 권한 테스트가 통과한다.

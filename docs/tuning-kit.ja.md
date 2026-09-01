@@ -75,6 +75,34 @@ embedding 監査を置き換えるものではない。
 ホールドアウト評価、反復・未裏付け主張ガード、原子的昇格、再読み込み、ロールバックを
 別途実装する。
 
+### プロバイダー中立のweight-training契約
+
+パッケージは、派生学生モデルパイプライン向けのdefault-deny契約も提供する。
+`createTrainingDatasetIdentity` は保護された元データverifierを必須とし、localeに
+依存しないNFC/code-point順でレビュー済みバッチを正規化する。train JSONL、元データ
+bytes、各splitの全内容を結ぶmodule発行のfrozen identityを返す。
+`validateWeightTrainingRunSpec` は外部dataset/privacy/license証拠verifier、正確な
+base model・trainer hash、制限されたコスト・時間・同時実行数・lease、canonicalな
+run identityから生成したidempotency keyを必須にする。
+
+`authorizeWeightTrainingCandidate` は全ゲートに外部証拠verifierを適用し、各証拠を正確な
+run・dataset・base・trainer・artifactへ結び付ける。content-addressedなartifact
+locator/version、artifact/manifest hash、完全なprovenance、strictな署名検証を必須にする。
+保護されたartifact resolverは不変のartifact bytes、manifest bytes、registry identityを
+必ず返し、パッケージは両方のSHA-256を再計算してから、凍結したmetadata/bytes snapshotを
+署名verifierへ渡す。hash関数はNode標準ライブラリのSHA-256を使い、呼び出し側から注入できない。
+`assertWeightTrainingActivationReady` はreload後の提供artifact一致、新鮮で時系列順の証拠、
+別のrollback対象、完全なアプリケーションRAG replayを要求する。
+`authorizeWeightTraining` は不変のcandidate/activation descriptorに結び付いたpermitを発行する。
+permitの期限は、両approvalの期限とartifact provenance、全gate、全activation証拠のfreshness
+deadlineに加え、approval承認時刻とrun作成時刻の最大経過期限も含めた中で、最も早い時刻である。
+
+これは契約とvalidatorだけを提供する。モデルの学習、スケジュール、保存、昇格、
+reload、rollbackは行わず、元データ・承認・ゲート・署名を直接検証しない。派生レポが
+外部verifier、coordinator/leaseストア、artifact registryと署名鍵、プロバイダー固有の
+出力ガード、統合テストを実装する必要がある。完了して境界でpermitとdescriptorを検証する
+までは、weight-trainingコマンドを公開してはならない。
+
 推奨ループは、固定ホールドアウトの作成、Luna候補生成、人による根拠レビュー、
 `pnpm tuning:patterns:verify`、基本モデルとの比較、必要時のみ学生モデル学習、そして
 RAG・引用・プライバシー・遅延・反復ゲート通過後の昇格である。これにより、ユーザーの

@@ -115,9 +115,22 @@ its related code, tests, environment variables, and documentation.
   popup/token handoff design; derived apps own the host integration.
 - [x] Provider-neutral pipeline failure notifier with recursive credential and
   personal-data redaction before logs or external alert adapters.
-- [ ] A production profile that needs exact personal values must provide a
-  separately authorized non-model structured UI, retention/deletion controls,
-  access review, and privacy-owner acceptance before enabling the data source.
+- [x] A provider-neutral exact-personal-data readiness contract and
+  module-issued authorization permit fail closed unless a separately
+  authorized, versioned non-model structured UI with a valid approver role,
+  verified approval evidence, bounded retention, deletion workflow, current
+  access review, and privacy-owner acceptance are present. Authorization returns
+  an immutable registration descriptor and the permit is bound to its snapshot;
+  no exact-personal-data source is enabled by default.
+- [ ] A derived production profile that needs exact personal values has
+  supplied evidence for the structured UI, retention/deletion controls,
+  access-review operation, privacy-owner acceptance, and integration tests
+  before enabling its data source.
+- [x] Provider-neutral weight-training dataset, external approval/evidence
+  verifier, artifact, evaluation, reload, readiness, rollback, and
+  application-replay contracts fail closed;
+  the template ships no trainer, scheduler, model server, artifact store, or
+  weight-promotion operation.
 - [ ] A generated repository that enables weight training must add its own
   trainer, output guard, scheduler, promotion, and rollback implementation
   around the reviewed exporter before advertising weight-tuning commands.
