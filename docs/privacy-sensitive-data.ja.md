@@ -56,6 +56,50 @@ tool loopは、結果を会話history、memory、feedback、評価、チュー�
 例えば「今週販売した車両」は車両ID、モデル、販売時刻をモデルに渡せます。「購入者の
 連絡先を開く」は別permissionのUI操作であり、モデルtoolの詳細照会にはしません。
 
+### アプリケーション準備ゲート
+
+provider-neutralな`@arlequins/agent-core`パッケージは
+`assertExactPersonalDataSourceReady`と`authorizeExactPersonalDataSource`を提供します。
+派生アプリケーションは、正確な個人情報sourceを登録する直前に明示的な準備契約を
+このゲートへ渡してください。契約は次をすべて要求します。
+
+- `non-model` transportでmodel contextから除外されたversion付き構造化UI routeと、
+  `data-owner`、`privacy-owner`、`security-reviewer`のいずれかの承認役割、approval ID・
+  subject・source binding・policy version・日時・route/versionの証跡;
+- 保持期間の上限と、短く制限されたUI cache期間;
+- 識別済みのdeletion workflowを持つprovider-neutral削除port;
+- 90日以内にレビューされ、次回期限が365日以内である最新のaccess review;
+- 365日以内の承認で、制限された将来の有効期限を持つprivacy-owner acceptanceと、
+  acceptance ID・subject・source binding・policy version・roleの証跡。
+
+契約には`ExactPersonalDataApprovalVerifierPort`を注入しなければならず、テンプレートに
+デフォルトverifierはありません。verifierは両方の承認記録を確認して完全一致する証跡を
+返すか`false`を返します。false、例外、identity・role・source・route/version・policy
+version・日時の不一致はfail-closedで拒否します。
+
+validatorは`unknown`設定を受け取り、欠落・不正形式・未来日付・期限切れの証跡を
+fail-closedで拒否します。デフォルト有効化や引数なしの経路はありません。承認に成功
+すると、凍結されたモジュール発行のopaque permitとimmutable registration descriptorを
+返します。派生source登録境界は両方を`assertExactPersonalDataAuthorizationPermit`へ渡し、
+返されたdescriptor snapshotだけを使用してください。これにより登録コードは変更可能な
+readinessオブジェクトを再読しません。snapshotは削除関数identityを保持し、UI route/version
+と期限の証跡にpermitを結合します。コピー・偽造permitや別契約は拒否されますが、テンプレート
+が派生開発者によるAPIの迂回まで防ぐことはできません。そのため、code reviewとintegration
+testが引き続き必要です。
+
+すべての契約日時はcanonical RFC3339 UTC形式
+`YYYY-MM-DDTHH:mm:ss.sssZ`でなければなりません。timezoneなし、locale形式、offset、
+カレンダーによって自動補正された日付は拒否します。access reviewは90日以内に行い、
+次回期限は365日以内でなければなりません。privacy-owner acceptanceは365日以内の
+承認で、365日を超えない将来の有効期限が必要です。
+構造化UI承認は90日以内の承認で、有効期限は365日以内でなければなりません。
+
+削除portは認証済みactorのtenant・workspace contextと明示的なpurposeを受け取ります。
+派生リポジトリはintegration testで、削除が冪等で監査可能であり、承認されたすべての
+複製へ伝播し、model allowlistからsourceが露出しないことを証明してください。ゲート
+通過後も、正確な値をmodel context、会話history、ログ、feedback、評価または
+チューニングexportへ入れてはいけません。
+
 ## Bedrock Guardrail連携
 
 次の2値を両方設定すると、version指定済みの既存Bedrock Guardrailをすべての
@@ -126,6 +170,10 @@ AWSもBedrock custom modelの学習データについて同じ注意を示して
 - [ ] schema driftと未宣言columnはfail-closedで失敗する。
 - [ ] 個人情報結果はmask、ephemeralで、監査入力概要に残らない。
 - [ ] 正確な個人値はモデルを通らない構造化UIだけで表示する。
+- [ ] sourceを有効化する直前にagent-coreの正確な個人情報準備ゲートを通過する。
+- [x] テンプレートprimitiveが最新のversion付き構造化UI承認と正確な準備snapshotに
+      結合されたopaque authorization permit、登録境界assertionを発行し、派生コードが
+      それを使用する。
 - [ ] Bedrock Guardrail入出力方針と最小権限IAMを設定・テストした。
 - [ ] model invocation loggingを無効化、または別途保護・承認した。
 - [ ] tenant越境、prompt injection、history・field漏えい、MCP/tool認可テストが通る。

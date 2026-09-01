@@ -44,6 +44,16 @@ Use `pnpm derived:qualify -- --full` after local services are available to run
 the complete test suite as the final handoff check. The command stops on the
 first failure and never changes source, data, or model files.
 
+If the derived repository adds weight training, qualify its provider-neutral
+`@arlequins/tuning-kit` dataset, candidate, and activation contracts before
+adding a user-facing command. Qualification must supply mandatory external
+verifiers and show immutable dataset and artifact identities, fresh privacy and
+license approvals, bounded
+budget/concurrency/idempotency behavior, signature and provenance verification,
+post-reload readiness, a distinct rollback target, and a full application RAG
+replay. These contracts do not provide a trainer, scheduler, model server, or
+promotion operation; those remain derived implementation and test work.
+
 Then initialize its Git history, configure branch protection and Release
 Please, and replace example ownership, domains, OIDC clients, IAM roles, and
 incident contacts. Do not copy a real `.env`, database export, source snapshot,
@@ -70,6 +80,12 @@ Load these only from ignored local paths or protected infrastructure:
 - API keys, OIDC secrets, encryption keys, and AWS role values; and
 - model weights and LoRA adapters unless their licenses and contents have been
   explicitly approved for publication.
+
+Weight-training manifests, signatures, checkpoints, candidate reports, and
+activation evidence belong in the protected private layer. A public repository
+may keep only synthetic fixtures and contract tests; never commit private
+questions, source excerpts, reviewer approvals, model artifacts, or signed
+provenance manifests.
 
 The synthetic pilot in [`examples/pilot`](../examples/pilot) is the replacement
 guide: preserve its shapes and tests while replacing its data adapters and

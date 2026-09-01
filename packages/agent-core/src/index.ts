@@ -55,6 +55,31 @@ export type {
   VectorIndexPort,
 } from "./ports";
 export { redactSensitiveRecord, redactSensitiveText } from "./privacy";
+export type {
+  ExactPersonalDataApprovalVerifierPort,
+  ExactPersonalDataAuthorizationPermit,
+  ExactPersonalDataDeletionPort,
+  ExactPersonalDataEnablement,
+  ExactPersonalDataPrivacyOwnerAcceptanceEvidence,
+  ExactPersonalDataReadiness,
+  ExactPersonalDataRegistrationDescriptor,
+  ExactPersonalDataStructuredUiApprovalEvidence,
+  ExactPersonalDataStructuredUiApproverRole,
+  ExactPersonalDataStructuredUiContract,
+} from "./privacy-readiness";
+export {
+  assertExactPersonalDataAuthorizationPermit,
+  assertExactPersonalDataSourceReady,
+  authorizeExactPersonalDataSource,
+  MAX_EXACT_PERSONAL_DATA_ACCESS_REVIEW_AGE_DAYS,
+  MAX_EXACT_PERSONAL_DATA_ACCESS_REVIEW_HORIZON_DAYS,
+  MAX_EXACT_PERSONAL_DATA_CACHE_MINUTES,
+  MAX_EXACT_PERSONAL_DATA_PRIVACY_OWNER_ACCEPTANCE_AGE_DAYS,
+  MAX_EXACT_PERSONAL_DATA_PRIVACY_OWNER_ACCEPTANCE_HORIZON_DAYS,
+  MAX_EXACT_PERSONAL_DATA_RETENTION_DAYS,
+  MAX_EXACT_PERSONAL_DATA_STRUCTURED_UI_APPROVAL_AGE_DAYS,
+  MAX_EXACT_PERSONAL_DATA_STRUCTURED_UI_APPROVAL_HORIZON_DAYS,
+} from "./privacy-readiness";
 export type { RetentionPolicy } from "./retention";
 export { isExpired, validateRetentionPolicy } from "./retention";
 export { createAgentRuntime } from "./runtime";

@@ -178,6 +178,41 @@ until the corresponding implementation and tests are present. The template's
 current baseline remains reviewed patterns, provider-neutral evaluation, and
 RAG—not automatic weight training.
 
+## Provider-neutral weight-training contract
+
+`@arlequins/tuning-kit` provides pure, default-deny evidence contracts for the
+optional weight-training stage. `createTrainingDatasetIdentity` requires an
+external protected-source verifier, canonicalizes a quality-gated reviewed
+batch with NFC/code-point ordering, and returns a module-issued frozen identity
+that binds train JSONL, source bytes, and full content for every split to
+SHA-256 identities. `validateWeightTrainingRunSpec` requires external dataset,
+privacy, and license verification; exact base-model, trainer-code, and
+trainer-config digests; bounded cost, duration, concurrency, and lease values;
+and a canonical run-identity idempotency key.
+
+`authorizeWeightTrainingCandidate` snapshots and deep-freezes the candidate,
+requires content-addressed artifact locator/version and artifact/manifest
+hashes, a mandatory protected artifact resolver that returns immutable artifact
+and manifest bytes with registry identity, strict external signature
+verification over the frozen metadata/bytes snapshot, and matching full provenance, and
+an external verifier for every evaluation gate. Each gate binds the exact run,
+dataset, base weights, trainer config, and artifact. The gate set includes split
+integrity, held-out evidence, citation, unsupported claims, repetition,
+language, privacy, authorization, latency, and cost. `assertWeightTrainingActivationReady`
+then binds the served artifact to the candidate after reload, checks freshness
+and chronological ordering, requires a distinct available rollback target, and
+requires a passing full application RAG/citation replay. `authorizeWeightTraining`
+issues a permit only with an exact immutable candidate/activation descriptor.
+Its expiry is the minimum of explicit approval expiry, approval/run age
+deadlines, and artifact, gate, and activation evidence freshness deadlines.
+
+This contract does not train, schedule, persist, promote, reload, or roll back a
+model. It does not verify signatures or protected-source evidence itself; the
+derived repository supplies cryptographic and approval verifiers. A derived
+implementation must enforce the idempotency key and concurrency lease, keep
+artifacts in a protected immutable registry, and perform the operations
+represented by the evidence before advertising a weight-training command.
+
 ## AWS adaptation
 
 MLX is Apple-Silicon-specific. An EC2 implementation needs a Linux/NVIDIA model
@@ -218,3 +253,11 @@ it is not a general host for an arbitrary MLX model:
 - [ ] Full RAG answers and citations are replayed after model promotion.
 - [ ] Private artifacts are ignored and absent from commits and CI logs.
 - [ ] Mac and AWS runtimes are treated as separate qualified profiles.
+- [ ] Dataset, base model, trainer code/config, and artifact identities are
+      immutable and cryptographically recorded.
+- [ ] Privacy and license approvals are fresh, explicit, and bound to the run.
+- [ ] Budget, concurrency lease, and deterministic idempotency behavior are
+      enforced by the derived coordinator.
+- [ ] Artifact signature/provenance verification, post-reload readiness,
+      distinct rollback, and application replay evidence are required before
+      activation.

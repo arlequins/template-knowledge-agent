@@ -16,8 +16,8 @@ local application; the pages below explain design decisions and ongoing work.
    and what different fine-tuning windows can and cannot change.
 3. **[Luna-assisted document-QA tuning kit](tuning-kit.md)**
    ([한국어](tuning-kit.ko.md) · [日本語](tuning-kit.ja.md)) provides safe
-   synthetic patterns, immediate reviewed few-shot behavior, and local-student
-   training exports.
+   synthetic patterns, immediate reviewed few-shot behavior, local-student
+   training exports, and a provider-neutral default-deny readiness contract.
 4. [Application architecture](architecture.md) explains workspace boundaries
    and the browser-to-storage request flow.
 5. [Knowledge agent platform](agent-platform.md) explains project, official,

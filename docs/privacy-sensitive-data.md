@@ -64,6 +64,59 @@ For example, “show vehicles sold this week” can give the model vehicle ID,
 model, and sale time. “Open the buyer contact” is a separate UI action with a
 separate permission; it is not a more detailed version of the model tool.
 
+### Application readiness gate
+
+The provider-neutral `@arlequins/agent-core` package exports
+`assertExactPersonalDataSourceReady` and
+`authorizeExactPersonalDataSource`. A derived application must pass an
+explicit readiness contract through this gate immediately before registering
+an exact-personal-data source. The contract requires all of the following:
+
+- a versioned structured UI route explicitly authorized for `non-model`
+  transport, excluded from model context, and approved by a recognized
+  data-owner, privacy-owner, or security-reviewer role, with approval ID,
+  subject, source binding, policy version, timestamps, and route/version
+  evidence;
+- a bounded maximum retention period and a short, bounded UI-cache period;
+- a provider-neutral deletion port with an identified workflow;
+- a current access review no older than 90 days, with a due date no more than
+  365 days ahead; and
+- an affirmative, dated privacy-owner acceptance that is no older than 365 days
+  and has a bounded, future expiry, with acceptance ID, subject, source binding,
+  policy version, role, and timestamps.
+
+The contract must inject an `ExactPersonalDataApprovalVerifierPort`; the
+template has no default verifier. It must verify both approval records and
+return the exact evidence, or `false`; a false result, thrown error, or any
+identity, role, source, route/version, policy-version, or timestamp mismatch
+fails closed.
+
+The validator accepts `unknown` configuration and rejects missing, malformed,
+future-dated, or expired evidence. There is no default-enabled or zero-argument
+path. Successful authorization returns a frozen, module-issued opaque permit
+and an immutable registration descriptor. The derived source-registration
+boundary must pass both to `assertExactPersonalDataAuthorizationPermit`, which
+returns the descriptor snapshot to use. Registration code therefore does not
+re-read a mutable readiness object. The snapshot preserves the deletion
+function identity and binds the permit to its UI route/version and expiry
+evidence. This catches copied, fabricated, or cross-contract permits; the
+template cannot stop a derived developer from bypassing its API, so code review
+and integration tests remain required.
+
+All contract timestamps must use canonical RFC3339 UTC form
+`YYYY-MM-DDTHH:mm:ss.sssZ`; timezone-less, locale-formatted, offset, and
+calendar-normalized dates are rejected. Access reviews are at most 90 days old
+and due within 365 days. Privacy-owner acceptance is at most 365 days old and
+must have a future expiry no more than 365 days ahead. Structured UI approvals
+are at most 90 days old and their expiry is no more than 365 days ahead.
+
+The deletion port receives an authenticated actor with tenant and workspace
+context plus an explicit purpose. The derived repository must prove in
+integration tests that deletion is idempotent, auditable, propagates to every
+approved copy, and never exposes the source through the model allowlist. Passing
+the gate does not permit exact values to enter model context, conversation
+history, logs, feedback, evaluation, or tuning exports.
+
 ## Bedrock Guardrail integration
 
 Set both values to attach an existing versioned Bedrock Guardrail to every
@@ -140,6 +193,11 @@ AWS gives the same warning for Bedrock custom-model training data:
 - [ ] Personal capability results are masked, ephemeral, and absent from audit
       input summaries.
 - [ ] Exact personal values use a non-model structured UI path.
+- [ ] The application passes the agent-core exact-personal-data readiness gate
+      immediately before enabling the source.
+- [x] The template primitive validates fresh, versioned structured-UI approval,
+      issues an opaque permit bound to the exact readiness snapshot, and
+      exposes a registration-boundary assertion; derived code must use it.
 - [ ] Bedrock Guardrail input/output policies and least-privilege IAM are
       configured and tested.
 - [ ] Model invocation logging is disabled or separately protected and approved.

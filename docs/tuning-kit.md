@@ -113,6 +113,45 @@ Never use the validation or test split for gradient updates, hyperparameter
 choice, behavior-pack prompting, or retry selection. A lower training loss is
 not proof that document answers improved.
 
+### Provider-neutral weight-training contract
+
+The package also exports a default-deny contract for a derived student-model
+pipeline. `createTrainingDatasetIdentity` requires a protected-source verifier,
+canonicalizes the reviewed batch with locale-independent NFC/code-point order,
+and returns a module-issued frozen identity for the train JSONL, source batch,
+and full content of each split. It rejects quality failures before any export.
+`validateWeightTrainingRunSpec` is asynchronous and requires external dataset,
+privacy, and license evidence verifiers, exact base-model and trainer digests,
+bounded cost/duration/concurrency/lease values, and an idempotency key derived
+from the canonical run identity.
+
+`authorizeWeightTrainingCandidate` snapshots the candidate and validates the
+complete gate set (each gate has an external verifier and exact run, dataset,
+base, trainer, and artifact bindings), checks a content-addressed artifact
+locator/version (`protected://sha256/<artifactSha256>` and
+`sha256-<artifactSha256>`). A mandatory protected artifact resolver must return
+immutable artifact and manifest bytes plus the registry identity; the package
+recomputes both SHA-256 values before passing a frozen metadata/bytes snapshot
+to the strict external signature verifier. Artifact provenance includes the
+full run-spec, model, quantization, trainer-config, source, and manifest
+digests. Hashes use the package's Node standard-library SHA-256 implementation;
+callers cannot inject a hash function.
+`assertWeightTrainingActivationReady` requires the served artifact to match the
+candidate after reload, chronologically ordered fresh evidence, a distinct
+available rollback target, and a passing full application RAG replay.
+`authorizeWeightTraining` returns a descriptor-bound opaque permit, and the
+registration boundary must assert both exact values. Permit expiry is the
+earliest explicit approval expiry, approval-age deadline, run-creation-age
+deadline, or freshness deadline for artifact provenance, every gate, and every
+activation observation.
+
+These are pure contracts and validators. They do not train, schedule, store,
+promote, reload, or roll back a model. A derived repository still owns those
+operations, its coordinator/lease store, artifact registry and signing keys,
+provider-specific output guards, and integration tests. Do not advertise a
+weight-training command from a generated repository until those operations are
+implemented and the permit is checked at its boundary.
+
 ## Fast qualification loop
 
 1. Keep a stable held-out question and expected evidence.
