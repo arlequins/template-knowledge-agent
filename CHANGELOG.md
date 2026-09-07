@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.17.0...v1.18.0) (2026-09-07)
+
+
+### Features
+
+* **template:** add agent conformance platform ([#86](https://github.com/arlequins/template-knowledge-agent/issues/86)) ([8a6be29](https://github.com/arlequins/template-knowledge-agent/commit/8a6be293707d36b43f2ab9271547c69015bba410))
+
+
+### Bug Fixes
+
+* **template:** decouple API tests from release version ([#88](https://github.com/arlequins/template-knowledge-agent/issues/88)) ([552b4d0](https://github.com/arlequins/template-knowledge-agent/commit/552b4d022de8f78200cd7160ebebaf274da17eb0))
+
 ## [1.17.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.16.1...v1.17.0) (2026-09-01)
 
 
