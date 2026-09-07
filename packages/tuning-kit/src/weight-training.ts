@@ -1,11 +1,8 @@
 import { createHash } from "node:crypto";
 
-import {
-  compareCanonicalText,
-  evaluateReviewedBehaviorPack,
-  type PatternBatch,
-  type ReviewedPattern,
-} from "./index";
+import { compareCanonicalText } from "./canonical-text";
+import type { PatternBatch, ReviewedPattern } from "./index";
+import { evaluateReviewedPatternBatch } from "./reviewed-pattern-evaluation";
 
 export const WEIGHT_TRAINING_GATES = [
   "split-integrity",
@@ -187,6 +184,39 @@ export type WeightTrainingValidationReport = Readonly<{
   issues: readonly WeightTrainingIssue[];
   passed: boolean;
 }>;
+
+const CONTRACT_REJECTION_TOKEN = {};
+const OWNED_REJECTIONS = new WeakSet<object>();
+
+/** Stable, machine-checkable rejection emitted by public contract assertions. */
+export class WeightTrainingContractRejection extends Error {
+  readonly code = "weight-training-rejection" as const;
+
+  private constructor(message: string, token: object) {
+    if (token !== CONTRACT_REJECTION_TOKEN)
+      throw new Error("WeightTrainingContractRejection is not constructible");
+    super(message);
+    this.name = "WeightTrainingContractRejection";
+    OWNED_REJECTIONS.add(this);
+  }
+}
+
+function contractRejection(message: string) {
+  const RejectionConstructor =
+    WeightTrainingContractRejection as unknown as new (
+      message: string,
+      token: object,
+    ) => WeightTrainingContractRejection;
+  return new RejectionConstructor(message, CONTRACT_REJECTION_TOKEN);
+}
+
+export function isWeightTrainingContractRejection(
+  value: unknown,
+): value is WeightTrainingContractRejection {
+  return (
+    typeof value === "object" && value !== null && OWNED_REJECTIONS.has(value)
+  );
+}
 
 export type TrainingDatasetIdentityVerifierPort = {
   verify(input: {
@@ -438,10 +468,10 @@ export async function createTrainingDatasetIdentity(input: {
   sourceId: string;
 }): Promise<{ identity: TrainingDatasetIdentity; jsonl: string }> {
   if (!isText(input.sourceId, 256))
-    throw new Error("Dataset sourceId is required");
-  const evaluation = evaluateReviewedBehaviorPack(input.batch);
+    throw contractRejection("Dataset sourceId is required");
+  const evaluation = evaluateReviewedPatternBatch(input.batch);
   if (!evaluation.passed)
-    throw new Error(
+    throw contractRejection(
       `Training dataset failed quality gates: ${evaluation.issues[0]?.message}`,
     );
   const allPatterns = sortedById(input.batch.patterns);
@@ -496,10 +526,12 @@ export async function createTrainingDatasetIdentity(input: {
       sourceId: identity.sourceId,
     });
   } catch {
-    throw new Error("Dataset identity verifier failed");
+    throw contractRejection("Dataset identity verifier failed");
   }
   if (verified !== true)
-    throw new Error("Dataset identity verifier rejected the protected source");
+    throw contractRejection(
+      "Dataset identity verifier rejected the protected source",
+    );
   OWNED_IDENTITIES.add(identity);
   IDENTITY_METADATA.set(identity, {
     canonicalSourceBytes,
@@ -1132,37 +1164,53 @@ async function resolveArtifactContent(
   options: WeightTrainingContractOptions,
   issues: WeightTrainingIssue[],
 ) {
+  let resolved: WeightTrainingArtifactResolution;
   try {
-    const resolved = await options.artifactResolver.resolve({
+    resolved = await options.artifactResolver.resolve({
       artifact,
       canonicalArtifactBytes,
     });
     recordClockAfterAwait(issues, options);
-    if (!isRecord(resolved)) throw new Error("resolution is not an object");
-    const artifactBytes = freezeBytes(resolved.artifactBytes);
-    const manifestBytes = freezeBytes(resolved.manifestBytes);
-    if (
-      !artifactBytes ||
-      !manifestBytes ||
-      resolved.registryId !== artifact.registryId
-    )
-      throw new Error("protected artifact metadata does not match");
-    if (
-      digestBytes(artifactBytes) !== artifact.artifactSha256 ||
-      digestBytes(manifestBytes) !== artifact.manifestSha256
-    )
-      throw new Error("protected artifact bytes do not match declared hashes");
-    return { artifactBytes, manifestBytes, registryId: artifact.registryId };
   } catch {
+    throw new Error("Protected artifact resolver failed");
+  }
+  if (!isRecord(resolved)) {
     issue(
       issues,
       "artifact-invalid",
-      "Protected artifact and manifest bytes failed immutable content verification",
+      "Protected artifact resolution is not an object",
       "artifact",
     );
-    recordClockAfterAwait(issues, options);
     return undefined;
   }
+  const artifactBytes = freezeBytes(resolved.artifactBytes);
+  const manifestBytes = freezeBytes(resolved.manifestBytes);
+  if (
+    !artifactBytes ||
+    !manifestBytes ||
+    resolved.registryId !== artifact.registryId
+  ) {
+    issue(
+      issues,
+      "artifact-invalid",
+      "Protected artifact metadata does not match",
+      "artifact",
+    );
+    return undefined;
+  }
+  if (
+    digestBytes(artifactBytes) !== artifact.artifactSha256 ||
+    digestBytes(manifestBytes) !== artifact.manifestSha256
+  ) {
+    issue(
+      issues,
+      "artifact-invalid",
+      "Protected artifact bytes do not match declared hashes",
+      "artifact",
+    );
+    return undefined;
+  }
+  return { artifactBytes, manifestBytes, registryId: artifact.registryId };
 }
 
 async function verifyGates(
@@ -1269,21 +1317,21 @@ export async function authorizeWeightTrainingCandidate(
   const issues: WeightTrainingIssue[] = [];
   if (!isRecord(value)) {
     issue(issues, "candidate-invalid", "Candidate is required");
-    throw new Error(
+    throw contractRejection(
       `Weight-training candidate rejected: ${issues[0]?.message}`,
     );
   }
   const structural = structuralRunValidation(value.spec, options);
   issues.push(...structural.issues);
   if (issues.length > 0)
-    throw new Error(
+    throw contractRejection(
       `Weight-training candidate rejected: ${issues[0]?.message}`,
     );
   const snapshot = cloneCandidate(value);
   const report = await validateWeightTrainingRunSpec(snapshot.spec, options);
   issues.push(...report.issues);
   if (issues.length > 0)
-    throw new Error(
+    throw contractRejection(
       `Weight-training candidate rejected: ${issues[0]?.message}`,
     );
   const now = currentNow(options);
@@ -1381,7 +1429,7 @@ export async function authorizeWeightTrainingCandidate(
     issues.push(...postVerificationIssues);
   }
   if (issues.length > 0)
-    throw new Error(
+    throw contractRejection(
       `Weight-training candidate rejected: ${issues[0]?.message}`,
     );
   OWNED_CANDIDATES.add(snapshot);
@@ -1407,7 +1455,7 @@ function activationIssues(
   const active = value.active;
   const reload = value.reload;
   const rollback = value.rollback;
-  const replay = value.applicationReplay;
+  const replayEvidence = value.applicationReplay;
   if (
     !isRecord(active) ||
     active.artifactSha256 !== artifactSha256 ||
@@ -1450,13 +1498,17 @@ function activationIssues(
       "rollback",
     );
   if (
-    !isRecord(replay) ||
-    replay.passed !== true ||
-    replay.artifactSha256 !== artifactSha256 ||
-    replay.runId !== runId ||
-    !/^application-rag-citation-v\d+$/u.test(String(replay.suiteId)) ||
-    !isSha256(replay.reportSha256) ||
-    !validateDate(issues, replay.completedAt, "applicationReplay.completedAt")
+    !isRecord(replayEvidence) ||
+    replayEvidence.passed !== true ||
+    replayEvidence.artifactSha256 !== artifactSha256 ||
+    replayEvidence.runId !== runId ||
+    !/^application-rag-citation-v\d+$/u.test(String(replayEvidence.suiteId)) ||
+    !isSha256(replayEvidence.reportSha256) ||
+    !validateDate(
+      issues,
+      replayEvidence.completedAt,
+      "applicationReplay.completedAt",
+    )
   )
     issue(
       issues,
@@ -1468,13 +1520,13 @@ function activationIssues(
     isRecord(active) &&
     isRecord(reload) &&
     isRecord(rollback) &&
-    isRecord(replay)
+    isRecord(replayEvidence)
   ) {
     const dates = [
       Date.parse(candidate.spec.createdAt),
       Date.parse(candidate.artifact.provenance.createdAt),
       Date.parse(reload.readyAt as string),
-      Date.parse(replay.completedAt as string),
+      Date.parse(replayEvidence.completedAt as string),
       Date.parse(rollback.verifiedAt as string),
       Date.parse(active.observedAt as string),
     ];
@@ -1506,7 +1558,7 @@ export function assertWeightTrainingActivationReady(
   options: { now?: () => Date } = {},
 ): asserts value is WeightTrainingActivation {
   if (!OWNED_CANDIDATES.has(candidate))
-    throw new Error(
+    throw contractRejection(
       "Weight-training activation requires a module-authorized candidate",
     );
   const issues = activationIssues(
@@ -1515,7 +1567,7 @@ export function assertWeightTrainingActivationReady(
     (options.now?.() ?? new Date()).getTime(),
   );
   if (issues.length > 0)
-    throw new Error(
+    throw contractRejection(
       `Weight-training activation rejected: ${issues[0]?.message}`,
     );
 }
@@ -1584,14 +1636,16 @@ export function assertWeightTrainingAuthorizationPermit(
 ): asserts descriptor is WeightTrainingAuthorizationDescriptor {
   const metadata = isRecord(permit) ? PERMIT_METADATA.get(permit) : undefined;
   if (!metadata || descriptor !== metadata.descriptor)
-    throw new Error(
+    throw contractRejection(
       "Weight-training authorization requires its module-issued permit and exact descriptor",
     );
   const now = options.now?.() ?? new Date();
   if (!(now instanceof Date) || Number.isNaN(now.getTime()))
-    throw new Error("Weight-training permit clock must be valid");
+    throw contractRejection("Weight-training permit clock must be valid");
   if (Date.parse(metadata.expiresAt) <= now.getTime())
-    throw new Error("Weight-training authorization permit is expired");
+    throw contractRejection("Weight-training authorization permit is expired");
   if (!Object.isFrozen(metadata.descriptor))
-    throw new Error("Weight-training authorization descriptor is mutable");
+    throw contractRejection(
+      "Weight-training authorization descriptor is mutable",
+    );
 }

@@ -29,6 +29,10 @@ its related code, tests, environment variables, and documentation.
 - [x] Cross-package clean-architecture feature generator for commands and queries.
 - [x] Feature-sliced generator with machine-checked domain/application/adapter/
   composition/delivery boundaries and cross-feature import protection.
+- [x] Secret-free `agent-integration` generator with disabled-by-default privacy
+  and weight-training adapters plus fail-closed tests.
+- [x] Machine-readable integration qualification wired into `derived:qualify`;
+  disabled integrations are not reported as production-qualified.
 - [x] Generic application services with versioned CRUD, authorization, and
   upload ports that can be extended by a derived feature slice.
 - [x] Provider-neutral file upload port with an optional S3 adapter.

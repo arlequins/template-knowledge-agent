@@ -89,6 +89,41 @@ permit을 결합한다. 복사·위조 permit이나 다른 계약은 거부되�
 API를 우회하는 것까지 막을 수는 없다. 따라서 code review와 integration test가 여전히
 필요하다.
 
+### 결정적 conformance kit
+
+파생 저장소는 실제 source를 연결하기 전에 synthetic adapter로 provider-neutral
+conformance kit를 실행할 수 있다. adapter는 case별 readiness 계약, 결정적 clock,
+가짜 deletion port 관찰값, model context 제외 확인을 제공한다.
+
+```ts
+import {
+  createSyntheticExactPersonalDataConformanceAdapter,
+  runExactPersonalDataConformance,
+} from "@arlequins/agent-core";
+
+const report = await runExactPersonalDataConformance(
+  createSyntheticExactPersonalDataConformanceAdapter(),
+);
+if (!report.passed) throw new Error("privacy conformance failed");
+```
+
+내보낸 27개 suite는 default-deny와 verifier/evidence binding,
+tenant/workspace/actor/purpose 범위, retention/cache 상한, deletion의
+idempotency/audit/propagation, 오래되거나 미래인 승인·검토, 느린 verifier 만료,
+descriptor/permit 위조·복사·변조·재사용, earliest expiry, model context 제외를
+검사한다. 파생 adapter는 synthetic fixture를 자체 synthetic harness로 바꿀 수 있다.
+보고서는 안정적인 contract version, case ID, `passed`/`failed` 상태, count, 안정적인
+issue code만 담으며 source 값, raw error, credential은 담지 않는다.
+라이브러리의 안정적인 contract-rejection 타입만 기대된 거부로 집계하며 adapter, backend,
+internal 예외는 `unexpected_failure`로 남긴다.
+
+integration qualifier는 stdout의 capability별 JSON envelope가 정확한 schema,
+contract version, capability, 전체 stable case ID 목록, `passed: true`, failed case 0,
+모든 case의 빈 issue를 만족할 때만 통과시킨다. 빈 출력, 부분·중복·잘못된 capability·가짜
+report는 fail closed 처리한다. 생성 runner는 disabled 상태에서 synthetic envelope를 출력하고
+enabled 상태에서는 실행을 거부하므로, manifest를 켜기 전에 파생 애플리케이션 harness로
+교체해야 한다.
+
 모든 계약 날짜는 canonical RFC3339 UTC 형식인
 `YYYY-MM-DDTHH:mm:ss.sssZ`를 사용해야 한다. timezone이 없거나 locale 형식이거나
 offset을 사용하거나 달력 날짜가 자동 보정된 값은 거부한다. access review는 최대
@@ -101,6 +136,13 @@ acceptance는 최대 365일 이내의 것이어야 하며 365일을 넘지 않�
 전파되고 모델 allowlist를 통해 source가 노출되지 않음을 증명해야 한다. 게이트를 통과해도
 정확한 값이 모델 context, 대화 history, 로그, feedback, 평가 또는 튜닝 export로
 들어가서는 안 된다.
+삭제 callback은 receiver-independent이어야 한다. adapter 생성 시 closure/arrow function을
+노출하거나 class method를 bind하되 routing dependency는 불변으로 캡처해야 한다.
+authorization은 callback identity를 고정하므로 이후 원본 port의 method나 routing property를
+바꿔도 승인된 작업을 교체할 수 없다. 다만 숨겨진 mutable closure나 bound receiver state까지
+경계가 동결할 수는 없다. descriptor는
+deletion port를 source binding으로 감싸므로 등록된 source와 다른
+`sourceId`의 삭제 요청을 거부한다. conformance suite에는 위조 source 삭제 케이스도 포함된다.
 
 ## Bedrock Guardrail 연결
 

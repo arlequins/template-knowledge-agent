@@ -1,0 +1,36 @@
+import {
+  authorizeExactPersonalDataSource,
+  type ExactPersonalDataEnablement,
+  type ExactPersonalDataReadiness,
+} from "{{ scope }}/agent-core";
+
+export type PrivacyIntegrationOptions = Readonly<{
+  enabled?: boolean;
+  readiness?: ExactPersonalDataReadiness;
+}>;
+
+export type PrivacyIntegration =
+  | Readonly<{ enabled: false }>
+  | Readonly<{
+      authorize: () => Promise<ExactPersonalDataEnablement>;
+      enabled: true;
+    }>;
+
+/**
+ * Privacy is deliberately disabled until the derived application supplies a
+ * current contract and explicitly opts in at its application boundary.
+ */
+export function createPrivacyIntegration(
+  options: PrivacyIntegrationOptions = {},
+): PrivacyIntegration {
+  if (options.enabled !== true) return Object.freeze({ enabled: false });
+  if (!options.readiness)
+    throw new Error(
+      "Privacy integration requires an explicit readiness contract",
+    );
+  const readiness = options.readiness;
+  return Object.freeze({
+    authorize: () => authorizeExactPersonalDataSource(readiness),
+    enabled: true as const,
+  });
+}

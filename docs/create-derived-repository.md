@@ -30,6 +30,7 @@ pnpm agent:setup
 pnpm template:doctor
 pnpm pilot:verify
 pnpm tuning:patterns:verify
+pnpm integration:qualify -- --json
 pnpm derived:qualify -- --skip-doctor
 pnpm check:fix
 pnpm check
@@ -39,7 +40,13 @@ pnpm test
 
 `pnpm derived:qualify` is the repeatable gate for a generated repository. It
 runs the synthetic pilot, reviewed behavior-pack checks, architecture rules,
-format/lint, typechecking, and template-initialization tests in a fixed order.
+format/lint, typechecking, public API compatibility, template-initialization
+tests, the synthetic integration reference, and the machine-readable
+privacy/weight-training integration qualifier in a fixed order. A generated
+integration reports `disabled` until its derived contracts and conformance
+harness are explicitly implemented; disabled is not production qualification.
+`integration:qualify -- --json` emits only stable statuses and issue codes and
+never executes a command supplied by a manifest.
 Use `pnpm derived:qualify -- --full` after local services are available to run
 the complete test suite as the final handoff check. The command stops on the
 first failure and never changes source, data, or model files.

@@ -103,6 +103,22 @@ reload、rollbackは行わず、元データ・承認・ゲート・署名を直
 出力ガード、統合テストを実装する必要がある。完了して境界でpermitとdescriptorを検証する
 までは、weight-trainingコマンドを公開してはならない。
 
+### Conformance suite
+
+ローカルのreferenceテストでは createSyntheticWeightTrainingConformanceHarness() を
+利用できる。これは決定的で内容を含まないfixtureであり、trainerやproduction artifact
+providerではない。production trainingを有効にする前に、派生レポで保護されたportへ
+置き換える必要がある。
+
+`runWeightTrainingConformanceSuite` は派生レポ向けの再利用可能なリリースゲートである。
+レポはsynthetic/protectedなdataset、artifact、approval、gate、signature、activation
+証拠を作る `createFixture(seed)` harness portだけを提供する。suiteはNFC split leakage、
+決定的identity/idempotency、厳密なbindingとdeadline、不変artifact/manifest bytesとregistry
+identity、strict verifier、async freshness、provenance、activation chronology、rollback/replay、
+permit binding、default-denyを検査する。返却reportはstableなcase ID、状態、redacted issue code
+だけを含み、dataset・artifact内容とverifierのエラー文字列は除外する。明示的なseedで依存関係
+なしのproperty caseを再現できる。
+
 推奨ループは、固定ホールドアウトの作成、Luna候補生成、人による根拠レビュー、
 `pnpm tuning:patterns:verify`、基本モデルとの比較、必要時のみ学生モデル学習、そして
 RAG・引用・プライバシー・遅延・反復ゲート通過後の昇格である。これにより、ユーザーの

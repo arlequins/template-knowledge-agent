@@ -19,6 +19,35 @@ When incrementing a version, increase the selected number by one and reset all n
 
 See [Semantic Versioning 2.0.0](https://semver.org/) for the full specification.
 
+## Public API Compatibility Gate
+
+The committed snapshots in scripts/public-api-baseline/ protect the public
+surface of @arlequins/agent-core and @arlequins/tuning-kit. The checker uses
+the TypeScript compiler API on each package's src/index.ts and records only
+export names and normalized type signatures. It does not copy source text,
+examples, credentials, dataset rows, or artifact contents.
+
+Run the gate with:
+
+    pnpm check:public-api
+
+The pure compatibility rule is intentionally conservative:
+
+- unchanged exports are "none";
+- additive exports are "minor";
+- removed exports or changed signatures are "major".
+
+When an intentional public change is ready for a release, update the committed
+baseline with an explicit declaration:
+
+    node scripts/check-public-api.mjs --change minor
+    node scripts/check-public-api.mjs --change major
+
+The command rejects a declaration below the calculated impact and stores the
+previous/current API SHA-256 values, declared impact, and root release version
+metadata in each baseline. Internal implementation moves pass when the
+normalized public surface remains unchanged.
+
 ## Version Decisions from Commit Messages
 
 Look at commits since the previous release and choose the largest applicable change type.

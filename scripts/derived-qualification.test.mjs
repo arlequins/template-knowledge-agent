@@ -10,7 +10,28 @@ import {
 test("qualification defaults to doctor and deterministic public checks", () => {
   const steps = qualificationSteps();
   assert.equal(steps[0].name, "template doctor");
-  assert.equal(steps.at(-1).name, "template initialization");
+  assert.deepEqual(
+    steps.slice(-3).map(({ args, name }) => ({ args, name })),
+    [
+      { args: ["test:template-init"], name: "template initialization" },
+      {
+        args: ["test:integration-reference"],
+        name: "synthetic integration reference",
+      },
+      {
+        args: ["integration:qualify", "--", "--strict"],
+        name: "privacy and weight-training integration qualifiers",
+      },
+    ],
+  );
+  assert.deepEqual(
+    steps.find(({ name }) => name === "public API compatibility"),
+    { args: ["check:public-api"], name: "public API compatibility" },
+  );
+  assert.equal(
+    steps.at(-1).name,
+    "privacy and weight-training integration qualifiers",
+  );
 });
 
 test("full qualification appends the complete test suite", () => {
@@ -18,13 +39,18 @@ test("full qualification appends the complete test suite", () => {
     qualificationSteps({ full: true }).at(-1).name,
     "full test suite",
   );
-  assert.deepEqual(parseQualificationArgs(["--full", "--skip-doctor"]), {
-    full: true,
-    skipDoctor: true,
-  });
+  assert.deepEqual(
+    parseQualificationArgs(["--full", "--skip-doctor", "--skip-integrations"]),
+    {
+      full: true,
+      skipDoctor: true,
+      skipIntegrations: true,
+    },
+  );
   assert.deepEqual(parseQualificationArgs(["--", "--full"]), {
     full: true,
     skipDoctor: false,
+    skipIntegrations: false,
   });
 });
 

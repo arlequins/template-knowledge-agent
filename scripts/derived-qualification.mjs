@@ -9,17 +9,28 @@ export const QUALIFICATION_STEPS = Object.freeze([
   { args: ["architecture:check"], name: "architecture boundaries" },
   { args: ["check"], name: "format and lint" },
   { args: ["typecheck"], name: "typecheck" },
+  { args: ["check:public-api"], name: "public API compatibility" },
   { args: ["test:template-init"], name: "template initialization" },
+  {
+    args: ["test:integration-reference"],
+    name: "synthetic integration reference",
+  },
 ]);
 
 export function parseQualificationArgs(args) {
-  const options = { full: false, skipDoctor: false };
+  const options = {
+    full: false,
+    skipDoctor: false,
+    skipIntegrations: false,
+  };
   for (const argument of args) {
     // Accept the conventional `pnpm run ... -- --flag` separator as well as
     // direct `pnpm ... --flag` invocation.
     if (argument === "--") continue;
     if (argument === "--full") options.full = true;
     else if (argument === "--skip-doctor") options.skipDoctor = true;
+    else if (argument === "--skip-integrations")
+      options.skipIntegrations = true;
     else throw new Error(`Unknown argument: ${argument}`);
   }
   return options;
@@ -31,6 +42,11 @@ export function qualificationSteps(options = {}) {
     steps.unshift({
       args: ["template:doctor", "--", "--strict"],
       name: "template doctor",
+    });
+  if (!options.skipIntegrations)
+    steps.push({
+      args: ["integration:qualify", "--", "--strict"],
+      name: "privacy and weight-training integration qualifiers",
     });
   if (options.full) steps.push({ args: ["test"], name: "full test suite" });
   return steps;

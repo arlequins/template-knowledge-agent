@@ -87,6 +87,40 @@ readinessオブジェクトを再読しません。snapshotは削除関数identi
 が派生開発者によるAPIの迂回まで防ぐことはできません。そのため、code reviewとintegration
 testが引き続き必要です。
 
+### 決定的conformance kit
+
+派生リポジトリは本番sourceを接続する前に、synthetic adapterでprovider-neutralな
+conformance kitを実行できます。adapterはcaseごとのreadiness契約、決定的なclock、
+fake deletion portの観測値、model contextからの除外確認を提供します。
+
+```ts
+import {
+  createSyntheticExactPersonalDataConformanceAdapter,
+  runExactPersonalDataConformance,
+} from "@arlequins/agent-core";
+
+const report = await runExactPersonalDataConformance(
+  createSyntheticExactPersonalDataConformanceAdapter(),
+);
+if (!report.passed) throw new Error("privacy conformance failed");
+```
+
+公開された27ケースのsuiteはdefault-denyとverifier/evidence binding、
+tenant/workspace/actor/purposeのscope、保持・cache上限、deletionの冪等性・監査・伝播、
+古いまたは未来の承認・レビュー、遅いverifierの期限、descriptor/permitの偽造・コピー・
+変更・再利用、最短期限、model context除外を検証します。派生adapterはsynthetic fixtureを
+独自のsynthetic harnessに置き換えられます。reportには安定したcontract version、case ID、
+`passed`/`failed`状態、件数、安定したissue codeだけが含まれ、source値・raw error・credentialは
+含まれません。
+ライブラリの安定したcontract-rejection型だけを期待された拒否として扱い、adapter・backend・
+internal例外は`unexpected_failure`として残します。
+
+integration qualifierはstdoutのcapability別JSON envelopeについて、schema、contract version、
+capability、完全なstable case ID一覧、`passed: true`、failed case 0、全caseの空issueを厳密に
+確認します。空・部分・重複・誤ったcapability・偽のreportはfail closedになります。生成runnerは
+disabled時だけsynthetic envelopeを出力し、enabled時は実行を拒否するため、manifestを有効化
+する前に派生アプリのharnessへ置き換えてください。
+
 すべての契約日時はcanonical RFC3339 UTC形式
 `YYYY-MM-DDTHH:mm:ss.sssZ`でなければなりません。timezoneなし、locale形式、offset、
 カレンダーによって自動補正された日付は拒否します。access reviewは90日以内に行い、
@@ -99,6 +133,12 @@ testが引き続き必要です。
 複製へ伝播し、model allowlistからsourceが露出しないことを証明してください。ゲート
 通過後も、正確な値をmodel context、会話history、ログ、feedback、評価または
 チューニングexportへ入れてはいけません。
+削除callbackはreceiver-independentでなければなりません。adapter生成時にclosure/arrow functionを
+公開するかclass methodをbindし、routing dependencyはimmutableに取得してください。
+authorizationはcallback identityを固定するため、後から元のportのmethodやrouting propertyを
+変更しても承認済みの操作を置き換えられません。ただし、隠れたmutable closureやbound receiver
+stateを境界が凍結することはできません。descriptorはdeletion portをsource bindingでラップし、登録sourceと異なる
+`sourceId`の削除要求を拒否します。conformance suiteには偽造source削除ケースも含まれます。
 
 ## Bedrock Guardrail連携
 

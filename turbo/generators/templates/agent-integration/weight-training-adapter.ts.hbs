@@ -1,0 +1,41 @@
+import {
+  authorizeWeightTraining,
+  type WeightTrainingArtifactSignatureVerifier,
+  type WeightTrainingContractOptions,
+} from "{{ scope }}/tuning-kit";
+
+export type WeightTrainingIntegrationOptions = Readonly<{
+  activation?: unknown;
+  candidate?: unknown;
+  enabled?: boolean;
+  options?: WeightTrainingContractOptions & {
+    signatureVerifier: WeightTrainingArtifactSignatureVerifier;
+  };
+}>;
+
+export type WeightTrainingIntegration =
+  | Readonly<{ enabled: false }>
+  | Readonly<{
+      authorize: () => ReturnType<typeof authorizeWeightTraining>;
+      enabled: true;
+    }>;
+
+/**
+ * Weight training is deliberately disabled until the derived application
+ * supplies every external verifier and activation evidence port.
+ */
+export function createWeightTrainingIntegration(
+  options: WeightTrainingIntegrationOptions = {},
+): WeightTrainingIntegration {
+  if (options.enabled !== true) return Object.freeze({ enabled: false });
+  if (!options.candidate || !options.activation || !options.options)
+    throw new Error(
+      "Weight-training integration requires candidate, activation, and verifier options",
+    );
+  const { activation, candidate, options: contractOptions } = options;
+  return Object.freeze({
+    authorize: () =>
+      authorizeWeightTraining(candidate, activation, contractOptions),
+    enabled: true as const,
+  });
+}

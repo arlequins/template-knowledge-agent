@@ -1,0 +1,392 @@
+{
+  "schemaVersion": 1,
+  "packageName": "@arlequins/agent-core",
+  "source": "packages/agent-core/src/index.ts",
+  "releaseVersion": "1.17.0",
+  "surfaceSha256": "e135857cac3b6c3ead1023f4e371ffa917ca35af08d3a095f6d57f4f2e21be33",
+  "exports": [
+    {
+      "name": "AgentEvent",
+      "signature": "{ type: \"retrieval-complete\"; citations: Citation[]; } | { type: \"text-delta\"; text: string; } | { type: \"complete\"; citations: Citation[]; }"
+    },
+    {
+      "name": "AgentInput",
+      "signature": "{ conversationSummary?: string; history: ModelMessage[]; profile: AgentProfile; question: string; workspaceId: string; }"
+    },
+    {
+      "name": "AgentProfile",
+      "signature": "{ id: string; instructions: string; name: string; reviewedBehaviorPrompt?: string; workspaceId: string; }"
+    },
+    {
+      "name": "AgentRun",
+      "signature": "AsyncIterable<AgentEvent>"
+    },
+    {
+      "name": "AgentWorkflowPort",
+      "signature": "{ startFeedbackInvestigation(input: { feedbackId: string; }): Promise<void>; startIndexing(input: { indexRunId: string; }): Promise<void>; }"
+    },
+    {
+      "name": "AnalyzerFacts",
+      "signature": "{ edges: readonly AnalyzerKnowledgeEdge[]; units: readonly AnalyzerKnowledgeUnit[]; }"
+    },
+    {
+      "name": "AnalyzerKnowledgeEdge",
+      "signature": "{ from: string; kind: \"calls\" | \"documents\" | \"exposes\" | \"imports\" | \"reads\" | \"renders\" | \"validates\" | \"writes\"; to: string; }"
+    },
+    {
+      "name": "AnalyzerKnowledgeUnit",
+      "signature": "{ id: string; kind: \"config\" | \"data-model\" | \"document\" | \"procedure\" | \"route\" | \"section\" | \"symbol\" | \"test\"; locator: string; name: string; sourcePath: string; }"
+    },
+    {
+      "name": "AnalyzerPlan",
+      "signature": "{ files: readonly string[]; requirements: readonly string[]; }"
+    },
+    {
+      "name": "AnalyzerPlugin",
+      "signature": "{ detect(snapshot: AnalyzerSnapshot): Promise<{ confidence: number; roots: readonly string[]; }>; extract(snapshot: AnalyzerSnapshot, plan: AnalyzerPlan): Promise<AnalyzerFacts>; normalize(facts: AnalyzerFacts): AnalyzerFacts; plan(snapshot: AnalyzerSnapshot): Promise<AnalyzerPlan>; id: string; }"
+    },
+    {
+      "name": "AnalyzerSnapshot",
+      "signature": "{ commit?: string; files: readonly string[]; root: string; }"
+    },
+    {
+      "name": "Citation",
+      "signature": "{ chunkId: string; documentId: string; label: string; locator?: string; }"
+    },
+    {
+      "name": "DocumentExtractionPort",
+      "signature": "{ extract(input: { bytes: Uint8Array; contentType: string; filename: string; }): Promise<{ text: string; warnings: string[]; }>; }"
+    },
+    {
+      "name": "DocumentSourcePort",
+      "signature": "{ read(input: { sourceUri: string; workspaceId: string; }): Promise<Uint8Array>; }"
+    },
+    {
+      "name": "EXACT_PERSONAL_DATA_CONFORMANCE_CASE_IDS",
+      "signature": "readonly [\"exact-personal-data.default-deny\", \"exact-personal-data.missing-verifier\", \"exact-personal-data.forged-approval\", \"exact-personal-data.cross-source-approval\", \"exact-personal-data.scope-tenant\", \"exact-personal-data.scope-workspace\", \"exact-personal-data.scope-actor\", \"exact-personal-data.scope-purpose\", \"exact-personal-data.retention-bounds\", \"exact-personal-data.cache-bounds\", \"exact-personal-data.deletion-propagation\", \"exact-personal-data.deletion-source-binding\", \"exact-personal-data.stale-approval\", \"exact-personal-data.future-approval\", \"exact-personal-data.stale-access-review\", \"exact-personal-data.future-access-review\", \"exact-personal-data.stale-owner-acceptance\", \"exact-personal-data.future-owner-acceptance\", \"exact-personal-data.slow-verifier-expiry\", \"exact-personal-data.descriptor-forgery\", \"exact-personal-data.permit-copy\", \"exact-personal-data.descriptor-mutation\", \"exact-personal-data.permit-mutation\", \"exact-personal-data.permit-reuse\", \"exact-personal-data.source-mutation\", \"exact-personal-data.earliest-expiry\", \"exact-personal-data.no-model-context-exposure\"]"
+    },
+    {
+      "name": "EmbeddingProviderPort",
+      "signature": "{ embed(input: { input: string[]; }): Promise<number[][]>; }"
+    },
+    {
+      "name": "ExactPersonalDataApprovalVerifierPort",
+      "signature": "{ verifyPrivacyOwnerAcceptance(input: { evidence: ExactPersonalDataPrivacyOwnerAcceptanceEvidence; sourceId: string; }): ExactPersonalDataPrivacyOwnerAcceptanceEvidence | false | Promise<ExactPersonalDataPrivacyOwnerAcceptanceEvidence | false>; verifyStructuredUi(input: { evidence: ExactPersonalDataStructuredUiApprovalEvidence; sourceId: string; }): ExactPersonalDataStructuredUiApprovalEvidence | false | Promise<ExactPersonalDataStructuredUiApprovalEvidence | false>; }"
+    },
+    {
+      "name": "ExactPersonalDataAuthorizationPermit",
+      "signature": "{ readonly [exactPersonalDataAuthorizationBrand]: \"exact-personal-data\"; }"
+    },
+    {
+      "name": "ExactPersonalDataConformanceAdapter",
+      "signature": "{ clock: { advance(caseId: ExactPersonalDataConformanceCaseId): void | Promise<void>; now(): Date; }; createReadiness(caseId: ExactPersonalDataConformanceCaseId): unknown; deletion: { createRequest(input: { sourceId: string; }): ExactPersonalDataConformanceDeletionRequest; observe(): ExactPersonalDataConformanceDeletionObservation; reset(): void | Promise<void>; }; modelContext: { isSourceExcluded(input: { sourceId: string; }): boolean | Promise<boolean>; }; }"
+    },
+    {
+      "name": "ExactPersonalDataConformanceCaseId",
+      "signature": "\"exact-personal-data.default-deny\" | \"exact-personal-data.missing-verifier\" | \"exact-personal-data.forged-approval\" | \"exact-personal-data.cross-source-approval\" | \"exact-personal-data.scope-tenant\" | \"exact-personal-data.scope-workspace\" | \"exact-personal-data.scope-actor\" | \"exact-personal-data.scope-purpose\" | \"exact-personal-data.retention-bounds\" | \"exact-personal-data.cache-bounds\" | \"exact-personal-data.deletion-propagation\" | \"exact-personal-data.deletion-source-binding\" | \"exact-personal-data.stale-approval\" | \"exact-personal-data.future-approval\" | \"exact-personal-data.stale-access-review\" | \"exact-personal-data.future-access-review\" | \"exact-personal-data.stale-owner-acceptance\" | \"exact-personal-data.future-owner-acceptance\" | \"exact-personal-data.slow-verifier-expiry\" | \"exact-personal-data.descriptor-forgery\" | \"exact-personal-data.permit-copy\" | \"exact-personal-data.descriptor-mutation\" | \"exact-personal-data.permit-mutation\" | \"exact-personal-data.permit-reuse\" | \"exact-personal-data.source-mutation\" | \"exact-personal-data.earliest-expiry\" | \"exact-personal-data.no-model-context-exposure\""
+    },
+    {
+      "name": "ExactPersonalDataConformanceCaseResult",
+      "signature": "{ readonly id: ExactPersonalDataConformanceCaseId; readonly issues: readonly Readonly<{ code: ExactPersonalDataConformanceIssueCode; }>[]; readonly status: \"passed\" | \"failed\"; }"
+    },
+    {
+      "name": "ExactPersonalDataConformanceDeletionObservation",
+      "signature": "{ readonly actorBound: boolean; readonly actorAuthenticated: boolean; readonly audited: boolean; readonly idempotent: boolean; readonly propagated: boolean; readonly purposeBound: boolean; readonly requestCount: number; readonly tenantBound: boolean; readonly workspaceBound: boolean; }"
+    },
+    {
+      "name": "ExactPersonalDataConformanceDeletionRequest",
+      "signature": "{ actor: { authenticated: true; permissions: readonly string[]; tenantId: string; userId: string; workspaceId: string; }; purpose: \"administrative-review\" | \"incident-response\" | \"retention-expiry\" | \"subject-request\"; requestedBy: string; sourceId: string; subjectId: string; }"
+    },
+    {
+      "name": "ExactPersonalDataConformanceIssueCode",
+      "signature": "\"authorization_unexpectedly_succeeded\" | \"authorization_unexpectedly_failed\" | \"scope_not_observed\" | \"deletion_not_idempotent\" | \"deletion_not_audited\" | \"deletion_not_propagated\" | \"model_context_exposed\" | \"permit_not_rejected\" | \"descriptor_not_rejected\" | \"descriptor_not_immutable\" | \"permit_not_immutable\" | \"permit_not_bound\" | \"mutation_not_isolated\" | \"expiry_not_enforced\" | \"unexpected_failure\""
+    },
+    {
+      "name": "ExactPersonalDataConformanceReport",
+      "signature": "{ readonly cases: readonly ExactPersonalDataConformanceCaseResult[]; readonly contractVersion: \"exact-personal-data-conformance-v1\"; readonly failedCases: number; readonly passed: boolean; readonly passedCases: number; }"
+    },
+    {
+      "name": "ExactPersonalDataDeletionPort",
+      "signature": "{ requestDeletion(input: { actor: { authenticated: true; permissions: readonly string[]; tenantId: string; userId: string; workspaceId: string; }; purpose: \"administrative-review\" | \"incident-response\" | \"retention-expiry\" | \"subject-request\"; requestedBy: string; sourceId: string; subjectId: string; }): Promise<void>; }"
+    },
+    {
+      "name": "ExactPersonalDataEnablement",
+      "signature": "{ descriptor: ExactPersonalDataRegistrationDescriptor; enabled: true; permit: ExactPersonalDataAuthorizationPermit; sourceId: string; }"
+    },
+    {
+      "name": "ExactPersonalDataPrivacyOwnerAcceptanceEvidence",
+      "signature": "{ acceptanceId: string; acceptedAt: string; approverRole: \"privacy-owner\"; expiresAt: string; policyVersion: string; sourceId: string; subject: string; }"
+    },
+    {
+      "name": "ExactPersonalDataReadiness",
+      "signature": "{ accessReview: { reviewDueAt: string; reviewedAt: string; reviewerId: string; }; deletion: { port: ExactPersonalDataDeletionPort; workflowId: string; }; privacyOwnerAcceptance: { accepted: true; acceptedAt: string; acceptanceEvidence: ExactPersonalDataPrivacyOwnerAcceptanceEvidence; expiresAt: string; ownerId: string; }; retention: { cacheMaxMinutes: number; maxDays: number; }; approvalVerifier: ExactPersonalDataApprovalVerifierPort; sourceId: string; structuredUi: ExactPersonalDataStructuredUiContract; }"
+    },
+    {
+      "name": "ExactPersonalDataRegistrationDescriptor",
+      "signature": "{ readonly accessReview: Readonly<ExactPersonalDataReadiness[\"accessReview\"]>; readonly deletion: Readonly<{ port: Readonly<ExactPersonalDataDeletionPort>; workflowId: string; }>; readonly privacyOwnerAcceptance: Readonly<Omit<ExactPersonalDataReadiness[\"privacyOwnerAcceptance\"], \"acceptanceEvidence\"> & { acceptanceEvidence: Readonly<ExactPersonalDataPrivacyOwnerAcceptanceEvidence>; }>; readonly retention: Readonly<ExactPersonalDataReadiness[\"retention\"]>; readonly sourceId: string; readonly structuredUi: Readonly<Omit<ExactPersonalDataReadiness[\"structuredUi\"], \"approvalEvidence\"> & { approvalEvidence: Readonly<ExactPersonalDataStructuredUiApprovalEvidence>; }>; }"
+    },
+    {
+      "name": "ExactPersonalDataStructuredUiApprovalEvidence",
+      "signature": "{ approvalId: string; approverRole: ExactPersonalDataStructuredUiApproverRole; approvedAt: string; expiresAt: string; policyVersion: string; route: string; routeVersion: string; sourceId: string; subject: string; }"
+    },
+    {
+      "name": "ExactPersonalDataStructuredUiApproverRole",
+      "signature": "\"privacy-owner\" | \"data-owner\" | \"security-reviewer\""
+    },
+    {
+      "name": "ExactPersonalDataStructuredUiContract",
+      "signature": "{ authorization: \"explicit\"; authorizedAt: string; authorizedBy: string; approverRole: ExactPersonalDataStructuredUiApproverRole; approvalExpiresAt: string; approvalEvidence: ExactPersonalDataStructuredUiApprovalEvidence; modelAccess: \"excluded\"; route: string; routeVersion: string; transport: \"non-model\"; }"
+    },
+    {
+      "name": "FeedbackKind",
+      "signature": "\"helpful\" | \"incorrect\" | \"missing\" | \"needs-investigation\""
+    },
+    {
+      "name": "IndexDocumentRequest",
+      "signature": "{ chunks: Array<{ content: string; recordId: string; }>; workspaceId: string; }"
+    },
+    {
+      "name": "KnowledgeMatch",
+      "signature": "{ citation: Citation; content: string; score: number; }"
+    },
+    {
+      "name": "KnowledgeSearchPort",
+      "signature": "{ search(input: { query: string; workspaceId: string; }): Promise<KnowledgeMatch[]>; }"
+    },
+    {
+      "name": "LiveCapabilityActor",
+      "signature": "{ permissions: readonly string[]; tenantId: string; userId: string; workspaceId: string; }"
+    },
+    {
+      "name": "LiveCapabilityAuditEvent",
+      "signature": "{ actorUserId: string; capability: string; classification: LiveCapabilityDataClassification; executedAt: string; inputSummary?: Readonly<Record<string, boolean | number | string>>; returnedRows: number; persistence: LiveCapabilityPersistence; tenantId: string; truncated: boolean; workspaceId: string; }"
+    },
+    {
+      "name": "LiveCapabilityDataClassification",
+      "signature": "\"internal\" | \"personal\" | \"public\""
+    },
+    {
+      "name": "LiveCapabilityDefinition",
+      "signature": "{ description: string; execute(input: { actor: LiveCapabilityActor; now: Date; rawInput: unknown; }): Promise<{ inputSummary?: Readonly<Record<string, boolean | number | string>>; rows: readonly LiveCapabilityRow[]; }>; maxRows: number; name: string; outputPolicy: LiveCapabilityOutputPolicy; readOnly: true; }"
+    },
+    {
+      "name": "LiveCapabilityFieldPolicy",
+      "signature": "{ exposure: \"allow\"; } | { exposure: \"mask\"; replacement: string; } | { exposure: \"omit\"; }"
+    },
+    {
+      "name": "LiveCapabilityOutputPolicy",
+      "signature": "{ auditInput: \"include\" | \"omit\"; classification: LiveCapabilityDataClassification; fields: Readonly<Record<string, LiveCapabilityFieldPolicy>>; persistence: LiveCapabilityPersistence; }"
+    },
+    {
+      "name": "LiveCapabilityPersistence",
+      "signature": "\"conversation\" | \"ephemeral\""
+    },
+    {
+      "name": "LiveCapabilityRegistry",
+      "signature": "{ execute(input: { actor: LiveCapabilityActor; capability: string; input: unknown; }): Promise<LiveCapabilityResult>; list(): Array<{ description: string; classification: LiveCapabilityDataClassification; maxRows: number; name: string; persistence: LiveCapabilityPersistence; readOnly: true; }>; }"
+    },
+    {
+      "name": "LiveCapabilityResult",
+      "signature": "{ capability: string; citation: { label: string; locator: string; }; classification: LiveCapabilityDataClassification; generatedAt: string; persistence: LiveCapabilityPersistence; rows: readonly LiveCapabilityRow[]; truncated: boolean; }"
+    },
+    {
+      "name": "LiveCapabilityRow",
+      "signature": "{ readonly [x: string]: LiveCapabilityScalar; }"
+    },
+    {
+      "name": "LiveCapabilityScalar",
+      "signature": "string | number | boolean | null"
+    },
+    {
+      "name": "MAX_EXACT_PERSONAL_DATA_ACCESS_REVIEW_AGE_DAYS",
+      "signature": "90"
+    },
+    {
+      "name": "MAX_EXACT_PERSONAL_DATA_ACCESS_REVIEW_HORIZON_DAYS",
+      "signature": "365"
+    },
+    {
+      "name": "MAX_EXACT_PERSONAL_DATA_CACHE_MINUTES",
+      "signature": "60"
+    },
+    {
+      "name": "MAX_EXACT_PERSONAL_DATA_PRIVACY_OWNER_ACCEPTANCE_AGE_DAYS",
+      "signature": "365"
+    },
+    {
+      "name": "MAX_EXACT_PERSONAL_DATA_PRIVACY_OWNER_ACCEPTANCE_HORIZON_DAYS",
+      "signature": "365"
+    },
+    {
+      "name": "MAX_EXACT_PERSONAL_DATA_RETENTION_DAYS",
+      "signature": "3650"
+    },
+    {
+      "name": "MAX_EXACT_PERSONAL_DATA_STRUCTURED_UI_APPROVAL_AGE_DAYS",
+      "signature": "90"
+    },
+    {
+      "name": "MAX_EXACT_PERSONAL_DATA_STRUCTURED_UI_APPROVAL_HORIZON_DAYS",
+      "signature": "365"
+    },
+    {
+      "name": "McpRequest",
+      "signature": "{ id?: number | string | null; jsonrpc: \"2.0\"; method: string; params?: unknown; }"
+    },
+    {
+      "name": "McpRequestContext",
+      "signature": "{ headers: Headers; roles: readonly string[]; subject: string; }"
+    },
+    {
+      "name": "McpResponse",
+      "signature": "{ error?: { code: number; message: string; }; id: number | string | null; jsonrpc: \"2.0\"; result?: unknown; }"
+    },
+    {
+      "name": "McpServer",
+      "signature": "{ handle(request: McpRequest, context: McpRequestContext): Promise<McpResponse | undefined>; listTools: () => { description: string; inputSchema: Record<string, unknown>; name: string; }[]; }"
+    },
+    {
+      "name": "McpToolDefinition",
+      "signature": "{ authorize?: (context: McpRequestContext, input: unknown) => boolean | Promise<boolean>; description: string; execute: (context: McpRequestContext, input: unknown) => Promise<unknown>; inputSchema: Record<string, unknown>; name: string; }"
+    },
+    {
+      "name": "Memory",
+      "signature": "{ content: string; id: string; importance: number; }"
+    },
+    {
+      "name": "MemorySearchPort",
+      "signature": "{ search(input: { query: string; workspaceId: string; }): Promise<Memory[]>; }"
+    },
+    {
+      "name": "ModelMessage",
+      "signature": "{ content: string; role: \"assistant\" | \"system\" | \"user\"; }"
+    },
+    {
+      "name": "ModelProviderPort",
+      "signature": "{ streamText(input: StreamTextRequest): AsyncIterable<string>; }"
+    },
+    {
+      "name": "ModelRegistryEntry",
+      "signature": "{ capabilities: readonly ModelRouteProfile[]; id: string; inputCostPerMillionTokens?: number; outputCostPerMillionTokens?: number; provider: string; }"
+    },
+    {
+      "name": "ModelRouteDecision",
+      "signature": "{ model: ModelRegistryEntry; profile: ModelRouteProfile; reason: \"budget\" | \"coding\" | \"conflicting-evidence\" | \"requested\" | \"default\"; }"
+    },
+    {
+      "name": "ModelRouteInput",
+      "signature": "{ budgetUsd?: number; hasConflictingEvidence?: boolean; question: string; requestedProfile?: ModelRouteProfile; }"
+    },
+    {
+      "name": "ModelRouteProfile",
+      "signature": "\"balanced\" | \"coding\" | \"deep\" | \"fast\""
+    },
+    {
+      "name": "ModelSelectionPort",
+      "signature": "{ select(input: ModelRouteInput): { model: ModelProviderPort; modelId?: string; profile: ModelRouteProfile; reason: string; }; }"
+    },
+    {
+      "name": "RetentionPolicy",
+      "signature": "{ conversationDays: number; feedbackDays: number; memoryDays: number; }"
+    },
+    {
+      "name": "RetrievalEvaluationCase",
+      "signature": "{ expectedChunkIds: string[]; id: string; question: string; }"
+    },
+    {
+      "name": "RetrievalEvaluationResult",
+      "signature": "{ citationRecall: number; caseId: string; retrievedChunkIds: string[]; }"
+    },
+    {
+      "name": "StreamTextRequest",
+      "signature": "{ messages: ModelMessage[]; }"
+    },
+    {
+      "name": "VectorIndexPort",
+      "signature": "{ delete(input: { recordIds: string[]; workspaceId: string; }): Promise<void>; upsert(input: IndexDocumentRequest): Promise<{ recordIds: string[]; }>; }"
+    },
+    {
+      "name": "assertExactPersonalDataAuthorizationPermit",
+      "signature": "(permit: unknown, descriptor: unknown, options?: { clock?: () => Date; }) => ExactPersonalDataRegistrationDescriptor"
+    },
+    {
+      "name": "assertExactPersonalDataSourceReady",
+      "signature": "(value: unknown, options?: { clock?: () => Date; }) => asserts value is ExactPersonalDataReadiness"
+    },
+    {
+      "name": "assertLiveCapabilityResultPersistable",
+      "signature": "(result: LiveCapabilityResult) => void"
+    },
+    {
+      "name": "authorizeExactPersonalDataSource",
+      "signature": "(value: unknown, options?: { clock?: () => Date; }) => Promise<ExactPersonalDataEnablement>"
+    },
+    {
+      "name": "createAgentRuntime",
+      "signature": "(dependencies: { knowledgeSearch: KnowledgeSearchPort; memorySearch: MemorySearchPort; model: ModelProviderPort; maxOutputChars?: number; }) => { run(input: AgentInput): AgentRun; }"
+    },
+    {
+      "name": "createAnalyzerRegistry",
+      "signature": "(plugins: readonly AnalyzerPlugin[]) => { list: () => string[]; detect(snapshot: AnalyzerSnapshot): Promise<{ confidence: number; roots: readonly string[]; plugin: string; }[]>; get(id: string): AnalyzerPlugin; }"
+    },
+    {
+      "name": "createLiveCapabilityRegistry",
+      "signature": "(definitions: readonly LiveCapabilityDefinition[], options?: { audit?: (event: LiveCapabilityAuditEvent) => Promise<void> | void; clock?: () => Date; }) => LiveCapabilityRegistry"
+    },
+    {
+      "name": "createMcpServer",
+      "signature": "(input: { name: string; version: string; tools: readonly McpToolDefinition[]; }) => { handle(request: McpRequest, context: McpRequestContext): Promise<McpResponse | undefined>; listTools: () => { description: string; inputSchema: Record<string, unknown>; name: string; }[]; }"
+    },
+    {
+      "name": "createMcpToolsFromLiveCapabilities",
+      "signature": "(input: { inputSchema?(definition: { description: string; maxRows: number; name: string; }): Record<string, unknown>; registry: LiveCapabilityRegistry; resolveActor(context: McpRequestContext): LiveCapabilityActor | Promise<LiveCapabilityActor>; }) => McpToolDefinition[]"
+    },
+    {
+      "name": "createModelRouter",
+      "signature": "(entries: readonly ModelRegistryEntry[]) => { list: () => ModelRegistryEntry[]; select(input: ModelRouteInput): ModelRouteDecision; }"
+    },
+    {
+      "name": "createSyntheticExactPersonalDataConformanceAdapter",
+      "signature": "() => ExactPersonalDataConformanceAdapter"
+    },
+    {
+      "name": "createTextDocumentExtraction",
+      "signature": "() => DocumentExtractionPort"
+    },
+    {
+      "name": "defineLiveCapability",
+      "signature": "<T>(input: { description: string; execute(input: { actor: LiveCapabilityActor; input: T; now: Date; }): Promise<readonly LiveCapabilityRow[]>; maxRows: number; name: string; outputPolicy: LiveCapabilityOutputPolicy; parse(input: unknown): T; summarizeInput?(input: T): Readonly<Record<string, boolean | number | string>>; }) => LiveCapabilityDefinition"
+    },
+    {
+      "name": "evaluateRetrievalCase",
+      "signature": "(input: { evaluationCase: RetrievalEvaluationCase; retrievedChunkIds: string[]; }) => RetrievalEvaluationResult"
+    },
+    {
+      "name": "isExactPersonalDataContractRejection",
+      "signature": "(value: unknown) => value is ExactPersonalDataContractRejection"
+    },
+    {
+      "name": "isExpired",
+      "signature": "(createdAt: Date, now: Date, retentionDays: number) => boolean"
+    },
+    {
+      "name": "redactSensitiveRecord",
+      "signature": "<T>(value: T) => T"
+    },
+    {
+      "name": "redactSensitiveText",
+      "signature": "(value: string) => string"
+    },
+    {
+      "name": "runExactPersonalDataConformance",
+      "signature": "(adapter: ExactPersonalDataConformanceAdapter) => Promise<ExactPersonalDataConformanceReport>"
+    },
+    {
+      "name": "validateRetentionPolicy",
+      "signature": "(policy: RetentionPolicy) => void"
+    }
+  ],
+  "previousSurfaceSha256": "4486345c48c7b3c5d6109e30006932a41e52d3d03f0a74caf0047d78ec8ba6b7",
+  "previousReleaseVersion": "1.17.0",
+  "declaredChange": "minor"
+}

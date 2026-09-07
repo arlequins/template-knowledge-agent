@@ -4,6 +4,7 @@ import {
   assertExactPersonalDataAuthorizationPermit,
   assertExactPersonalDataSourceReady,
   authorizeExactPersonalDataSource,
+  isExactPersonalDataContractRejection,
 } from "./privacy-readiness";
 
 const now = new Date("2026-09-01T00:00:00.000Z");
@@ -376,17 +377,167 @@ describe("exact personal-data readiness", () => {
 
   it("keeps the deletion function identity safe after source-contract mutation", async () => {
     const contract = readiness();
+    const originalDelete = contract.deletion.port.requestDeletion;
     const enablement = await authorizeExactPersonalDataSource(contract, {
       clock: () => now,
     });
-    const originalDelete = enablement.descriptor.deletion.port.requestDeletion;
     contract.deletion.port.requestDeletion = vi.fn(async () => undefined);
     const descriptor = assertExactPersonalDataAuthorizationPermit(
       enablement.permit,
       enablement.descriptor,
       { clock: () => now },
     );
-    expect(descriptor.deletion.port.requestDeletion).toBe(originalDelete);
+    expect(descriptor.deletion.port.requestDeletion).not.toBe(originalDelete);
+    const deletionInput = {
+      actor: {
+        authenticated: true as const,
+        permissions: ["privacy:delete"],
+        tenantId: "tenant-a",
+        userId: "user-a",
+        workspaceId: "workspace-a",
+      },
+      purpose: "subject-request" as const,
+      requestedBy: "user-a",
+      sourceId: "customer-contact",
+      subjectId: "subject-a",
+    };
+    await descriptor.deletion.port.requestDeletion(deletionInput);
+    expect(originalDelete).toHaveBeenCalledWith(deletionInput);
+  });
+
+  it("keeps the issued deletion receiver isolated from later target mutation", async () => {
+    const secureDelete = vi.fn(async (_input: unknown) => undefined);
+    const evilDelete = vi.fn(async () => undefined);
+    const port = {
+      target: secureDelete as (input: unknown) => Promise<void>,
+      requestDeletion: secureDelete,
+    };
+    const contract = readiness({
+      deletion: { port, workflowId: "privacy-delete-v1" },
+    });
+    const enablement = await authorizeExactPersonalDataSource(contract, {
+      clock: () => now,
+    });
+    port.target = evilDelete;
+
+    await enablement.descriptor.deletion.port.requestDeletion({
+      actor: {
+        authenticated: true,
+        permissions: ["privacy:delete"],
+        tenantId: "tenant-a",
+        userId: "user-a",
+        workspaceId: "workspace-a",
+      },
+      purpose: "subject-request",
+      requestedBy: "user-a",
+      sourceId: "customer-contact",
+      subjectId: "subject-a",
+    });
+
+    expect(secureDelete).toHaveBeenCalledTimes(1);
+    expect(evilDelete).not.toHaveBeenCalled();
+  });
+
+  it("supports nested mutable adapter state when the callback captures its target", async () => {
+    const secureDelete = vi.fn(async (_input: unknown) => undefined);
+    const evilDelete = vi.fn(async () => undefined);
+    const state = { target: secureDelete };
+    const port = {
+      state,
+      requestDeletion: (
+        (target) => (input: unknown) =>
+          target(input)
+      )(state.target),
+    };
+    const enablement = await authorizeExactPersonalDataSource(
+      readiness({ deletion: { port, workflowId: "privacy-delete-v1" } }),
+      { clock: () => now },
+    );
+    state.target = evilDelete;
+
+    await enablement.descriptor.deletion.port.requestDeletion({
+      actor: {
+        authenticated: true,
+        permissions: ["privacy:delete"],
+        tenantId: "tenant-a",
+        userId: "user-a",
+        workspaceId: "workspace-a",
+      },
+      purpose: "subject-request",
+      requestedBy: "user-a",
+      sourceId: "customer-contact",
+      subjectId: "subject-a",
+    });
+
+    expect(secureDelete).toHaveBeenCalledTimes(1);
+    expect(evilDelete).not.toHaveBeenCalled();
+  });
+
+  it("supports class private-field ports when their method is bound", async () => {
+    const secureDelete = vi.fn(async (_input: unknown) => undefined);
+    class PrivateDeletionPort {
+      readonly #target = secureDelete;
+
+      requestDeletion(input: unknown) {
+        return this.#target(input);
+      }
+    }
+    const port = new PrivateDeletionPort();
+    const enablement = await authorizeExactPersonalDataSource(
+      readiness({
+        deletion: {
+          port: { requestDeletion: port.requestDeletion.bind(port) },
+          workflowId: "privacy-delete-v1",
+        },
+      }),
+      { clock: () => now },
+    );
+
+    await enablement.descriptor.deletion.port.requestDeletion({
+      actor: {
+        authenticated: true,
+        permissions: ["privacy:delete"],
+        tenantId: "tenant-a",
+        userId: "user-a",
+        workspaceId: "workspace-a",
+      },
+      purpose: "subject-request",
+      requestedBy: "user-a",
+      sourceId: "customer-contact",
+      subjectId: "subject-a",
+    });
+
+    expect(secureDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not classify a caller-created rejection-shaped error", () => {
+    const forged = Object.assign(new Error("backend unavailable"), {
+      code: "EXACT_PERSONAL_DATA_CONTRACT_REJECTED",
+      name: "ExactPersonalDataContractRejection",
+    });
+    expect(isExactPersonalDataContractRejection(forged)).toBe(false);
+  });
+
+  it("rejects deletion requests bound to another source", async () => {
+    const contract = readiness();
+    const enablement = await authorizeExactPersonalDataSource(contract, {
+      clock: () => now,
+    });
+    await expect(
+      enablement.descriptor.deletion.port.requestDeletion({
+        actor: {
+          authenticated: true,
+          permissions: ["privacy:delete"],
+          tenantId: "tenant-a",
+          userId: "user-a",
+          workspaceId: "workspace-a",
+        },
+        purpose: "subject-request",
+        requestedBy: "user-a",
+        sourceId: "other-source",
+        subjectId: "subject-a",
+      }),
+    ).rejects.toThrow("deletion sourceId");
   });
 
   it("rejects a different contract even when its values match", async () => {

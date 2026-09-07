@@ -229,6 +229,51 @@ const options = {
 };
 
 describe("weight-training readiness contract", () => {
+  it("uses the full authoritative validator for sensitive training data", async () => {
+    const answerBatch = publicBatch();
+    const answerPattern = answerBatch.patterns.find(
+      (pattern) => pattern.status === "reviewed",
+    );
+    if (!answerPattern) throw new Error("Missing reviewed pattern");
+    answerPattern.answer = `${answerPattern.answer} alice@example.com`;
+    await expect(
+      createTrainingDatasetIdentity({
+        batch: answerBatch,
+        identityVerifier,
+        sourceId: "protected-reviewed-source-v1",
+      }),
+    ).rejects.toThrow("quality gates");
+
+    const evidenceBatch = publicBatch();
+    const evidence = evidenceBatch.evidence[0];
+    if (!evidence) throw new Error("Missing evidence");
+    evidence.text = "Protected contact: sk-test-secret-1234567890";
+    await expect(
+      createTrainingDatasetIdentity({
+        batch: evidenceBatch,
+        identityVerifier,
+        sourceId: "protected-reviewed-source-v1",
+      }),
+    ).rejects.toThrow("quality gates");
+  });
+
+  it("rejects reviewed rows with invalid review timestamps before identity issuance", async () => {
+    const batch = publicBatch();
+    const pattern = batch.patterns.find(
+      (candidate) => candidate.status === "reviewed",
+    );
+    if (pattern?.status !== "reviewed")
+      throw new Error("Missing reviewed pattern");
+    pattern.reviewedAt = "not-a-date";
+    await expect(
+      createTrainingDatasetIdentity({
+        batch,
+        identityVerifier,
+        sourceId: "protected-reviewed-source-v1",
+      }),
+    ).rejects.toThrow("quality gates");
+  });
+
   it("requires external identity verification and freezes canonical identity", async () => {
     const created = await createTrainingDatasetIdentity({
       batch: publicBatch(),

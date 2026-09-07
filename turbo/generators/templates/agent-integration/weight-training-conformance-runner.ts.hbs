@@ -1,0 +1,38 @@
+import { readFileSync } from "node:fs";
+
+import {
+  createSyntheticWeightTrainingConformanceHarness,
+  runWeightTrainingConformanceSuite,
+} from "{{ scope }}/tuning-kit";
+
+const manifest = JSON.parse(
+  readFileSync(
+    new URL("../../integration.manifest.json", import.meta.url),
+    "utf8",
+  ),
+);
+if (manifest.weightTraining?.enabled === true)
+  throw new Error(
+    "Replace the synthetic weight-training conformance runner before enabling this capability",
+  );
+
+const report = await runWeightTrainingConformanceSuite(
+  createSyntheticWeightTrainingConformanceHarness(),
+);
+console.log(
+  JSON.stringify({
+    capability: "weight-training",
+    cases: report.cases.map(({ caseId, issues, status }) => ({
+      id: caseId,
+      issues,
+      status,
+    })),
+    contractVersion: "weight-training-conformance-v1",
+    failedCases: report.cases.filter(({ status }) => status !== "passed")
+      .length,
+    passed: report.passed,
+    passedCases: report.cases.filter(({ status }) => status === "passed")
+      .length,
+    schemaVersion: 1,
+  }),
+);

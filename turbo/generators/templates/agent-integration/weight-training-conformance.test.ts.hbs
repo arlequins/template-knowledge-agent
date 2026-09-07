@@ -1,0 +1,38 @@
+import { readFileSync } from "node:fs";
+
+import { describe, expect, it } from "vitest";
+
+import { createWeightTrainingIntegration } from "../index";
+
+function manifest() {
+  return JSON.parse(
+    readFileSync(
+      new URL("../../integration.manifest.json", import.meta.url),
+      "utf8",
+    ),
+  ) as { weightTraining: { enabled: boolean } };
+}
+
+function requireDerivedHarness(value: {
+  weightTraining: { enabled: boolean };
+}) {
+  if (value.weightTraining.enabled)
+    throw new Error(
+      "Enabled weight-training integration requires replacing this scaffold with a derived conformance harness",
+    );
+}
+
+describe("weight-training integration safety defaults", () => {
+  it("keeps the adapter disabled without a derived harness", () => {
+    const current = manifest();
+    requireDerivedHarness(current);
+    expect(createWeightTrainingIntegration()).toEqual({ enabled: false });
+    expect(current.weightTraining.enabled).toBe(false);
+  });
+
+  it("fails closed when enabled without verifier options", () => {
+    expect(() => createWeightTrainingIntegration({ enabled: true })).toThrow(
+      "verifier options",
+    );
+  });
+});

@@ -56,6 +56,20 @@ export type {
 } from "./ports";
 export { redactSensitiveRecord, redactSensitiveText } from "./privacy";
 export type {
+  ExactPersonalDataConformanceAdapter,
+  ExactPersonalDataConformanceCaseId,
+  ExactPersonalDataConformanceCaseResult,
+  ExactPersonalDataConformanceDeletionObservation,
+  ExactPersonalDataConformanceDeletionRequest,
+  ExactPersonalDataConformanceIssueCode,
+  ExactPersonalDataConformanceReport,
+} from "./privacy-conformance";
+export {
+  createSyntheticExactPersonalDataConformanceAdapter,
+  EXACT_PERSONAL_DATA_CONFORMANCE_CASE_IDS,
+  runExactPersonalDataConformance,
+} from "./privacy-conformance";
+export type {
   ExactPersonalDataApprovalVerifierPort,
   ExactPersonalDataAuthorizationPermit,
   ExactPersonalDataDeletionPort,
@@ -71,6 +85,7 @@ export {
   assertExactPersonalDataAuthorizationPermit,
   assertExactPersonalDataSourceReady,
   authorizeExactPersonalDataSource,
+  isExactPersonalDataContractRejection,
   MAX_EXACT_PERSONAL_DATA_ACCESS_REVIEW_AGE_DAYS,
   MAX_EXACT_PERSONAL_DATA_ACCESS_REVIEW_HORIZON_DAYS,
   MAX_EXACT_PERSONAL_DATA_CACHE_MINUTES,

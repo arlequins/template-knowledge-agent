@@ -59,6 +59,7 @@ Run `pnpm turbo gen` and select one of these generators:
 | `package` | A compiled TypeScript library under `packages/` |
 | `domain` | A DIP-aligned tRPC domain with types, port, service, adapter, composition, use case, router registration, and contract update |
 | `feature` | An independent FSD slice under `features/<name>` across `@arlequins/service` and `@arlequins/trpc`, including its first unit test |
+| `agent-integration` | A secret-free integration package with disabled-by-default privacy and weight-training adapters plus fail-closed tests |
 
 Names must be lowercase kebab-case. The active package scope is read from the initialized workspace instead of being hard-coded.
 
@@ -73,6 +74,16 @@ generated dependency direction intact.
 The older `domain` generator remains for compatibility with existing derived
 repositories. Do not use it for new work; migrate changed capabilities to the
 feature generator one slice at a time.
+
+Use `pnpm turbo gen agent-integration --args customer` to scaffold an explicit
+integration boundary. It creates `packages/customer-integration` and an
+`integration.manifest.json`; both privacy and weight-training capabilities are
+disabled until a derived application supplies its own contracts, verifiers,
+and conformance harness. The generator never creates credentials, provider
+configuration, artifact locators, or production commands.
+The generated package exposes fixed `conformance:privacy` and
+`conformance:weight-training` scripts (and an aggregate `conformance` script),
+so each enabled capability is qualified independently.
 
 ## Fast Feedback
 

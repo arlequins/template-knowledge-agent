@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "packageName": "@arlequins/tuning-kit",
+  "source": "packages/tuning-kit/src/index.ts",
+  "releaseVersion": "1.17.0",
+  "surfaceSha256": "f6057b1afdb7bfd073495b327d67412f2f17033635f2f65bdce2791e5f626002",
+  "exports": [
+    {
+      "name": "BehaviorPackEvaluation",
+      "signature": "{ issues: PatternQualityIssue[]; metrics: { groups: number; languages: number; reviewed: number; test: number; train: number; validation: number; }; passed: boolean; }"
+    },
+    {
+      "name": "BehaviorPackManifest",
+      "signature": "{ behaviorPrompt: string; generatedAt: string; metrics: BehaviorPackEvaluation[\"metrics\"]; model?: { model: string; provider: string; quantization?: string; runtime: string; }; schemaVersion: 1; sourceSha256: string; trainingRows: number; version: string; }"
+    },
+    {
+      "name": "DOCUMENT_QA_PATTERN_KINDS",
+      "signature": "readonly [\"grounded-answer\", \"insufficient-evidence\", \"conflicting-evidence\", \"citation-required\", \"static-vs-live\", \"code-navigation\", \"clarification\", \"prompt-injection-resistance\"]"
+    },
+    {
+      "name": "DocumentQaPatternKind",
+      "signature": "\"grounded-answer\" | \"insufficient-evidence\" | \"conflicting-evidence\" | \"citation-required\" | \"static-vs-live\" | \"code-navigation\" | \"clarification\" | \"prompt-injection-resistance\""
+    },
+    {
+      "name": "PATTERN_LANGUAGES",
+      "signature": "readonly [\"en\", \"ja\", \"ko\"]"
+    },
+    {
+      "name": "PatternBatch",
+      "signature": "{ evidence: PatternEvidence[]; patterns: Array<ReviewedPattern | SyntheticPatternCandidate>; schemaVersion: 1; }"
+    },
+    {
+      "name": "PatternEvidence",
+      "signature": "{ id: string; label: string; locator: string; text: string; }"
+    },
+    {
+      "name": "PatternLanguage",
+      "signature": "\"en\" | \"ja\" | \"ko\""
+    },
+    {
+      "name": "PatternQualityIssue",
+      "signature": "{ code: \"duplicate-answer\" | \"duplicate-question\" | \"forbidden-claim\" | \"invalid-citation\" | \"invalid-field\" | \"missing-citation\" | \"missing-required-term\" | \"near-duplicate-leakage\" | \"possible-sensitive-data\" | \"repeated-sentence\" | \"review-metadata\" | \"split-leakage\"; message: string; evidenceId?: string; patternId?: string; }"
+    },
+    {
+      "name": "PatternQualityReport",
+      "signature": "{ issues: PatternQualityIssue[]; passed: boolean; }"
+    },
+    {
+      "name": "PatternSplit",
+      "signature": "\"test\" | \"train\" | \"validation\""
+    },
+    {
+      "name": "ReviewedPattern",
+      "signature": "Omit<SyntheticPatternCandidate, \"status\"> & { reviewedAt: string; reviewedBy: string; split: PatternSplit; status: \"reviewed\"; }"
+    },
+    {
+      "name": "SyntheticPatternCandidate",
+      "signature": "{ answer: string; evidenceIds: string[]; forbiddenClaims: string[]; generatedBy: string; groupKey: string; id: string; language: PatternLanguage; patternKind: DocumentQaPatternKind; question: string; requiredTerms: string[]; status: \"candidate\"; }"
+    },
+    {
+      "name": "SyntheticPatternGeneratorPort",
+      "signature": "{ generate(seed: SyntheticPatternSeed): Promise<SyntheticPatternCandidate[]>; }"
+    },
+    {
+      "name": "SyntheticPatternSeed",
+      "signature": "{ evidence: PatternEvidence[]; language: PatternLanguage; patternKind: DocumentQaPatternKind; requestedPatterns: number; seedId: string; }"
+    },
+    {
+      "name": "TrainingApproval",
+      "signature": "{ readonly approvedAt: string; readonly approvedBy: string; readonly approvalId: string; readonly baseWeightsSha256: string; readonly datasetSha256: string; readonly decision: \"approved\"; readonly expiresAt: string; readonly policyVersion: string; readonly runId: string; readonly sourceId: string; }"
+    },
+    {
+      "name": "TrainingDatasetIdentity",
+      "signature": "{ readonly canonicalization: \"reviewed-pattern-batch-v2\"; readonly datasetSha256: string; readonly groups: number; readonly rows: Readonly<{ test: number; train: number; validation: number; }>; readonly schemaVersion: 2; readonly sourceBatchSha256: string; readonly sourceId: string; readonly splitSha256: Readonly<{ test: string; train: string; validation: string; }>; }"
+    },
+    {
+      "name": "TrainingDatasetIdentityVerifierPort",
+      "signature": "{ verify(input: { canonicalSourceBytes: string; canonicalTrainJsonl: string; identity: TrainingDatasetIdentity; sourceId: string; }): VerificationResult; }"
+    },
+    {
+      "name": "WEIGHT_TRAINING_CONFORMANCE_CASE_IDS",
+      "signature": "readonly [\"WT-CONFORMANCE-001-default-deny\", \"WT-CONFORMANCE-002-dataset-nfc-split\", \"WT-CONFORMANCE-003-deterministic-identity\", \"WT-CONFORMANCE-004-approval-deadline\", \"WT-CONFORMANCE-005-artifact-content\", \"WT-CONFORMANCE-006-strict-verifiers\", \"WT-CONFORMANCE-007-async-freshness\", \"WT-CONFORMANCE-008-provenance\", \"WT-CONFORMANCE-009-activation-order\", \"WT-CONFORMANCE-010-permit-binding\", \"WT-CONFORMANCE-PROP-001-seeded-determinism\", \"WT-CONFORMANCE-PROP-002-seeded-determinism\", \"WT-CONFORMANCE-PROP-003-seeded-determinism\"]"
+    },
+    {
+      "name": "WEIGHT_TRAINING_GATES",
+      "signature": "readonly [\"split-integrity\", \"held-out\", \"citation\", \"unsupported-claims\", \"repetition\", \"language\", \"privacy\", \"authorization\", \"latency\", \"cost\"]"
+    },
+    {
+      "name": "WeightTrainingActivation",
+      "signature": "{ readonly active: Readonly<{ artifactSha256: string; observedAt: string; runId: string; version: string; }>; readonly applicationReplay: Readonly<{ artifactSha256: string; completedAt: string; passed: true; reportSha256: string; runId: string; suiteId: string; }>; readonly reload: Readonly<{ readinessReportSha256: string; readyAt: string; servedArtifactSha256: string; serverId: string; runId: string; }>; readonly rollback: Readonly<{ targetArtifactSha256: string; targetAvailable: true; verifiedAt: string; runId: string; }>; }"
+    },
+    {
+      "name": "WeightTrainingApprovalVerifierPort",
+      "signature": "{ verifyLicense(input: { approval: TrainingApproval; spec: WeightTrainingRunSpec; }): VerificationResult; verifyPrivacy(input: { approval: TrainingApproval; spec: WeightTrainingRunSpec; }): VerificationResult; }"
+    },
+    {
+      "name": "WeightTrainingArtifact",
+      "signature": "{ readonly artifactSha256: string; readonly locator: string; readonly manifestSha256: string; readonly registryId: string; readonly provenance: Readonly<{ baseModelId: string; baseWeightsSha256: string; createdAt: string; datasetSha256: string; manifestSha256: string; quantization?: string; runId: string; runSpecSha256: string; runtime: string; sourceBatchSha256: string; trainerCodeSha256: string; trainerConfigSha256: string; }>; readonly signature: Readonly<{ algorithm: string; keyId: string; value: string; }>; readonly version: string; }"
+    },
+    {
+      "name": "WeightTrainingArtifactResolution",
+      "signature": "{ readonly artifactBytes: readonly number[]; readonly manifestBytes: readonly number[]; readonly registryId: string; }"
+    },
+    {
+      "name": "WeightTrainingArtifactResolverPort",
+      "signature": "{ resolve(input: { artifact: WeightTrainingArtifact; canonicalArtifactBytes: string; }): WeightTrainingArtifactResolution | Promise<WeightTrainingArtifactResolution>; }"
+    },
+    {
+      "name": "WeightTrainingArtifactSignatureVerifier",
+      "signature": "{ verify(input: { artifact: WeightTrainingArtifact; artifactBytes: readonly number[]; canonicalArtifactBytes: string; manifestBytes: readonly number[]; registryId: string; }): VerificationResult; }"
+    },
+    {
+      "name": "WeightTrainingAuthorization",
+      "signature": "{ readonly descriptor: WeightTrainingAuthorizationDescriptor; readonly permit: WeightTrainingAuthorizationPermit; }"
+    },
+    {
+      "name": "WeightTrainingAuthorizationDescriptor",
+      "signature": "{ readonly activationSha256: string; readonly artifactSha256: string; readonly artifactVersion: string; readonly datasetSha256: string; readonly runId: string; readonly runSpecSha256: string; }"
+    },
+    {
+      "name": "WeightTrainingAuthorizationPermit",
+      "signature": "{ readonly __weightTrainingAuthorization: unique symbol; }"
+    },
+    {
+      "name": "WeightTrainingCandidate",
+      "signature": "{ readonly artifact: WeightTrainingArtifact; readonly gates: Readonly<Record<WeightTrainingGate, WeightTrainingGateResult>>; readonly spec: WeightTrainingRunSpec; }"
+    },
+    {
+      "name": "WeightTrainingConformanceCase",
+      "signature": "{ readonly caseId: WeightTrainingConformanceCaseId; readonly issues: readonly Readonly<{ code: string; }>[]; readonly status: \"failed\" | \"passed\"; }"
+    },
+    {
+      "name": "WeightTrainingConformanceCaseId",
+      "signature": "\"WT-CONFORMANCE-001-default-deny\" | \"WT-CONFORMANCE-002-dataset-nfc-split\" | \"WT-CONFORMANCE-003-deterministic-identity\" | \"WT-CONFORMANCE-004-approval-deadline\" | \"WT-CONFORMANCE-005-artifact-content\" | \"WT-CONFORMANCE-006-strict-verifiers\" | \"WT-CONFORMANCE-007-async-freshness\" | \"WT-CONFORMANCE-008-provenance\" | \"WT-CONFORMANCE-009-activation-order\" | \"WT-CONFORMANCE-010-permit-binding\" | \"WT-CONFORMANCE-PROP-001-seeded-determinism\" | \"WT-CONFORMANCE-PROP-002-seeded-determinism\" | \"WT-CONFORMANCE-PROP-003-seeded-determinism\""
+    },
+    {
+      "name": "WeightTrainingConformanceFixture",
+      "signature": "{ readonly activation: unknown; readonly artifactResolution: WeightTrainingArtifactResolution; readonly batch: PatternBatch; readonly candidate: unknown; readonly identity: TrainingDatasetIdentity; readonly identityVerifier: TrainingDatasetIdentityVerifierPort; readonly options: WeightTrainingConformanceOptions; readonly sourceId: string; }"
+    },
+    {
+      "name": "WeightTrainingConformanceHarness",
+      "signature": "{ createFixture(seed: number): WeightTrainingConformanceFixture | Promise<WeightTrainingConformanceFixture>; }"
+    },
+    {
+      "name": "WeightTrainingConformanceOptions",
+      "signature": "WeightTrainingContractOptions & { signatureVerifier: NonNullable<Parameters<typeof authorizeWeightTrainingCandidate>[1][\"signatureVerifier\"]>; }"
+    },
+    {
+      "name": "WeightTrainingConformanceReport",
+      "signature": "{ readonly cases: readonly WeightTrainingConformanceCase[]; readonly passed: boolean; readonly schemaVersion: 1; readonly seed: number; }"
+    },
+    {
+      "name": "WeightTrainingContractOptions",
+      "signature": "{ approvalVerifier: WeightTrainingApprovalVerifierPort; gateVerifier: WeightTrainingGateEvidenceVerifierPort; now?: () => Date; artifactResolver: WeightTrainingArtifactResolverPort; verifyDatasetIdentity: TrainingDatasetIdentityVerifierPort; }"
+    },
+    {
+      "name": "WeightTrainingContractRejection",
+      "signature": "WeightTrainingContractRejection"
+    },
+    {
+      "name": "WeightTrainingGate",
+      "signature": "\"language\" | \"split-integrity\" | \"held-out\" | \"citation\" | \"unsupported-claims\" | \"repetition\" | \"privacy\" | \"authorization\" | \"latency\" | \"cost\""
+    },
+    {
+      "name": "WeightTrainingGateEvidenceVerifierPort",
+      "signature": "{ verify(input: { artifact: WeightTrainingArtifact; evidence: WeightTrainingGateResult; gate: WeightTrainingGate; spec: WeightTrainingRunSpec; }): VerificationResult; }"
+    },
+    {
+      "name": "WeightTrainingGateResult",
+      "signature": "{ readonly artifactSha256: string; readonly baseWeightsSha256: string; readonly datasetSha256: string; readonly evaluatedAt: string; readonly gate: WeightTrainingGate; readonly passed: true; readonly reportSha256: string; readonly runId: string; readonly suiteId: string; readonly trainerConfigSha256: string; }"
+    },
+    {
+      "name": "WeightTrainingIssue",
+      "signature": "{ code: \"approval-expired\" | \"approval-invalid\" | \"artifact-invalid\" | \"artifact-mismatch\" | \"budget-invalid\" | \"candidate-invalid\" | \"date-invalid\" | \"dataset-invalid\" | \"gate-invalid\" | \"identity-invalid\" | \"provenance-invalid\" | \"signature-invalid\" | \"activation-invalid\"; message: string; path?: string; }"
+    },
+    {
+      "name": "WeightTrainingRunSpec",
+      "signature": "{ readonly approvals: Readonly<{ license: TrainingApproval; privacy: TrainingApproval; }>; readonly baseModel: Readonly<{ modelId: string; quantization?: string; runtime: string; weightsSha256: string; }>; readonly budget: Readonly<{ leaseSeconds: number; maxConcurrentRuns: number; maxCostUsd: number; maxDurationSeconds: number; }>; readonly coordination: Readonly<{ idempotencyKey: string; leaseKey: string; }>; readonly createdAt: string; readonly dataset: TrainingDatasetIdentity; readonly runId: string; readonly schemaVersion: 2; readonly trainer: Readonly<{ codeSha256: string; configSha256: string; id: string; version: string; }>; }"
+    },
+    {
+      "name": "WeightTrainingValidationReport",
+      "signature": "{ readonly issues: readonly WeightTrainingIssue[]; readonly passed: boolean; }"
+    },
+    {
+      "name": "assertWeightTrainingActivationReady",
+      "signature": "(candidate: WeightTrainingCandidate, value: unknown, options?: { now?: () => Date; }) => asserts value is WeightTrainingActivation"
+    },
+    {
+      "name": "assertWeightTrainingAuthorizationPermit",
+      "signature": "(permit: unknown, descriptor: unknown, options?: { now?: () => Date; }) => asserts descriptor is WeightTrainingAuthorizationDescriptor"
+    },
+    {
+      "name": "assignDeterministicSplits",
+      "signature": "<T extends { groupKey: string; }>(patterns: readonly T[]) => Array<T & { split: PatternSplit; }>"
+    },
+    {
+      "name": "authorizeWeightTraining",
+      "signature": "(candidate: unknown, activation: unknown, options: WeightTrainingContractOptions & { signatureVerifier: WeightTrainingArtifactSignatureVerifier; }) => Promise<WeightTrainingAuthorization>"
+    },
+    {
+      "name": "authorizeWeightTrainingCandidate",
+      "signature": "(value: unknown, options: WeightTrainingContractOptions & { signatureVerifier: WeightTrainingArtifactSignatureVerifier; }) => Promise<WeightTrainingCandidate>"
+    },
+    {
+      "name": "compareCanonicalText",
+      "signature": "(left: string, right: string) => number"
+    },
+    {
+      "name": "compileReviewedBehaviorPrompt",
+      "signature": "(batch: PatternBatch, options?: { language?: PatternLanguage; maxExamples?: number; }) => string"
+    },
+    {
+      "name": "createSyntheticWeightTrainingConformanceHarness",
+      "signature": "() => WeightTrainingConformanceHarness"
+    },
+    {
+      "name": "createTrainingDatasetIdentity",
+      "signature": "(input: { batch: PatternBatch; identityVerifier: TrainingDatasetIdentityVerifierPort; sourceId: string; }) => Promise<{ identity: TrainingDatasetIdentity; jsonl: string; }>"
+    },
+    {
+      "name": "createWeightTrainingIdempotencyKey",
+      "signature": "(input: { spec: WeightTrainingRunSpec; }) => any"
+    },
+    {
+      "name": "createWeightTrainingRunSpecDigest",
+      "signature": "(input: { spec: WeightTrainingRunSpec; }) => any"
+    },
+    {
+      "name": "evaluateReviewedBehaviorPack",
+      "signature": "(batch: PatternBatch, options?: { minimumTrainPatterns?: number; }) => BehaviorPackEvaluation"
+    },
+    {
+      "name": "exportReviewedTrainingJsonl",
+      "signature": "(batch: PatternBatch) => string"
+    },
+    {
+      "name": "isWeightTrainingContractRejection",
+      "signature": "(value: unknown) => value is WeightTrainingContractRejection"
+    },
+    {
+      "name": "parseBehaviorPackManifest",
+      "signature": "(value: unknown) => BehaviorPackManifest | undefined"
+    },
+    {
+      "name": "runWeightTrainingConformanceSuite",
+      "signature": "(harness: WeightTrainingConformanceHarness, options?: { seed?: number; }) => Promise<WeightTrainingConformanceReport>"
+    },
+    {
+      "name": "validatePatternBatch",
+      "signature": "(batch: PatternBatch) => PatternQualityReport"
+    },
+    {
+      "name": "validateSyntheticPatternSeed",
+      "signature": "(seed: SyntheticPatternSeed) => PatternQualityReport"
+    },
+    {
+      "name": "validateWeightTrainingRunSpec",
+      "signature": "(value: unknown, options: WeightTrainingContractOptions) => Promise<WeightTrainingValidationReport>"
+    }
+  ],
+  "previousSurfaceSha256": "435f834c94ae7a46ffcded61ff3a2cd79408a35b4e5d4c119351e81172f496b1",
+  "previousReleaseVersion": "1.17.0",
+  "declaredChange": "minor"
+}
