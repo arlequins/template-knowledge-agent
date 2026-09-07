@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { lstatSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { relative, resolve, sep } from "node:path";
 import type { PlopTypes } from "@turbo/gen";
 
 const SLUG_PATTERN = /^[a-z][a-z0-9-]*$/;
@@ -60,6 +61,96 @@ function scaffoldActions(kind: "apps" | "packages") {
   ];
 }
 
+function isInside(parent: string, candidate: string) {
+  const path = relative(parent, candidate);
+  return path === "" || (!path.startsWith(`..${sep}`) && path !== "..");
+}
+
+function assertSafeIntegrationTarget(name: string) {
+  const workspaceRoot = resolve(process.cwd());
+  const packagesRoot = resolve(workspaceRoot, "packages");
+  const target = resolve(packagesRoot, `${name}-integration`);
+  if (!isInside(workspaceRoot, target) || !isInside(packagesRoot, target))
+    throw new Error("Integration target must remain inside packages");
+
+  const packagesRealPath = realpathSync(packagesRoot);
+  if (!isInside(workspaceRoot, packagesRealPath))
+    throw new Error(
+      "Workspace packages directory must remain inside the repository",
+    );
+
+  let current = workspaceRoot;
+  for (const segment of relative(workspaceRoot, target).split(sep)) {
+    current = resolve(current, segment);
+    const metadata = lstatSync(current, { throwIfNoEntry: false });
+    if (metadata?.isSymbolicLink())
+      throw new Error(
+        `Integration target path cannot contain a symlink: ${current}`,
+      );
+  }
+  if (lstatSync(target, { throwIfNoEntry: false }))
+    throw new Error(
+      `Integration target already exists: packages/${name}-integration`,
+    );
+  if (
+    !isInside(
+      packagesRealPath,
+      resolve(packagesRealPath, `${name}-integration`),
+    )
+  )
+    throw new Error(
+      "Integration target must remain inside the real packages directory",
+    );
+}
+
+function integrationScaffoldActions() {
+  return [
+    (answers: Record<string, unknown>) => {
+      const name = sanitizeName(String(answers.name));
+      try {
+        assertSafeIntegrationTarget(name);
+      } catch (error) {
+        // Turbo can catch action errors and otherwise return a successful CLI
+        // status. Preserve the failure for callers that qualify the generator.
+        process.exitCode = 1;
+        throw error;
+      }
+      return undefined;
+    },
+    ...[
+      ["package.json", "package.json.hbs"],
+      ["tsconfig.json", "tsconfig.json.hbs"],
+      ["integration.manifest.json", "integration.manifest.json.hbs"],
+      ["src/index.ts", "index.ts.hbs"],
+      ["src/privacy-adapter.ts", "privacy-adapter.ts.hbs"],
+      ["src/weight-training-adapter.ts", "weight-training-adapter.ts.hbs"],
+      ["src/conformance/privacy.test.ts", "privacy-conformance.test.ts.hbs"],
+      [
+        "src/conformance/privacy-runner.ts",
+        "privacy-conformance-runner.ts.hbs",
+      ],
+      [
+        "src/conformance/weight-training.test.ts",
+        "weight-training-conformance.test.ts.hbs",
+      ],
+      [
+        "src/conformance/weight-training-runner.ts",
+        "weight-training-conformance-runner.ts.hbs",
+      ],
+    ].map(([path, template]) => ({
+      type: "add",
+      path: `packages/{{ name }}-integration/${path}`,
+      templateFile: `templates/agent-integration/${template}`,
+    })),
+    () => {
+      execFileSync("pnpm", ["install", "--no-frozen-lockfile"], {
+        stdio: "inherit",
+      });
+      return "Agent integration scaffolded with privacy and weight-training disabled";
+    },
+  ];
+}
+
 function addDomainToContract(domain: string) {
   const path = "packages/trpc/src/contract.test.ts";
   const source = readFileSync(path, "utf8");
@@ -112,6 +203,13 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
     description: "Generate a compiled TypeScript package workspace",
     prompts: [namePrompt],
     actions: scaffoldActions("packages"),
+  });
+
+  plop.setGenerator("agent-integration", {
+    description:
+      "Generate a secret-free, disabled-by-default privacy and weight-training integration package",
+    prompts: [namePrompt],
+    actions: integrationScaffoldActions(),
   });
 
   plop.setGenerator("domain", {

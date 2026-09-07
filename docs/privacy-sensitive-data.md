@@ -97,11 +97,51 @@ path. Successful authorization returns a frozen, module-issued opaque permit
 and an immutable registration descriptor. The derived source-registration
 boundary must pass both to `assertExactPersonalDataAuthorizationPermit`, which
 returns the descriptor snapshot to use. Registration code therefore does not
-re-read a mutable readiness object. The snapshot preserves the deletion
-function identity and binds the permit to its UI route/version and expiry
-evidence. This catches copied, fabricated, or cross-contract permits; the
+re-read a mutable readiness object. The deletion callback must be
+receiver-independent: expose a closure/arrow function or bind a class method
+when constructing the adapter. Authorization captures that callback, while
+the descriptor binds the permit to its UI route/version and expiry evidence.
+This catches copied, fabricated, or cross-contract permits; the
 template cannot stop a derived developer from bypassing its API, so code review
 and integration tests remain required.
+
+### Deterministic conformance kit
+
+Derived repositories can run the provider-neutral conformance kit with a
+synthetic adapter before connecting any production source. The adapter supplies
+case-specific readiness contracts, a deterministic clock, fake deletion-port
+observations, and a model-context exclusion check:
+
+```ts
+import {
+  createSyntheticExactPersonalDataConformanceAdapter,
+  runExactPersonalDataConformance,
+} from "@arlequins/agent-core";
+
+const report = await runExactPersonalDataConformance(
+  createSyntheticExactPersonalDataConformanceAdapter(),
+);
+if (!report.passed) throw new Error("privacy conformance failed");
+```
+
+The exported 27-case suite covers default-deny and verifier/evidence binding,
+tenant/workspace/actor/purpose scope, retention and cache bounds, deletion
+idempotency/audit/propagation, stale or future approvals and reviews,
+slow-verifier expiry, descriptor/permit forgery/copy/mutation/reuse, earliest
+expiry, and model-context exclusion. A derived adapter may replace the
+synthetic fixture with its own synthetic harness. Reports contain only the
+stable contract version, case IDs, `passed`/`failed` status, counts, and stable
+issue codes; they never include source values, raw errors, or credentials.
+Only the library's stable contract-rejection type counts as an expected denial;
+adapter, backend, and internal exceptions remain `unexpected_failure`.
+
+The integration qualifier accepts a capability-specific JSON envelope on stdout
+only when it has the expected schema, contract version, capability, complete
+stable case-ID list, `passed: true`, zero failed cases, and no case issues.
+Empty, partial, duplicate, wrong-capability, or otherwise fake reports fail
+closed. The generated runner emits a synthetic envelope while disabled and
+refuses to run as an enabled production harness; replace it with a derived
+application harness before enabling the manifest capability.
 
 All contract timestamps must use canonical RFC3339 UTC form
 `YYYY-MM-DDTHH:mm:ss.sssZ`; timezone-less, locale-formatted, offset, and
@@ -110,12 +150,21 @@ and due within 365 days. Privacy-owner acceptance is at most 365 days old and
 must have a future expiry no more than 365 days ahead. Structured UI approvals
 are at most 90 days old and their expiry is no more than 365 days ahead.
 
-The deletion port receives an authenticated actor with tenant and workspace
-context plus an explicit purpose. The derived repository must prove in
+The registration descriptor captures a receiver-independent deletion callback
+at issuance, so later mutation of the original port cannot replace the
+authorized operation. Bind class methods or use closure/arrow callbacks when
+constructing the adapter, and capture only immutable routing dependencies. The
+boundary fixes callback identity; it cannot freeze hidden mutable closure or
+bound-receiver state. The port receives an authenticated
+actor with tenant and workspace context plus an explicit purpose. The derived
+repository must prove in
 integration tests that deletion is idempotent, auditable, propagates to every
 approved copy, and never exposes the source through the model allowlist. Passing
 the gate does not permit exact values to enter model context, conversation
 history, logs, feedback, evaluation, or tuning exports.
+The immutable descriptor wraps this port with a source binding and rejects a
+deletion request whose `sourceId` differs from the registered source; the
+conformance suite includes a forged-source deletion case.
 
 ## Bedrock Guardrail integration
 

@@ -1,0 +1,33 @@
+{
+  "name": "{{ scope }}/{{ name }}-integration",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "conformance": "pnpm run conformance:privacy && pnpm run conformance:weight-training",
+    "conformance:privacy": "tsx src/conformance/privacy-runner.ts",
+    "conformance:weight-training": "tsx src/conformance/weight-training-runner.ts",
+    "format": "biome format .",
+    "lint": "biome lint .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "{{ scope }}/agent-core": "workspace:*",
+    "{{ scope }}/tuning-kit": "workspace:*"
+  },
+  "devDependencies": {
+    "{{ scope }}/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

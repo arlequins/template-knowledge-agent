@@ -1,0 +1,32 @@
+import { readFileSync } from "node:fs";
+
+import {
+  createSyntheticExactPersonalDataConformanceAdapter,
+  runExactPersonalDataConformance,
+} from "{{ scope }}/agent-core";
+
+const manifest = JSON.parse(
+  readFileSync(
+    new URL("../../integration.manifest.json", import.meta.url),
+    "utf8",
+  ),
+);
+if (manifest.privacy?.enabled === true)
+  throw new Error(
+    "Replace the synthetic privacy conformance runner before enabling this capability",
+  );
+
+const report = await runExactPersonalDataConformance(
+  createSyntheticExactPersonalDataConformanceAdapter(),
+);
+console.log(
+  JSON.stringify({
+    capability: "privacy",
+    cases: report.cases,
+    contractVersion: report.contractVersion,
+    failedCases: report.failedCases,
+    passed: report.passed,
+    passedCases: report.passedCases,
+    schemaVersion: 1,
+  }),
+);

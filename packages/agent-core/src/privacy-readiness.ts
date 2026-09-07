@@ -20,6 +20,30 @@ const DAY_IN_MS = 86_400_000;
 
 declare const exactPersonalDataAuthorizationBrand: unique symbol;
 
+const exactPersonalDataContractRejections = new WeakSet<object>();
+
+/** A module-private rejection whose stable code is safe to project publicly. */
+class ExactPersonalDataContractRejection extends Error {
+  readonly code = "EXACT_PERSONAL_DATA_CONTRACT_REJECTED" as const;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ExactPersonalDataContractRejection";
+    exactPersonalDataContractRejections.add(this);
+    Object.freeze(this);
+  }
+}
+
+export function isExactPersonalDataContractRejection(
+  value: unknown,
+): value is ExactPersonalDataContractRejection {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    exactPersonalDataContractRejections.has(value)
+  );
+}
+
 /** A module-issued permit; its runtime identity cannot be recreated by callers. */
 export type ExactPersonalDataAuthorizationPermit = {
   readonly [exactPersonalDataAuthorizationBrand]: "exact-personal-data";
@@ -124,6 +148,13 @@ export type ExactPersonalDataStructuredUiContract = {
 };
 
 export type ExactPersonalDataDeletionPort = {
+  /**
+   * Receiver-independent callback. Bind a class method or expose an arrow
+   * function at adapter construction; the registration boundary invokes this
+   * callback without a dynamic `this` receiver. The callback must capture only
+   * immutable routing dependencies because hidden mutable closure or bound
+   * receiver state cannot be frozen by the registration boundary.
+   */
   requestDeletion(input: {
     actor: {
       authenticated: true;
@@ -182,26 +213,32 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function requireNonEmptyString(value: unknown, label: string): string {
   if (typeof value !== "string" || value.trim().length === 0)
-    throw new Error(`Exact personal-data readiness requires ${label}`);
+    throw new ExactPersonalDataContractRejection(
+      `Exact personal-data readiness requires ${label}`,
+    );
   return value;
 }
 
 function requireIsoDate(value: unknown, label: string): Date {
   const text = requireNonEmptyString(value, label);
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(text))
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       `${label} must be a canonical RFC3339 UTC timestamp (YYYY-MM-DDTHH:mm:ss.sssZ)`,
     );
   const date = new Date(text);
   if (Number.isNaN(date.getTime()) || date.toISOString() !== text)
-    throw new Error(`Invalid ${label} in exact personal-data readiness`);
+    throw new ExactPersonalDataContractRejection(
+      `Invalid ${label} in exact personal-data readiness`,
+    );
   return date;
 }
 
 function requireCurrentDate(value: unknown, label: string, now: Date): Date {
   const date = requireIsoDate(value, label);
   if (date.getTime() > now.getTime())
-    throw new Error(`${label} cannot be in the future`);
+    throw new ExactPersonalDataContractRejection(
+      `${label} cannot be in the future`,
+    );
   return date;
 }
 
@@ -223,7 +260,7 @@ function requireApprovalVerifier(
     typeof value.verifyStructuredUi !== "function" ||
     typeof value.verifyPrivacyOwnerAcceptance !== "function"
   )
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data source requires an approval identity verifier",
     );
   return value as ExactPersonalDataApprovalVerifierPort;
@@ -236,7 +273,9 @@ function requireMatchingString(
 ): string {
   const value = requireNonEmptyString(actual, label);
   if (value !== expected)
-    throw new Error(`Exact personal-data approval evidence mismatch: ${label}`);
+    throw new ExactPersonalDataContractRejection(
+      `Exact personal-data approval evidence mismatch: ${label}`,
+    );
   return value;
 }
 
@@ -254,28 +293,38 @@ export function assertExactPersonalDataSourceReady(
 ): asserts value is ExactPersonalDataReadiness {
   const now = options.clock?.() ?? new Date();
   if (!(now instanceof Date) || Number.isNaN(now.getTime()))
-    throw new Error("Exact personal-data readiness clock must be valid");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data readiness clock must be valid",
+    );
   if (!isRecord(value))
-    throw new Error("Exact personal-data source is disabled without readiness");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data source is disabled without readiness",
+    );
 
   const sourceId = requireNonEmptyString(value.sourceId, "sourceId");
   if (sourceId.length > 128)
-    throw new Error("Exact personal-data sourceId is too long");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data sourceId is too long",
+    );
   requireApprovalVerifier(value.approvalVerifier);
 
   const structuredUi = value.structuredUi;
   if (!isRecord(structuredUi))
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data source requires structured UI approval",
     );
   if (structuredUi.transport !== "non-model")
-    throw new Error("Exact personal-data UI must use non-model transport");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data UI must use non-model transport",
+    );
   if (structuredUi.modelAccess !== "excluded")
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data UI must be excluded from model context",
     );
   if (structuredUi.authorization !== "explicit")
-    throw new Error("Exact personal-data UI requires explicit authorization");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data UI requires explicit authorization",
+    );
   const uiRoute = requireNonEmptyString(
     structuredUi.route,
     "structuredUi.route",
@@ -289,10 +338,14 @@ export function assertExactPersonalDataSourceReady(
     "structuredUi.authorizedBy",
   );
   if (!isStructuredUiApproverRole(structuredUi.approverRole))
-    throw new Error("Exact personal-data UI requires a valid approver role");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data UI requires a valid approver role",
+    );
   const uiApprovalEvidence = structuredUi.approvalEvidence;
   if (!isRecord(uiApprovalEvidence))
-    throw new Error("Exact personal-data UI requires approval evidence");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data UI requires approval evidence",
+    );
   requireNonEmptyString(uiApprovalEvidence.approvalId, "approvalId");
   requireMatchingString(
     uiApprovalEvidence.sourceId,
@@ -309,7 +362,7 @@ export function assertExactPersonalDataSourceReady(
     "approvalEvidence.policyVersion",
   );
   if (uiApprovalEvidence.approverRole !== structuredUi.approverRole)
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data UI approval evidence mismatch: approverRole",
     );
   requireMatchingString(
@@ -345,20 +398,30 @@ export function assertExactPersonalDataSourceReady(
     now.getTime() - uiAuthorizedAt.getTime() >
     MAX_EXACT_PERSONAL_DATA_STRUCTURED_UI_APPROVAL_AGE_DAYS * DAY_IN_MS
   )
-    throw new Error("Exact personal-data UI approval is too old");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data UI approval is too old",
+    );
   if (uiApprovalExpiresAt.getTime() <= now.getTime())
-    throw new Error("Exact personal-data UI approval is expired");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data UI approval is expired",
+    );
   if (
     uiApprovalExpiresAt.getTime() - now.getTime() >
     MAX_EXACT_PERSONAL_DATA_STRUCTURED_UI_APPROVAL_HORIZON_DAYS * DAY_IN_MS
   )
-    throw new Error("Exact personal-data UI approval expiry is too distant");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data UI approval expiry is too distant",
+    );
   if (uiApprovalExpiresAt.getTime() <= uiAuthorizedAt.getTime())
-    throw new Error("Exact personal-data UI approval expiry is invalid");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data UI approval expiry is invalid",
+    );
 
   const retention = value.retention;
   if (!isRecord(retention))
-    throw new Error("Exact personal-data source requires retention controls");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data source requires retention controls",
+    );
   const maxDays = retention.maxDays;
   if (
     typeof maxDays !== "number" ||
@@ -366,7 +429,7 @@ export function assertExactPersonalDataSourceReady(
     maxDays < 1 ||
     maxDays > MAX_EXACT_PERSONAL_DATA_RETENTION_DAYS
   )
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       `Exact personal-data retention must be between 1 and ${MAX_EXACT_PERSONAL_DATA_RETENTION_DAYS} days`,
     );
   const cacheMaxMinutes = retention.cacheMaxMinutes;
@@ -376,23 +439,29 @@ export function assertExactPersonalDataSourceReady(
     cacheMaxMinutes < 0 ||
     cacheMaxMinutes > MAX_EXACT_PERSONAL_DATA_CACHE_MINUTES
   )
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       `Exact personal-data cache retention must be between 0 and ${MAX_EXACT_PERSONAL_DATA_CACHE_MINUTES} minutes`,
     );
 
   const deletion = value.deletion;
   if (!isRecord(deletion))
-    throw new Error("Exact personal-data source requires a deletion workflow");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data source requires a deletion workflow",
+    );
   requireNonEmptyString(deletion.workflowId, "deletion.workflowId");
   if (
     !isRecord(deletion.port) ||
     typeof deletion.port.requestDeletion !== "function"
   )
-    throw new Error("Exact personal-data source requires a deletion port");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data source requires a deletion port",
+    );
 
   const accessReview = value.accessReview;
   if (!isRecord(accessReview))
-    throw new Error("Exact personal-data source requires access review");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data source requires access review",
+    );
   requireNonEmptyString(accessReview.reviewerId, "accessReview.reviewerId");
   const reviewedAt = requireCurrentDate(
     accessReview.reviewedAt,
@@ -407,28 +476,34 @@ export function assertExactPersonalDataSourceReady(
     now.getTime() - reviewedAt.getTime() >
     MAX_EXACT_PERSONAL_DATA_ACCESS_REVIEW_AGE_DAYS * DAY_IN_MS
   )
-    throw new Error("Exact personal-data access review is too old");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data access review is too old",
+    );
   if (reviewDueAt.getTime() <= now.getTime())
-    throw new Error("Exact personal-data access review is expired");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data access review is expired",
+    );
   if (
     reviewDueAt.getTime() - now.getTime() >
     MAX_EXACT_PERSONAL_DATA_ACCESS_REVIEW_HORIZON_DAYS * DAY_IN_MS
   )
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data access review due date is too distant",
     );
   if (reviewDueAt.getTime() <= reviewedAt.getTime())
-    throw new Error("Exact personal-data access review due date is invalid");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data access review due date is invalid",
+    );
 
   const acceptance = value.privacyOwnerAcceptance;
   if (!isRecord(acceptance) || acceptance.accepted !== true)
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data source requires privacy-owner acceptance",
     );
   requireNonEmptyString(acceptance.ownerId, "privacyOwnerAcceptance.ownerId");
   const acceptanceEvidence = acceptance.acceptanceEvidence;
   if (!isRecord(acceptanceEvidence))
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data source requires privacy-owner acceptance evidence",
     );
   requireNonEmptyString(acceptanceEvidence.acceptanceId, "acceptanceId");
@@ -438,7 +513,7 @@ export function assertExactPersonalDataSourceReady(
     "acceptanceEvidence.subject",
   );
   if (acceptanceEvidence.approverRole !== "privacy-owner")
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data acceptance evidence requires privacy-owner role",
     );
   requireNonEmptyString(
@@ -477,18 +552,22 @@ export function assertExactPersonalDataSourceReady(
     now.getTime() - acceptedAt.getTime() >
     MAX_EXACT_PERSONAL_DATA_PRIVACY_OWNER_ACCEPTANCE_AGE_DAYS * DAY_IN_MS
   )
-    throw new Error("Exact personal-data privacy-owner acceptance is too old");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data privacy-owner acceptance is too old",
+    );
   if (acceptanceExpiresAt.getTime() <= now.getTime())
-    throw new Error("Exact personal-data privacy-owner acceptance is expired");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data privacy-owner acceptance is expired",
+    );
   if (
     acceptanceExpiresAt.getTime() - now.getTime() >
     MAX_EXACT_PERSONAL_DATA_PRIVACY_OWNER_ACCEPTANCE_HORIZON_DAYS * DAY_IN_MS
   )
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data privacy-owner acceptance expiry is too distant",
     );
   if (acceptanceExpiresAt.getTime() <= acceptedAt.getTime())
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data privacy-owner acceptance expiry is invalid",
     );
 }
@@ -512,7 +591,7 @@ async function verifyApprovalEvidence(
       value.structuredUi.approvalEvidence,
     )
   )
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data structured-UI verifier rejected or returned mismatched evidence",
     );
 
@@ -533,7 +612,7 @@ async function verifyApprovalEvidence(
       value.privacyOwnerAcceptance.acceptanceEvidence,
     )
   )
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data privacy-owner verifier rejected or returned mismatched evidence",
     );
 }
@@ -575,11 +654,22 @@ function privacyOwnerEvidenceMatches(
 function createRegistrationDescriptor(
   value: ExactPersonalDataReadiness,
 ): ExactPersonalDataRegistrationDescriptor {
+  const requestDeletion = value.deletion.port.requestDeletion;
+  const sourceId = value.sourceId;
+  const sourceBoundRequestDeletion = async (
+    input: Parameters<ExactPersonalDataDeletionPort["requestDeletion"]>[0],
+  ): Promise<void> => {
+    if (input.sourceId !== sourceId)
+      throw new ExactPersonalDataContractRejection(
+        "Exact personal-data deletion sourceId does not match the registration descriptor",
+      );
+    await requestDeletion(input);
+  };
   return Object.freeze({
     accessReview: Object.freeze({ ...value.accessReview }),
     deletion: Object.freeze({
       port: Object.freeze({
-        requestDeletion: value.deletion.port.requestDeletion,
+        requestDeletion: sourceBoundRequestDeletion,
       }),
       workflowId: value.deletion.workflowId,
     }),
@@ -752,15 +842,21 @@ export function assertExactPersonalDataAuthorizationPermit(
       ? authorizationPermitMetadata.get(permit)
       : undefined;
   if (!metadata || descriptor !== metadata.descriptor)
-    throw new Error(
+    throw new ExactPersonalDataContractRejection(
       "Exact personal-data source requires its module-issued permit and exact registration descriptor",
     );
   const now = options.clock?.() ?? new Date();
   if (!(now instanceof Date) || Number.isNaN(now.getTime()))
-    throw new Error("Exact personal-data permit clock must be valid");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data permit clock must be valid",
+    );
   if (new Date(metadata.expiresAt).getTime() <= now.getTime())
-    throw new Error("Exact personal-data authorization permit is expired");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data authorization permit is expired",
+    );
   if (!Object.isFrozen(metadata.descriptor))
-    throw new Error("Exact personal-data registration descriptor is mutable");
+    throw new ExactPersonalDataContractRejection(
+      "Exact personal-data registration descriptor is mutable",
+    );
   return metadata.descriptor;
 }

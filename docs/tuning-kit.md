@@ -152,6 +152,24 @@ provider-specific output guards, and integration tests. Do not advertise a
 weight-training command from a generated repository until those operations are
 implemented and the permit is checked at its boundary.
 
+### Conformance suite
+
+For local reference tests, createSyntheticWeightTrainingConformanceHarness()
+supplies a deterministic, content-free fixture; it is not a trainer or a
+production artifact provider. Derived repositories must replace it with their
+own protected ports before enabling production training.
+
+`runWeightTrainingConformanceSuite` is the reusable release gate for a derived
+repository. The repository supplies only a `createFixture(seed)` harness port
+with synthetic/protected dataset, artifact, approval, gate, signature, and
+activation evidence. The suite checks NFC split leakage, deterministic
+identity/idempotency, exact bindings and deadlines, immutable artifact/manifest
+bytes and registry identity, strict verifiers, async freshness, provenance,
+activation chronology, rollback/replay, permit binding, and default-deny. Its
+machine-readable report contains stable case IDs, status, and redacted issue
+codes only; dataset/artifact contents and verifier error strings are excluded.
+Pass an explicit seed to reproduce the dependency-free property cases.
+
 ## Fast qualification loop
 
 1. Keep a stable held-out question and expected evidence.

@@ -108,6 +108,23 @@ verifier, coordinator/lease 저장소, artifact registry와 서명 키, 제공�
 및 통합 테스트를 구현해야 한다. 이 작업이 끝나고 경계에서 permit과 descriptor를
 검사하기 전에는 weight-training 명령을 공개하지 않는다.
 
+### Conformance suite
+
+로컬 reference 테스트에서는 createSyntheticWeightTrainingConformanceHarness()를
+사용할 수 있다. 이는 결정적이고 내용이 없는 fixture일 뿐 trainer나 production artifact
+provider가 아니다. production training을 활성화하기 전에 파생 레포는 보호된 자체
+port로 교체해야 한다.
+
+`runWeightTrainingConformanceSuite`는 파생 레포의 재사용 가능한 릴리스 게이트다.
+레포는 synthetic/protected dataset, artifact, approval, gate, signature,
+activation 증적을 만드는 `createFixture(seed)` harness port만 제공한다. suite는
+NFC split leakage, 결정적 identity/idempotency, 정확한 binding과 deadline,
+불변 artifact/manifest bytes와 registry identity, strict verifier, async freshness,
+provenance, activation chronology, rollback/replay, permit binding, default-deny를
+검사한다. 반환 report는 stable case ID, 상태와 redacted issue code만 포함하며
+dataset·artifact 내용과 verifier 오류 문자열은 제외한다. 명시적 seed로 의존성 없는
+property case를 재현할 수 있다.
+
 빠른 개선 순서는 다음과 같다.
 
 1. 바뀌지 않는 보류 질문과 기대 근거를 정한다.

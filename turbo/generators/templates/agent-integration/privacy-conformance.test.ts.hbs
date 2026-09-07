@@ -1,0 +1,36 @@
+import { readFileSync } from "node:fs";
+
+import { describe, expect, it } from "vitest";
+
+import { createPrivacyIntegration } from "../index";
+
+function manifest() {
+  return JSON.parse(
+    readFileSync(
+      new URL("../../integration.manifest.json", import.meta.url),
+      "utf8",
+    ),
+  ) as { privacy: { enabled: boolean } };
+}
+
+function requireDerivedHarness(value: { privacy: { enabled: boolean } }) {
+  if (value.privacy.enabled)
+    throw new Error(
+      "Enabled privacy integration requires replacing this scaffold with a derived conformance harness",
+    );
+}
+
+describe("privacy integration safety defaults", () => {
+  it("keeps the adapter disabled without a derived harness", () => {
+    const current = manifest();
+    requireDerivedHarness(current);
+    expect(createPrivacyIntegration()).toEqual({ enabled: false });
+    expect(current.privacy.enabled).toBe(false);
+  });
+
+  it("fails closed when enabled without a readiness contract", () => {
+    expect(() => createPrivacyIntegration({ enabled: true })).toThrow(
+      "readiness contract",
+    );
+  });
+});
