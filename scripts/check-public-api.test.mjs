@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -111,16 +111,22 @@ describe("baseline lifecycle", () => {
   it("initializes and records release metadata, hashes, and declared change", async () => {
     const directory = await mkdtemp(join(tmpdir(), "public-api-baseline-"));
     try {
+      const baselineDirectory = join(directory, "baselines");
+      const repositoryVersion = "9.8.7";
+      await writeFile(
+        join(directory, "package.json"),
+        JSON.stringify({ version: repositoryVersion }),
+      );
       const snapshots = PUBLIC_API_TARGETS.map((target) =>
         snapshotPublicApi({ ...target, repositoryRoot: REPOSITORY_ROOT }),
       );
       const initial = initializePublicApiBaselines({
-        baselineDirectory: directory,
-        repositoryRoot: REPOSITORY_ROOT,
+        baselineDirectory,
+        repositoryRoot: directory,
         snapshots,
       });
       assert.equal(initial.length, 2);
-      assert.equal(initial[0].releaseVersion, "1.17.0");
+      assert.equal(initial[0].releaseVersion, repositoryVersion);
       const changed = snapshots.map((value, index) =>
         index === 0
           ? {
@@ -133,25 +139,25 @@ describe("baseline lifecycle", () => {
           : value,
       );
       const updated = updatePublicApiBaselines({
-        baselineDirectory: directory,
+        baselineDirectory,
         declaredChange: "minor",
-        repositoryRoot: REPOSITORY_ROOT,
+        repositoryRoot: directory,
         snapshots: changed,
       });
       assert.equal(updated[0].previousSurfaceSha256, initial[0].surfaceSha256);
       assert.equal(updated[0].surfaceSha256, snapshotSha256(changed[0]));
       assert.equal(updated[0].declaredChange, "minor");
-      assert.equal(updated[0].previousReleaseVersion, "1.17.0");
+      assert.equal(updated[0].previousReleaseVersion, repositoryVersion);
       const persisted = JSON.parse(
-        await readFile(join(directory, "agent-core.json"), "utf8"),
+        await readFile(join(baselineDirectory, "agent-core.json"), "utf8"),
       );
       assert.deepEqual(persisted, updated[0]);
       await assert.rejects(
         async () =>
           updatePublicApiBaselines({
-            baselineDirectory: directory,
+            baselineDirectory,
             declaredChange: "minor",
-            repositoryRoot: REPOSITORY_ROOT,
+            repositoryRoot: directory,
             snapshots: snapshots.map((value, index) =>
               index === 0
                 ? {
