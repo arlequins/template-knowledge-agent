@@ -2,6 +2,121 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+const MAX_ANSWER_CHARS = 100_000;
+const MAX_CITATION_CHARS = 50_000;
+const MAX_CITATIONS = 12;
+const MAX_IDENTIFIER_CHARS = 256;
+
+function boundedString(value, field, limit) {
+  if (typeof value !== "string" || value.length > limit)
+    throw new Error(`Replay returned an invalid ${field}`);
+  return value;
+}
+
+function boundedBehaviorPack(value) {
+  if (value == null) return null;
+  if (typeof value !== "object" || Array.isArray(value))
+    throw new Error("Replay returned an invalid behavior pack");
+  return {
+    generatedAt: boundedString(
+      value.generatedAt,
+      "behavior pack timestamp",
+      MAX_IDENTIFIER_CHARS,
+    ),
+    model:
+      value.model == null
+        ? null
+        : boundedString(
+            JSON.stringify(value.model),
+            "behavior pack model",
+            MAX_IDENTIFIER_CHARS,
+          ),
+    version: boundedString(
+      value.version,
+      "behavior pack version",
+      MAX_IDENTIFIER_CHARS,
+    ),
+  };
+}
+
+/**
+ * Converts untrusted HTTP responses into a bounded evidence record. These
+ * records are review artifacts only and are never loaded as configuration,
+ * code, prompts, or executable input.
+ */
+export function serializeReplayEvidence(result) {
+  if (!Array.isArray(result?.answers))
+    throw new Error("Replay returned invalid answers");
+  const answers = result.answers.map((answer) => {
+    if (
+      !Array.isArray(answer.citations) ||
+      answer.citations.length > MAX_CITATIONS
+    )
+      throw new Error("Replay returned invalid citations");
+    return {
+      answer: boundedString(answer.answer, "answer", MAX_ANSWER_CHARS),
+      caseId: boundedString(answer.caseId, "case id", MAX_IDENTIFIER_CHARS),
+      citationCount: answer.citations.length,
+      citations: answer.citations.map((citation) => ({
+        content: boundedString(
+          citation.content,
+          "citation content",
+          MAX_CITATION_CHARS,
+        ),
+        filename: boundedString(
+          citation.filename,
+          "citation filename",
+          MAX_IDENTIFIER_CHARS,
+        ),
+        locator:
+          citation.locator == null
+            ? null
+            : boundedString(
+                citation.locator,
+                "citation locator",
+                MAX_IDENTIFIER_CHARS,
+              ),
+      })),
+      latencyMs:
+        Number.isSafeInteger(answer.latencyMs) && answer.latencyMs >= 0
+          ? answer.latencyMs
+          : 0,
+      model:
+        answer.model == null
+          ? null
+          : boundedString(answer.model, "model", MAX_IDENTIFIER_CHARS),
+    };
+  });
+  const runtime = {
+    behaviorPack: boundedBehaviorPack(result.runtime?.behaviorPack),
+    behaviorPackStatus:
+      result.runtime?.behaviorPackStatus == null
+        ? null
+        : boundedString(
+            result.runtime.behaviorPackStatus,
+            "behavior pack status",
+            MAX_IDENTIFIER_CHARS,
+          ),
+    modelId:
+      result.runtime?.modelId == null
+        ? null
+        : boundedString(
+            result.runtime.modelId,
+            "model id",
+            MAX_IDENTIFIER_CHARS,
+          ),
+    modelProvider:
+      result.runtime?.modelProvider == null
+        ? null
+        : boundedString(
+            result.runtime.modelProvider,
+            "model provider",
+            MAX_IDENTIFIER_CHARS,
+          ),
+  };
+  return { answers, runtime };
+}
+
 /** Exercise the same authenticated completion and persistence path as the UI. */
 export async function replayAgent({
   baseUrl,
@@ -102,21 +217,25 @@ if (
         "Usage: pnpm pilot:replay <api-url> <workspace-id> <cases.json>; set AGENT_REPLAY_TOKEN",
       );
     const manifest = JSON.parse(await readFile(resolve(casesPath), "utf8"));
-    const result = await replayAgent({
-      baseUrl,
-      workspaceId,
-      cases: manifest.cases,
-      // biome-ignore lint/suspicious/noUndeclaredEnvVars: direct CLI credential, never a cached Turbo task.
-      token: process.env.AGENT_REPLAY_TOKEN,
-    });
+    const result = serializeReplayEvidence(
+      await replayAgent({
+        baseUrl,
+        workspaceId,
+        cases: manifest.cases,
+        // biome-ignore lint/suspicious/noUndeclaredEnvVars: direct CLI credential, never a cached Turbo task.
+        token: process.env.AGENT_REPLAY_TOKEN,
+      }),
+    );
     const directory = resolve(".local/evaluations");
     await mkdir(directory, { recursive: true, mode: 0o700 });
     const id = new Date().toISOString().replaceAll(":", "-");
+    // codeql[js/http-to-file-access]: Bounded review evidence stays in ignored .local storage and is never executed or loaded as configuration.
     await writeFile(
       resolve(directory, `${id}.answers.json`),
       JSON.stringify(result.answers, null, 2),
       { flag: "wx", mode: 0o600 },
     );
+    // codeql[js/http-to-file-access]: Bounded metadata snapshot stays in ignored .local storage and is never executed or loaded as configuration.
     await writeFile(
       resolve(directory, `${id}.runtime.json`),
       JSON.stringify(result.runtime, null, 2),

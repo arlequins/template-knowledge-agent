@@ -1,6 +1,69 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { replayAgent } from "./replay-agent.mjs";
+import { replayAgent, serializeReplayEvidence } from "./replay-agent.mjs";
+
+test("writes only bounded evaluation evidence, not complete service responses", () => {
+  const snapshot = serializeReplayEvidence({
+    runtime: {
+      behaviorPack: {
+        generatedAt: "2026-09-07T00:00:00.000Z",
+        model: { provider: "local" },
+        version: "daily-test",
+      },
+      modelId: "local",
+      ignored: "not persisted",
+    },
+    answers: [
+      {
+        answer: "Grounded answer",
+        caseId: "purpose",
+        citations: [
+          { content: "Evidence", filename: "README.md", locator: "L1" },
+        ],
+        conversationId: "never persisted",
+        latencyMs: 10,
+        messageId: "never persisted",
+        model: "local",
+      },
+    ],
+  });
+  assert.deepEqual(snapshot, {
+    runtime: {
+      behaviorPack: {
+        generatedAt: "2026-09-07T00:00:00.000Z",
+        model: '{"provider":"local"}',
+        version: "daily-test",
+      },
+      behaviorPackStatus: null,
+      modelId: "local",
+      modelProvider: null,
+    },
+    answers: [
+      {
+        answer: "Grounded answer",
+        caseId: "purpose",
+        citationCount: 1,
+        citations: [
+          { content: "Evidence", filename: "README.md", locator: "L1" },
+        ],
+        latencyMs: 10,
+        model: "local",
+      },
+    ],
+  });
+  assert.throws(() =>
+    serializeReplayEvidence({
+      answers: [
+        {
+          answer: "x".repeat(100_001),
+          caseId: "a",
+          citations: [],
+          latencyMs: 0,
+        },
+      ],
+    }),
+  );
+});
 
 test("replays isolated conversations through authenticated application endpoints", async () => {
   const calls = [];
