@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.18.0...v1.19.0) (2026-09-08)
+
+
+### Features
+
+* **agent:** add authenticated answer replay and evidence evaluation ([#89](https://github.com/arlequins/template-knowledge-agent/issues/89)) ([c55bd61](https://github.com/arlequins/template-knowledge-agent/commit/c55bd61781ee6fbc99ad34e7a578493624c221dd))
+
 ## [1.18.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.17.0...v1.18.0) (2026-09-07)
 
 
