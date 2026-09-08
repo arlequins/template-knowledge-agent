@@ -8,6 +8,7 @@ const REPOSITORY_ROOT = resolve(
 );
 
 export type PilotCase = {
+  expectedFiles?: string[];
   expectedBehavior?: string;
   forbiddenClaims?: string[];
   id: string;
@@ -16,6 +17,7 @@ export type PilotCase = {
 };
 
 export type PilotAnswer = {
+  citations?: Array<{ filename: string; content: string }>;
   answer: string;
   caseId: string;
   citationCount?: number;
@@ -48,9 +50,30 @@ export function evaluatePilotAnswers(
   cases: readonly PilotCase[],
   answers: readonly PilotAnswer[],
 ): PilotAnswerEvaluation {
-  const byId = new Map(answers.map((answer) => [answer.caseId, answer]));
-  const answerOwners = new Map<string, string>();
   const failures: Array<{ caseId: string; reasons: string[] }> = [];
+  if (cases.length === 0)
+    failures.push({ caseId: "$suite", reasons: ["empty evaluation suite"] });
+  const caseIds = new Set<string>();
+  for (const testCase of cases) {
+    if (caseIds.has(testCase.id))
+      failures.push({ caseId: testCase.id, reasons: ["duplicate case id"] });
+    caseIds.add(testCase.id);
+  }
+  const byId = new Map<string, PilotAnswer>();
+  for (const answer of answers) {
+    if (!caseIds.has(answer.caseId))
+      failures.push({
+        caseId: answer.caseId,
+        reasons: ["unknown answer case"],
+      });
+    if (byId.has(answer.caseId))
+      failures.push({
+        caseId: answer.caseId,
+        reasons: ["duplicate answer case"],
+      });
+    byId.set(answer.caseId, answer);
+  }
+  const answerOwners = new Map<string, string>();
   for (const testCase of cases) {
     const answer = byId.get(testCase.id);
     const reasons: string[] = [];
@@ -70,12 +93,30 @@ export function evaluatePilotAnswers(
     for (const claim of testCase.forbiddenClaims ?? [])
       if (text.includes(normalized(claim)))
         reasons.push(`forbidden claim: ${claim}`);
-    if (testCase.kind !== "refusal" && answer?.citationCount === 0)
+    if (
+      testCase.kind !== "refusal" &&
+      (!Number.isSafeInteger(answer?.citationCount) ||
+        (answer?.citationCount ?? 0) < 1)
+    )
       reasons.push("missing citation");
+    if (testCase.expectedFiles?.length) {
+      const citations = answer?.citations ?? [];
+      if (
+        !citations.some(
+          (citation) =>
+            testCase.expectedFiles?.includes(
+              citation.filename.replaceAll("\\", "/"),
+            ) && citation.content.trim(),
+        )
+      )
+        reasons.push("missing expected source");
+    }
     if (reasons.length) failures.push({ caseId: testCase.id, reasons });
   }
+  const failedCaseIds = new Set(failures.map((failure) => failure.caseId));
   const passRate = cases.length
-    ? (cases.length - failures.length) / cases.length
+    ? cases.filter((testCase) => !failedCaseIds.has(testCase.id)).length /
+      cases.length
     : 0;
   return {
     cases: cases.length,

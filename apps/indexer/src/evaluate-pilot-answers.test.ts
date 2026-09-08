@@ -3,6 +3,74 @@ import { describe, expect, it } from "vitest";
 import { evaluatePilotAnswers } from "./evaluate-pilot-answers";
 
 describe("pilot answer evaluation", () => {
+  it("does not accept an unrelated retrieved source as expected evidence", () => {
+    const cases = [
+      {
+        id: "purpose",
+        kind: "retrieval" as const,
+        expectedFiles: ["README.md"],
+      },
+    ];
+    const answer = {
+      caseId: "purpose",
+      answer: "The repository purpose.",
+      citationCount: 1,
+    };
+    expect(
+      evaluatePilotAnswers(cases, [
+        {
+          ...answer,
+          citations: [{ filename: "unrelated.md", content: "Other content" }],
+        },
+      ]).passed,
+    ).toBe(false);
+    expect(
+      evaluatePilotAnswers(cases, [
+        { ...answer, citations: [{ filename: "README.md", content: "" }] },
+      ]).passed,
+    ).toBe(false);
+    expect(
+      evaluatePilotAnswers(cases, [
+        {
+          ...answer,
+          citations: [{ filename: "README.md", content: "Repository purpose" }],
+        },
+      ]).passed,
+    ).toBe(true);
+  });
+  it("rejects empty suites and ambiguous or unknown answer identities", () => {
+    expect(evaluatePilotAnswers([], []).passed).toBe(false);
+    const testCase = { id: "one", kind: "refusal" as const };
+    const answer = { caseId: "one", answer: "No evidence available." };
+    expect(evaluatePilotAnswers([testCase, testCase], [answer]).passed).toBe(
+      false,
+    );
+    expect(evaluatePilotAnswers([testCase], [answer, answer]).passed).toBe(
+      false,
+    );
+    expect(
+      evaluatePilotAnswers([testCase], [answer, { ...answer, caseId: "other" }])
+        .passed,
+    ).toBe(false);
+  });
+
+  it("requires a positive integer citation count for evidence answers", () => {
+    for (const citationCount of [undefined, 0, -1, 0.5, Number.NaN, Infinity]) {
+      const result = evaluatePilotAnswers(
+        [{ id: "one", kind: "retrieval" }],
+        [
+          {
+            caseId: "one",
+            answer: "An otherwise plausible answer.",
+            citationCount,
+          },
+        ],
+      );
+      expect(result.passed).toBe(false);
+      expect(result.failures[0]?.reasons).toContain("missing citation");
+    }
+  });
+
   it("checks required terms, citations, and refusal claims", () => {
     const result = evaluatePilotAnswers(
       [
