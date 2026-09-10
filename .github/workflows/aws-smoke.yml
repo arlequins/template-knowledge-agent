@@ -22,12 +22,38 @@ permissions:
   contents: read
 
 jobs:
-  smoke:
+  preflight:
     environment: sandbox
-    strategy:
-      fail-fast: false
-      matrix:
-        preset: [function-url, api-gateway]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      function_url_configured: ${{ steps.endpoints.outputs.function_url_configured }}
+      gateway_url_configured: ${{ steps.endpoints.outputs.gateway_url_configured }}
+    steps:
+      - name: Detect configured sandbox endpoints
+        id: endpoints
+        env:
+          FUNCTION_URL: ${{ inputs.function_url || vars.AWS_SMOKE_FUNCTION_URL }}
+          GATEWAY_URL: ${{ inputs.gateway_url || vars.AWS_SMOKE_GATEWAY_URL }}
+        run: |
+          if [ -n "$FUNCTION_URL" ]; then
+            echo "function_url_configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "function_url_configured=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$GATEWAY_URL" ]; then
+            echo "gateway_url_configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "gateway_url_configured=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -z "$FUNCTION_URL" ] && [ -z "$GATEWAY_URL" ]; then
+            echo "::notice title=Sandbox smoke skipped::No sandbox endpoint is configured. Set an environment variable or supply a workflow input to enable this smoke test."
+          fi
+
+  smoke-function-url:
+    needs: preflight
+    if: ${{ needs.preflight.outputs.function_url_configured == 'true' }}
+    environment: sandbox
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -37,17 +63,36 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-      - name: Select sandbox URL
+      - name: Select sandbox Function URL
         id: endpoint
         env:
           FUNCTION_URL: ${{ inputs.function_url || vars.AWS_SMOKE_FUNCTION_URL }}
+        run: |
+          URL="$FUNCTION_URL"
+          node -e 'const value = process.argv[1]; const url = new URL(value); if (url.protocol !== "https:") throw new Error("Smoke endpoint must use HTTPS");' "$URL"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+      - name: Smoke test
+        run: node scripts/smoke-api.mjs "${{ steps.endpoint.outputs.url }}"
+
+  smoke-api-gateway:
+    needs: preflight
+    if: ${{ needs.preflight.outputs.gateway_url_configured == 'true' }}
+    environment: sandbox
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Select sandbox API Gateway URL
+        id: endpoint
+        env:
           GATEWAY_URL: ${{ inputs.gateway_url || vars.AWS_SMOKE_GATEWAY_URL }}
         run: |
-          if [ "${{ matrix.preset }}" = "function-url" ]; then
-            URL="$FUNCTION_URL"
-          else
-            URL="$GATEWAY_URL"
-          fi
+          URL="$GATEWAY_URL"
           node -e 'const value = process.argv[1]; const url = new URL(value); if (url.protocol !== "https:") throw new Error("Smoke endpoint must use HTTPS");' "$URL"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
       - name: Smoke test
