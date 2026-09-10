@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.1](https://github.com/arlequins/template-knowledge-agent/compare/v1.19.0...v1.19.1) (2026-09-10)
+
+
+### Bug Fixes
+
+* **ci:** skip unconfigured sandbox endpoints ([#92](https://github.com/arlequins/template-knowledge-agent/issues/92)) ([468c9f7](https://github.com/arlequins/template-knowledge-agent/commit/468c9f780d575fad31119de6a92e25002460cc8e))
+
 ## [1.19.0](https://github.com/arlequins/template-knowledge-agent/compare/v1.18.0...v1.19.0) (2026-09-08)
 
 
