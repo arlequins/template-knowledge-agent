@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.4](https://github.com/arlequins/template-knowledge-agent/compare/v1.19.3...v1.19.4) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps:** resolve remaining Dependabot vulnerabilities ([#105](https://github.com/arlequins/template-knowledge-agent/issues/105)) ([b385e84](https://github.com/arlequins/template-knowledge-agent/commit/b385e84b590632becfc52d67cfb10780e08dab14))
+
 ## [1.19.3](https://github.com/arlequins/template-knowledge-agent/compare/v1.19.2...v1.19.3) (2026-10-31)
 
 
