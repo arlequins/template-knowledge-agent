@@ -19,12 +19,12 @@ if (packageJson.pnpm?.overrides) {
 
 const expectedOverrides = {
   "@types/minimatch": "6.0.0",
-  "brace-expansion": "2.1.4",
+  "brace-expansion": "2.1.7",
   esbuild: "0.28.1",
   lightningcss: "1.32.0",
   nanoid: "3.3.18",
   postcss: "8.5.24",
-  sharp: "0.35.4",
+  sharp: "0.35.5",
 };
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
