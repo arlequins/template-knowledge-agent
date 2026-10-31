@@ -77,3 +77,24 @@ jobs:
           artifact-name: sbom.spdx.json
           format: spdx-json
           output-file: ./sbom.spdx.json
+
+  dependency-graph:
+    name: Submit verified dependency graph
+    needs: supply-chain
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'schedule')
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Submit current dependency snapshot
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          dependency-snapshot: true
+          upload-artifact: false
+          upload-release-assets: false
