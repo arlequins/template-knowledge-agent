@@ -12,7 +12,7 @@ catalog:
   '@aws-sdk/client-sqs': ^3.1092.0
   '@aws-sdk/s3-request-presigner': ^3.1092.0
   '@opentelemetry/api': ^1.9.0
-  '@opentelemetry/auto-instrumentations-node': ^0.78.0
+  '@opentelemetry/auto-instrumentations-node': ^0.79.0
   '@opentelemetry/exporter-metrics-otlp-http': ^0.221.0
   '@opentelemetry/exporter-trace-otlp-http': ^0.221.0
   '@opentelemetry/resources': ^2.10.0
@@ -78,7 +78,7 @@ onlyBuiltDependencies:
 
 overrides:
   '@types/minimatch': 6.0.0
-  brace-expansion: 2.1.7
+  'brace-expansion@>=2.0.0 <2.1.7': 2.1.7
   esbuild: 0.28.1
   lightningcss: 1.32.0
   nanoid: 3.3.18
@@ -92,3 +92,5 @@ overrides:
   'undici@>=8.0.0 <8.12.2': 8.12.2
   'zod@<4.6.6': 4.6.6
   'nanoid@<3.3.18': 3.3.18
+  'glob@>=9.0.0 <14.0.2': ^14.0.3
+  'minimatch@<11.0.1': ^11.0.3
