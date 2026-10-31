@@ -19,7 +19,7 @@ if (packageJson.pnpm?.overrides) {
 
 const expectedOverrides = {
   "@types/minimatch": "6.0.0",
-  "brace-expansion": "2.1.7",
+  "brace-expansion@>=2.0.0 <2.1.7": "2.1.7",
   esbuild: "0.28.1",
   lightningcss: "1.32.0",
   nanoid: "3.3.18",
