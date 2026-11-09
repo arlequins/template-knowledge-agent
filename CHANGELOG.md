@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.5](https://github.com/arlequins/template-knowledge-agent/compare/v1.19.4...v1.19.5) (2026-11-09)
+
+
+### Bug Fixes
+
+* **cache:** bypass oversized S3 cache writes ([#107](https://github.com/arlequins/template-knowledge-agent/issues/107)) ([77b918e](https://github.com/arlequins/template-knowledge-agent/commit/77b918e557679cc31f177c4a37802f9dc879c0c6))
+
 ## [1.19.4](https://github.com/arlequins/template-knowledge-agent/compare/v1.19.3...v1.19.4) (2026-10-31)
 
 
